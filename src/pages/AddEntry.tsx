@@ -152,7 +152,7 @@ const AddEntry = () => {
 
   if (checking) {
     return (
-      <div className="flex items-center justify-center py-20 lg:ml-56">
+      <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
@@ -160,7 +160,7 @@ const AddEntry = () => {
 
   if (!canLog) {
     return (
-      <div className="lg:ml-56 max-w-2xl animate-fade-in">
+      <div className="max-w-2xl animate-fade-in">
         <Card className="border-primary/30">
           <CardContent className="py-12 text-center space-y-4">
             <Clock className="h-12 w-12 text-primary mx-auto" />
@@ -192,7 +192,7 @@ const AddEntry = () => {
     ];
 
     return (
-      <div className="lg:ml-56 max-w-2xl animate-fade-in space-y-6">
+      <div className="max-w-2xl animate-fade-in space-y-6">
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="py-8 text-center space-y-3">
             <PartyPopper className="h-12 w-12 text-primary mx-auto" />
@@ -248,7 +248,7 @@ const AddEntry = () => {
   ] as const;
 
   return (
-    <div className="lg:ml-56 max-w-2xl animate-fade-in">
+    <div className="max-w-2xl animate-fade-in">
       <Card>
         <CardHeader>
           <CardTitle className="font-display text-xl">Log Bi-Weekly Progress</CardTitle>

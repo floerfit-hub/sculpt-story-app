@@ -38,7 +38,7 @@ const Charts = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 lg:ml-56">
+      <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
@@ -46,7 +46,7 @@ const Charts = () => {
 
   if (entries.length < 2) {
     return (
-      <div className="lg:ml-56 py-20 text-center text-muted-foreground animate-fade-in">
+      <div className="py-20 text-center text-muted-foreground animate-fade-in">
         <p>Add at least 2 entries to see charts.</p>
       </div>
     );
@@ -61,7 +61,7 @@ const Charts = () => {
   ];
 
   return (
-    <div className="lg:ml-56 space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <h1 className="text-2xl font-display font-bold">Progress Charts</h1>
       {charts.map((chart) => (
         <Card key={chart.dataKey}>

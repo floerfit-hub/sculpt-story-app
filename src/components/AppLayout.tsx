@@ -1,93 +1,63 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Dumbbell, LayoutDashboard, PlusCircle, BarChart3, Images, Users, LogOut, Calculator } from "lucide-react";
+import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, Lightbulb, UserCircle } from "lucide-react";
+import InstallPrompt from "@/components/InstallPrompt";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
-  const { user, isCoach, profile, signOut } = useAuth();
+  const { profile } = useAuth();
   const location = useLocation();
 
   const navItems = [
-    { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/add-entry", icon: PlusCircle, label: "Add Entry" },
-    { to: "/charts", icon: BarChart3, label: "Charts" },
-    { to: "/photos", icon: Images, label: "Photos" },
-    { to: "/calculator", icon: Calculator, label: "Calculator" },
+    { to: "/", icon: LayoutDashboard, label: "Home" },
+    { to: "/add-entry", icon: PlusCircle, label: "Track" },
+    { to: "/calculator", icon: Calculator, label: "Macros" },
+    { to: "/insights", icon: Lightbulb, label: "Insights" },
+    { to: "/profile", icon: UserCircle, label: "Profile" },
   ];
-
-  if (isCoach) {
-    navItems.push({ to: "/coach", icon: Users, label: "Clients" });
-  }
 
   return (
     <div className="min-h-screen bg-background">
       {/* Top bar */}
-      <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-sm">
-        <div className="container flex h-16 items-center justify-between">
+      <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-sm safe-top">
+        <div className="flex h-14 items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
-              <Dumbbell className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
+              <Dumbbell className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="font-display text-lg font-semibold">FitTrack</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-muted-foreground sm:inline">
-              {profile?.full_name || user?.email}
-            </span>
-            <Button variant="ghost" size="icon" onClick={signOut}>
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
+          <span className="text-sm text-muted-foreground truncate max-w-[140px]">
+            {profile?.full_name || ""}
+          </span>
         </div>
       </header>
 
       {/* Content */}
-      <main className="container py-6 pb-24 lg:pb-6">{children}</main>
+      <main className="px-4 py-5 pb-24 lg:pb-6 max-w-2xl mx-auto">{children}</main>
 
-      {/* Bottom nav (mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm lg:hidden">
-        <div className="flex justify-around py-2">
+      {/* Bottom nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm safe-bottom">
+        <div className="flex justify-around py-1.5 max-w-lg mx-auto">
           {navItems.map((item) => {
             const active = location.pathname === item.to;
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex flex-col items-center gap-1 px-3 py-1.5 text-xs transition-colors ${
+                className={`flex flex-col items-center gap-0.5 px-2 py-1.5 text-[11px] transition-colors min-w-[56px] ${
                   active ? "text-primary" : "text-muted-foreground"
                 }`}
               >
-                <item.icon className="h-5 w-5" />
-                {item.label}
+                <item.icon className={`h-5 w-5 ${active ? "scale-110" : ""} transition-transform`} />
+                <span className="font-medium">{item.label}</span>
               </Link>
             );
           })}
         </div>
       </nav>
 
-      {/* Side nav (desktop) - hidden on mobile, integrated in top bar area */}
-      <div className="fixed left-0 top-16 hidden w-56 border-r bg-card p-4 lg:block" style={{ height: "calc(100vh - 4rem)" }}>
-        <nav className="space-y-1">
-          {navItems.map((item) => {
-            const active = location.pathname === item.to;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                  active
-                    ? "bg-accent text-accent-foreground font-medium"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+      <InstallPrompt />
     </div>
   );
 };

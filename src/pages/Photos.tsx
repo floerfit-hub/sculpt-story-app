@@ -49,14 +49,14 @@ const Photos = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 lg:ml-56">
+      <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="lg:ml-56 space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <h1 className="text-2xl font-display font-bold">Progress Photos</h1>
 
       {/* Comparison view */}

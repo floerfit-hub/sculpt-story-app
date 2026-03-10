@@ -102,4 +102,27 @@
   .gradient-primary {
     background: linear-gradient(135deg, hsl(142 60% 45%), hsl(142 71% 55%));
   }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Smooth scrolling and touch */
+html {
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+/* Remove all content from desktop sidebar since we use bottom nav now */
+@media (min-width: 1024px) {
+  main {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
