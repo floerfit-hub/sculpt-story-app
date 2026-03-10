@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, LayoutDashboard, PlusCircle, BarChart3, Images, Users, LogOut } from "lucide-react";
+import { Dumbbell, LayoutDashboard, PlusCircle, BarChart3, Images, Users, LogOut, Calculator } from "lucide-react";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const { user, isCoach, profile, signOut } = useAuth();
