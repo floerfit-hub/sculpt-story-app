@@ -160,7 +160,7 @@ const AddEntry = () => {
 
   if (!canLog) {
     return (
-      <div className="lg:ml-56 max-w-2xl animate-fade-in">
+      <div className="max-w-2xl animate-fade-in">
         <Card className="border-primary/30">
           <CardContent className="py-12 text-center space-y-4">
             <Clock className="h-12 w-12 text-primary mx-auto" />
