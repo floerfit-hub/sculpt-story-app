@@ -46,7 +46,7 @@ const Charts = () => {
 
   if (entries.length < 2) {
     return (
-      <div className="lg:ml-56 py-20 text-center text-muted-foreground animate-fade-in">
+      <div className="py-20 text-center text-muted-foreground animate-fade-in">
         <p>Add at least 2 entries to see charts.</p>
       </div>
     );
