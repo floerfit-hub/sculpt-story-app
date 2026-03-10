@@ -11,6 +11,7 @@ import AddEntry from "@/pages/AddEntry";
 import Charts from "@/pages/Charts";
 import Photos from "@/pages/Photos";
 import CoachView from "@/pages/CoachView";
+import Calculator from "@/pages/Calculator";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/add-entry" element={<ProtectedRoute><AddEntry /></ProtectedRoute>} />
             <Route path="/charts" element={<ProtectedRoute><Charts /></ProtectedRoute>} />
             <Route path="/photos" element={<ProtectedRoute><Photos /></ProtectedRoute>} />
+            <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
             <Route path="/coach" element={<ProtectedRoute><CoachView /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

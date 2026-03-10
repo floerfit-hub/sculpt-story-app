@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, LayoutDashboard, PlusCircle, BarChart3, Images, Users, LogOut } from "lucide-react";
+import { Dumbbell, LayoutDashboard, PlusCircle, BarChart3, Images, Users, LogOut, Calculator } from "lucide-react";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const { user, isCoach, profile, signOut } = useAuth();
@@ -13,6 +13,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     { to: "/add-entry", icon: PlusCircle, label: "Add Entry" },
     { to: "/charts", icon: BarChart3, label: "Charts" },
     { to: "/photos", icon: Images, label: "Photos" },
+    { to: "/calculator", icon: Calculator, label: "Calculator" },
   ];
 
   if (isCoach) {
