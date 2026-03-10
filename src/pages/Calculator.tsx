@@ -233,7 +233,7 @@ const CalculatorPage = () => {
     ];
 
     return (
-      <div className="lg:ml-56 space-y-6 animate-fade-in max-w-xl mx-auto">
+      <div className="space-y-6 animate-fade-in max-w-xl mx-auto">
         <div className="text-center">
           <h1 className="text-2xl font-display font-bold">Your Results</h1>
           <p className="text-muted-foreground text-sm mt-1">Personalized nutrition targets</p>
