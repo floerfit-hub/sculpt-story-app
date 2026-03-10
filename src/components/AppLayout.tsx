@@ -13,6 +13,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     { to: "/add-entry", icon: PlusCircle, label: "Add Entry" },
     { to: "/charts", icon: BarChart3, label: "Charts" },
     { to: "/photos", icon: Images, label: "Photos" },
+    { to: "/calculator", icon: Calculator, label: "Calculator" },
   ];
 
   if (isCoach) {
