@@ -248,7 +248,7 @@ const AddEntry = () => {
   ] as const;
 
   return (
-    <div className="lg:ml-56 max-w-2xl animate-fade-in">
+    <div className="max-w-2xl animate-fade-in">
       <Card>
         <CardHeader>
           <CardTitle className="font-display text-xl">Log Bi-Weekly Progress</CardTitle>

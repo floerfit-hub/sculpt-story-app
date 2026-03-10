@@ -61,7 +61,7 @@ const Charts = () => {
   ];
 
   return (
-    <div className="lg:ml-56 space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <h1 className="text-2xl font-display font-bold">Progress Charts</h1>
       {charts.map((chart) => (
         <Card key={chart.dataKey}>

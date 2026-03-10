@@ -78,7 +78,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="lg:ml-56 space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-bold">

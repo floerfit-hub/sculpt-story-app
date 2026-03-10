@@ -303,7 +303,7 @@ const CalculatorPage = () => {
   const currentStep = STEPS[step];
 
   return (
-    <div className="lg:ml-56 space-y-6 animate-fade-in max-w-xl mx-auto">
+    <div className="space-y-6 animate-fade-in max-w-xl mx-auto">
       <div className="text-center">
         <h1 className="text-2xl font-display font-bold flex items-center justify-center gap-2">
           <CalcIcon className="h-6 w-6 text-primary" />
