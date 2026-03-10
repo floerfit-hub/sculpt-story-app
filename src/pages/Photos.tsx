@@ -49,7 +49,7 @@ const Photos = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 lg:ml-56">
+      <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
