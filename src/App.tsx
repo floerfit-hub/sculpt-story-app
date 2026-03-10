@@ -11,6 +11,7 @@ import AddEntry from "@/pages/AddEntry";
 import Charts from "@/pages/Charts";
 import Photos from "@/pages/Photos";
 import CoachView from "@/pages/CoachView";
+import Calculator from "@/pages/Calculator";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
