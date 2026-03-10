@@ -192,7 +192,7 @@ const AddEntry = () => {
     ];
 
     return (
-      <div className="lg:ml-56 max-w-2xl animate-fade-in space-y-6">
+      <div className="max-w-2xl animate-fade-in space-y-6">
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="py-8 text-center space-y-3">
             <PartyPopper className="h-12 w-12 text-primary mx-auto" />
