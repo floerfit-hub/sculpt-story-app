@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { PlusCircle, TrendingDown, TrendingUp, Minus, Scale, Ruler, Activity, Clock, Pencil, Trash2 } from "lucide-react";
+import MuscleHeatmap from "@/components/workout/MuscleHeatmap";
 import { format, differenceInDays, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
@@ -228,6 +229,8 @@ const Dashboard = () => {
           )}
         </CardContent>
       </Card>
+
+      <MuscleHeatmap />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
