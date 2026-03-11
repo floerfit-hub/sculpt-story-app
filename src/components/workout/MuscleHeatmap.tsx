@@ -8,19 +8,17 @@ import type { Json } from "@/integrations/supabase/types";
 import MuscleBodySvg, { type MuscleKey } from "./MuscleBodySvg";
 
 const MUSCLE_GROUP_MAP: Record<string, MuscleKey> = {
-  "Legs & Glutes": "legsGlutes",
-  "Back": "back",
+  "Legs & Glutes": "quadriceps",
+  "Back": "upper_back",
   "Chest": "chest",
   "Shoulders": "shoulders",
-  "Arms": "arms",
-  "Core": "core",
+  "Arms": "biceps",
+  "Core": "abs",
 };
 
-/** Interpolate #A8E6A3 (green, 1 set) → #FF4C4C (red, 50 sets) */
 function getHeatColor(sets: number, opacity = 0.6): string {
   if (sets === 0) return "transparent";
   const t = Math.min(sets, 50) / 50;
-  // #A8E6A3 = rgb(168,230,163)  #FF4C4C = rgb(255,76,76)
   const r = Math.round(168 + (255 - 168) * t);
   const g = Math.round(230 + (76 - 230) * t);
   const b = Math.round(163 + (76 - 163) * t);
@@ -41,19 +39,22 @@ interface MuscleData {
   exercises: string[];
 }
 
-const EMPTY: Record<MuscleKey, MuscleData> = {
-  legsGlutes: { sets: 0, exercises: [] },
-  back: { sets: 0, exercises: [] },
-  chest: { sets: 0, exercises: [] },
-  shoulders: { sets: 0, exercises: [] },
-  arms: { sets: 0, exercises: [] },
-  core: { sets: 0, exercises: [] },
-};
+const ALL_KEYS: MuscleKey[] = [
+  "chest", "upper_back", "lower_back", "shoulders",
+  "biceps", "triceps", "abs", "glutes",
+  "quadriceps", "hamstrings", "calves",
+];
+
+function emptyData(): Record<MuscleKey, MuscleData> {
+  const r = {} as Record<MuscleKey, MuscleData>;
+  ALL_KEYS.forEach((k) => (r[k] = { sets: 0, exercises: [] }));
+  return r;
+}
 
 const MuscleHeatmap = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const [data, setData] = useState<Record<MuscleKey, MuscleData>>({ ...EMPTY });
+  const [data, setData] = useState<Record<MuscleKey, MuscleData>>(emptyData);
   const [selected, setSelected] = useState<MuscleKey | null>(null);
 
   useEffect(() => {
@@ -75,7 +76,7 @@ const MuscleHeatmap = () => {
         .in("workout_id", workouts.map((w) => w.id));
       if (!exercises) return;
 
-      const result: Record<MuscleKey, MuscleData> = JSON.parse(JSON.stringify(EMPTY));
+      const result = emptyData();
       exercises.forEach((ex) => {
         const key = MUSCLE_GROUP_MAP[ex.muscle_group];
         if (!key) return;
@@ -91,10 +92,15 @@ const MuscleHeatmap = () => {
   const muscles: { key: MuscleKey; label: string }[] = [
     { key: "shoulders", label: t.muscleGroups.shoulders },
     { key: "chest", label: t.muscleGroups.chest },
-    { key: "arms", label: t.muscleGroups.arms },
-    { key: "back", label: t.muscleGroups.back },
-    { key: "core", label: t.muscleGroups.core },
-    { key: "legsGlutes", label: t.muscleGroups.legsGlutes },
+    { key: "biceps", label: "Biceps" },
+    { key: "triceps", label: "Triceps" },
+    { key: "upper_back", label: "Upper Back" },
+    { key: "lower_back", label: "Lower Back" },
+    { key: "abs", label: t.muscleGroups.core },
+    { key: "glutes", label: "Glutes" },
+    { key: "quadriceps", label: "Quads" },
+    { key: "hamstrings", label: "Hamstrings" },
+    { key: "calves", label: "Calves" },
   ];
 
   const toggle = (key: MuscleKey) => setSelected(selected === key ? null : key);
@@ -117,7 +123,6 @@ const MuscleHeatmap = () => {
             onClickMuscle={toggle}
           />
 
-          {/* Legend */}
           <div className="flex flex-wrap justify-center gap-2 text-[10px]">
             {[
               { label: "0", sets: 0 },
@@ -134,7 +139,6 @@ const MuscleHeatmap = () => {
             ))}
           </div>
 
-          {/* Muscle group pills */}
           <div className="flex flex-wrap justify-center gap-1.5">
             {muscles.map((m) => (
               <button
@@ -151,7 +155,6 @@ const MuscleHeatmap = () => {
             ))}
           </div>
 
-          {/* Detail panel */}
           {selected && (
             <div className="w-full rounded-lg border bg-accent/50 p-3 animate-fade-in">
               <p className="font-display font-semibold text-sm">
