@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => ({
         background_color: "#fafafa",
         display: "standalone",
         orientation: "portrait",
-        start_url: "/",
+        start_url: "/sculpt-story-app/",
         icons: [
           {
             src: "/pwa-icon-192.png",
