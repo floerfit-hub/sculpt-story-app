@@ -141,6 +141,25 @@ const AdminPanel = () => {
     toast({ title: "CSV exported" });
   };
 
+  const [pdfLoading, setPdfLoading] = useState<string | null>(null);
+  const handleExportPdf = async (client: ClientData) => {
+    setPdfLoading(client.profile.id);
+    try {
+      await exportClientPdf({
+        name: client.profile.full_name || "Unknown",
+        roles: client.roles.map((r) => r.role),
+        registrationDate: format(new Date(client.profile.created_at), "dd.MM.yyyy"),
+        entries: client.entries,
+        workouts: client.workouts,
+      });
+      toast({ title: "PDF exported" });
+    } catch (e) {
+      toast({ title: "PDF export failed", variant: "destructive" });
+    } finally {
+      setPdfLoading(null);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="py-20 text-center text-muted-foreground">
