@@ -42,10 +42,10 @@ const PWAUpdatePrompt = () => {
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-foreground">
-              {t.pwa?.updateAvailable ?? "New version available"}
+              {t.pwa.updateAvailable}
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {t.pwa?.updateDescription ?? "Refresh to get the latest features"}
+              {t.pwa.updateDescription}
             </p>
             <div className="mt-3 flex gap-2">
               <Button
