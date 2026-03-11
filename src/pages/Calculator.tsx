@@ -203,7 +203,7 @@ const CalculatorPage = () => {
         {step < STEPS.length - 1 ? (
           <Button className="flex-1" disabled={!canProceed()} onClick={() => setStep(step + 1)}>{t.calc.next}<ChevronRight className="ml-1 h-4 w-4" /></Button>
         ) : (
-          <Button className="flex-1" disabled={!canProceed()} onClick={() => setResults(calculate(form))}>{t.calc.calculate}<CalcIcon className="ml-1 h-4 w-4" /></Button>
+          <Button className="flex-1" disabled={!canProceed()} onClick={() => setResults(calculate(form, t))}>{t.calc.calculate}<CalcIcon className="ml-1 h-4 w-4" /></Button>
         )}
       </div>
     </div>
