@@ -184,6 +184,50 @@ const Dashboard = () => {
         })}
       </div>
 
+      {/* Nutrition card */}
+      {nutrition ? (
+        <Card className="animate-fade-in-up border-primary/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Flame className="h-5 w-5 text-primary" />
+              {t.dashboard.yourNutrition}
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">{t.dashboard.calculatedTargets}</p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: t.calc.calories, value: nutrition.calories, unit: "kcal", icon: Flame, color: "text-orange-500" },
+                { label: t.calc.protein, value: nutrition.protein, unit: "g", icon: Beef, color: "text-red-500" },
+                { label: t.calc.fat, value: nutrition.fat, unit: "g", icon: Droplets, color: "text-yellow-500" },
+                { label: t.calc.carbs, value: nutrition.carbs, unit: "g", icon: Wheat, color: "text-amber-600" },
+              ].map((m) => (
+                <div key={m.label} className="text-center">
+                  <m.icon className={`h-5 w-5 mx-auto mb-1 ${m.color}`} />
+                  <p className="text-lg font-display font-bold">{m.value}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{m.unit}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{m.label}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="animate-fade-in-up border-dashed">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
+              <Flame className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium">{t.dashboard.setupNutrition}</p>
+            </div>
+            <Link to="/calculator">
+              <Button size="sm" variant="outline">{t.dashboard.goToCalculator}</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Recent entries */}
       <Card>
         <CardHeader>
