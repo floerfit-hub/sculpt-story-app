@@ -31,6 +31,10 @@ const Workouts = () => {
       .then(({ count }) => setWorkoutCount(count ?? 0));
   }, [user]);
 
+  useEffect(() => {
+    sessionStorage.setItem("workout-view", view);
+  }, [view]);
+
   const handleEdit = (data: EditWorkoutData) => {
     setEditData(data);
     setView("edit");
