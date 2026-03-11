@@ -50,67 +50,77 @@ interface MuscleData {
 
 // Overlay regions mapped to the dual-view image (back left, front right)
 // Coordinates are percentages of the image dimensions
+// Precise overlay regions traced to match the muscle-map.png anatomy illustration
+// ViewBox: 0 0 200 260 — coordinates match the dual-figure layout (back left, front right)
 const OVERLAY_REGIONS: Record<MuscleKey, { paths: string[] }> = {
-  // Back view (left figure) - back muscles
+  // BACK — upper & lower back on rear figure (left)
   back: {
     paths: [
-      // Upper back on rear figure
-      "M 12,16 L 22,14 L 26,18 L 26,30 L 12,30 L 8,18 Z",
-      // Lower back
-      "M 13,30 L 25,30 L 25,38 L 13,38 Z",
+      // Upper back / lats (rear figure)
+      "M 30,44 C 30,42 33,38 38,37 L 42,37 C 42,37 44,38 46,38 L 50,38 C 55,38 58,37 60,37 C 65,38 68,42 68,44 L 68,60 C 66,62 62,63 60,63 L 56,64 C 52,65 48,65 44,64 L 40,63 C 36,62 32,60 30,58 Z",
+      // Lower back (rear figure)
+      "M 36,63 C 38,64 42,65 48,66 C 54,65 58,64 62,63 L 62,75 C 60,76 56,77 48,77 C 42,77 38,76 36,75 Z",
     ],
   },
-  // Front view (right figure) - chest
+  // CHEST — pectorals on front figure (right)
   chest: {
     paths: [
-      "M 60,16 L 66,14 L 74,14 L 80,16 L 80,26 L 70,28 L 60,26 Z",
+      // Left pec
+      "M 130,38 C 132,36 136,35 140,36 L 146,38 C 148,40 148,44 148,47 C 146,50 142,52 138,52 C 134,51 130,48 130,44 Z",
+      // Right pec
+      "M 150,38 C 152,36 156,35 160,36 L 166,38 C 168,40 168,44 168,47 C 166,50 162,52 158,52 C 154,51 150,48 150,44 Z",
     ],
   },
-  // Shoulders on both figures
+  // SHOULDERS — deltoids on both figures
   shoulders: {
     paths: [
-      // Rear left shoulder
-      "M 6,13 L 12,12 L 14,16 L 8,18 Z",
-      // Rear right shoulder
-      "M 26,12 L 32,13 L 30,18 L 24,16 Z",
-      // Front left shoulder
-      "M 56,13 L 62,12 L 64,16 L 58,18 Z",
-      // Front right shoulder
-      "M 76,12 L 82,13 L 80,18 L 74,16 Z",
+      // Rear left delt
+      "M 22,34 C 24,30 28,28 32,30 L 32,38 C 30,42 26,42 24,40 Z",
+      // Rear right delt
+      "M 76,34 C 74,30 70,28 66,30 L 66,38 C 68,42 72,42 74,40 Z",
+      // Front left delt
+      "M 122,34 C 124,30 128,28 132,30 L 132,38 C 130,42 126,42 124,40 Z",
+      // Front right delt
+      "M 176,34 C 174,30 170,28 166,30 L 166,38 C 168,42 172,42 174,40 Z",
     ],
   },
-  // Arms on both figures
+  // ARMS — biceps/triceps on both figures
   arms: {
     paths: [
-      // Rear left arm
-      "M 4,18 L 8,18 L 7,32 L 3,36 L 1,32 Z",
-      // Rear right arm
-      "M 30,18 L 34,18 L 37,32 L 35,36 L 31,32 Z",
-      // Front left arm
-      "M 54,18 L 58,18 L 57,32 L 53,36 L 51,32 Z",
-      // Front right arm
-      "M 80,18 L 84,18 L 87,32 L 85,36 L 81,32 Z",
+      // Rear left arm (tricep)
+      "M 22,40 C 20,42 18,46 16,52 C 14,58 14,62 15,66 C 16,64 18,58 20,54 C 22,48 24,44 24,40 Z",
+      // Rear right arm (tricep)
+      "M 76,40 C 78,42 80,46 82,52 C 84,58 84,62 83,66 C 82,64 80,58 78,54 C 76,48 74,44 74,40 Z",
+      // Front left arm (bicep)
+      "M 122,40 C 120,42 118,46 116,52 C 114,58 114,62 115,66 C 116,64 118,58 120,54 C 122,48 124,44 124,40 Z",
+      // Front right arm (bicep)
+      "M 176,40 C 178,42 180,46 182,52 C 184,58 184,62 183,66 C 182,64 180,58 178,54 C 176,48 174,44 174,40 Z",
     ],
   },
-  // Core on front figure
+  // CORE — abdominals on front figure
   core: {
     paths: [
-      "M 62,28 L 76,28 L 76,40 L 62,40 Z",
+      // Abs block
+      "M 140,52 C 142,53 146,54 148,54 C 150,54 154,53 158,52 L 158,74 C 156,76 152,77 148,77 C 144,77 142,76 140,74 Z",
     ],
   },
-  // Legs & Glutes - glutes on rear, quads on front
+  // LEGS & GLUTES
   legsGlutes: {
     paths: [
       // Rear glutes
-      "M 10,40 L 28,40 L 27,50 L 11,50 Z",
-      // Rear left leg
-      "M 11,50 L 18,50 L 17,72 L 14,80 L 11,72 Z",
-      // Rear right leg
-      "M 20,50 L 27,50 L 27,72 L 24,80 L 21,72 Z",
-      // Front left leg
-      "M 61,42 L 68,42 L 67,72 L 64,80 L 61,72 Z",
-      // Front right leg
-      "M 70,42 L 77,42 L 77,72 L 74,80 L 71,72 Z",
+      "M 34,76 C 36,74 42,73 48,73 C 54,73 62,74 64,76 L 64,86 C 62,90 56,92 48,92 C 40,92 36,90 34,86 Z",
+      // Rear left leg (hamstring)
+      "M 34,92 C 36,90 40,88 44,88 L 46,88 L 46,130 C 44,136 42,140 40,144 C 38,140 36,132 34,124 Z",
+      // Rear right leg (hamstring)
+      "M 64,92 C 62,90 58,88 54,88 L 52,88 L 52,130 C 54,136 56,140 58,144 C 60,140 62,132 64,124 Z",
+      // Front left quad
+      "M 134,78 C 136,76 140,75 144,76 L 146,78 L 146,130 C 144,136 142,140 140,144 C 138,140 136,132 134,124 Z",
+      // Front right quad
+      "M 164,78 C 162,76 158,75 154,76 L 152,78 L 152,130 C 154,136 156,140 158,144 C 160,140 162,132 164,124 Z",
+      // Front left calf
+      "M 138,144 C 140,148 142,146 144,144 L 144,170 C 142,174 140,176 138,174 Z",
+      // Front right calf
+      "M 160,144 C 158,148 156,146 154,144 L 154,170 C 156,174 158,176 160,174 Z",
     ],
   },
 };
