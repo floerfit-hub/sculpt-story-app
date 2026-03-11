@@ -5,9 +5,7 @@ import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity } from "lucide-react";
 import type { Json } from "@/integrations/supabase/types";
-import MuscleBodySvg from "./MuscleBodySvg";
-
-type MuscleKey = "legsGlutes" | "back" | "chest" | "shoulders" | "arms" | "core";
+import MuscleBodySvg, { type MuscleKey } from "./MuscleBodySvg";
 
 const MUSCLE_GROUP_MAP: Record<string, MuscleKey> = {
   "Legs & Glutes": "legsGlutes",
@@ -18,26 +16,24 @@ const MUSCLE_GROUP_MAP: Record<string, MuscleKey> = {
   "Core": "core",
 };
 
-function getHeatHue(sets: number): number {
-  if (sets <= 0) return 120;
-  if (sets >= 25) return 0;
-  return 120 - (sets / 25) * 120;
-}
-
-function getHeatColor(sets: number, opacity = 0.55): string {
+/** Interpolate #A8E6A3 (green, 1 set) → #FF4C4C (red, 50 sets) */
+function getHeatColor(sets: number, opacity = 0.6): string {
   if (sets === 0) return "transparent";
-  const hue = getHeatHue(sets);
-  const sat = 55 + Math.min(sets, 25) * 1.8;
-  const light = 52 - Math.min(sets, 25) * 0.5;
-  return `hsla(${hue}, ${sat}%, ${light}%, ${opacity})`;
+  const t = Math.min(sets, 50) / 50;
+  // #A8E6A3 = rgb(168,230,163)  #FF4C4C = rgb(255,76,76)
+  const r = Math.round(168 + (255 - 168) * t);
+  const g = Math.round(230 + (76 - 230) * t);
+  const b = Math.round(163 + (76 - 163) * t);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
 function getLegendColor(sets: number): string {
-  if (sets === 0) return "hsl(0 0% 70%)";
-  const hue = getHeatHue(sets);
-  const sat = 55 + Math.min(sets, 25) * 1.8;
-  const light = 52 - Math.min(sets, 25) * 0.5;
-  return `hsl(${hue} ${sat}% ${light}%)`;
+  if (sets === 0) return "hsl(0 0% 75%)";
+  const t = Math.min(sets, 50) / 50;
+  const r = Math.round(168 + (255 - 168) * t);
+  const g = Math.round(230 + (76 - 230) * t);
+  const b = Math.round(163 + (76 - 163) * t);
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 interface MuscleData {
@@ -45,63 +41,51 @@ interface MuscleData {
   exercises: string[];
 }
 
+const EMPTY: Record<MuscleKey, MuscleData> = {
+  legsGlutes: { sets: 0, exercises: [] },
+  back: { sets: 0, exercises: [] },
+  chest: { sets: 0, exercises: [] },
+  shoulders: { sets: 0, exercises: [] },
+  arms: { sets: 0, exercises: [] },
+  core: { sets: 0, exercises: [] },
+};
+
 const MuscleHeatmap = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const [data, setData] = useState<Record<MuscleKey, MuscleData>>({
-    legsGlutes: { sets: 0, exercises: [] },
-    back: { sets: 0, exercises: [] },
-    chest: { sets: 0, exercises: [] },
-    shoulders: { sets: 0, exercises: [] },
-    arms: { sets: 0, exercises: [] },
-    core: { sets: 0, exercises: [] },
-  });
+  const [data, setData] = useState<Record<MuscleKey, MuscleData>>({ ...EMPTY });
   const [selected, setSelected] = useState<MuscleKey | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const ago = new Date();
+    ago.setDate(ago.getDate() - 30);
 
-    const fetchData = async () => {
+    (async () => {
       const { data: workouts } = await supabase
         .from("workouts")
         .select("id")
         .eq("user_id", user.id)
-        .gte("started_at", thirtyDaysAgo.toISOString());
-
+        .gte("started_at", ago.toISOString());
       if (!workouts?.length) return;
 
       const { data: exercises } = await supabase
         .from("workout_exercises")
         .select("muscle_group, exercise_name, sets")
         .in("workout_id", workouts.map((w) => w.id));
-
       if (!exercises) return;
 
-      const result: Record<MuscleKey, MuscleData> = {
-        legsGlutes: { sets: 0, exercises: [] },
-        back: { sets: 0, exercises: [] },
-        chest: { sets: 0, exercises: [] },
-        shoulders: { sets: 0, exercises: [] },
-        arms: { sets: 0, exercises: [] },
-        core: { sets: 0, exercises: [] },
-      };
-
+      const result: Record<MuscleKey, MuscleData> = JSON.parse(JSON.stringify(EMPTY));
       exercises.forEach((ex) => {
         const key = MUSCLE_GROUP_MAP[ex.muscle_group];
         if (!key) return;
-        const setsArr = ex.sets as Json[];
-        result[key].sets += Array.isArray(setsArr) ? setsArr.length : 0;
-        if (!result[key].exercises.includes(ex.exercise_name)) {
+        const arr = ex.sets as Json[];
+        result[key].sets += Array.isArray(arr) ? arr.length : 0;
+        if (!result[key].exercises.includes(ex.exercise_name))
           result[key].exercises.push(ex.exercise_name);
-        }
       });
-
       setData(result);
-    };
-
-    fetchData();
+    })();
   }, [user]);
 
   const muscles: { key: MuscleKey; label: string }[] = [
@@ -113,16 +97,7 @@ const MuscleHeatmap = () => {
     { key: "legsGlutes", label: t.muscleGroups.legsGlutes },
   ];
 
-  const getFill = (key: MuscleKey) =>
-    getHeatColor(data[key].sets, selected === key ? 0.7 : 0.55);
-
-  const getStroke = (key: MuscleKey) =>
-    selected === key ? "hsl(var(--primary))" : "transparent";
-
-  const getStrokeWidth = (key: MuscleKey) => (selected === key ? 1.2 : 0);
-
-  const handleClick = (key: MuscleKey) =>
-    setSelected(selected === key ? null : key);
+  const toggle = (key: MuscleKey) => setSelected(selected === key ? null : key);
 
   return (
     <Card>
@@ -136,24 +111,24 @@ const MuscleHeatmap = () => {
       <CardContent>
         <div className="flex flex-col items-center gap-4">
           <MuscleBodySvg
-            getFill={getFill}
-            getStroke={getStroke}
-            getStrokeWidth={getStrokeWidth}
-            onClickMuscle={handleClick}
+            getFill={(k) => getHeatColor(data[k].sets, selected === k ? 0.75 : 0.6)}
+            getStroke={(k) => (selected === k ? "hsl(var(--primary))" : "transparent")}
+            getStrokeWidth={(k) => (selected === k ? 1.5 : 0)}
+            onClickMuscle={toggle}
           />
 
           {/* Legend */}
           <div className="flex flex-wrap justify-center gap-2 text-[10px]">
             {[
-              { label: "0", color: getLegendColor(0) },
-              { label: "1-4", color: getLegendColor(2) },
-              { label: "5-9", color: getLegendColor(7) },
-              { label: "10-14", color: getLegendColor(12) },
-              { label: "15-24", color: getLegendColor(20) },
-              { label: "25+", color: getLegendColor(25) },
+              { label: "0", sets: 0 },
+              { label: "1-5", sets: 3 },
+              { label: "6-15", sets: 10 },
+              { label: "16-30", sets: 23 },
+              { label: "31-49", sets: 40 },
+              { label: "50+", sets: 50 },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1">
-                <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: item.color }} />
+                <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: getLegendColor(item.sets) }} />
                 <span className="text-muted-foreground">{item.label}</span>
               </div>
             ))}
@@ -164,7 +139,7 @@ const MuscleHeatmap = () => {
             {muscles.map((m) => (
               <button
                 key={m.key}
-                onClick={() => handleClick(m.key)}
+                onClick={() => toggle(m.key)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   selected === m.key
                     ? "bg-primary text-primary-foreground"
