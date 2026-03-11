@@ -69,7 +69,7 @@ const WorkoutHistory = ({ onBack }: { onBack: () => void }) => {
                     const sets = (Array.isArray(ex.sets) ? ex.sets : []) as SetData[];
                     return (
                       <div key={ex.id} className="space-y-1">
-                        <p className="font-medium text-sm">{ex.exercise_name} <span className="text-muted-foreground text-xs">({ex.muscle_group})</span></p>
+                        <p className="font-medium text-sm">{t.exerciseNames[ex.exercise_name] || ex.exercise_name} <span className="text-muted-foreground text-xs">({MUSCLE_GROUP_UK[ex.muscle_group] || ex.muscle_group})</span></p>
                         <div className="flex flex-wrap gap-2">
                           {sets.map((s, i) => (
                             <span key={i} className="rounded-md bg-accent px-2 py-1 text-xs text-accent-foreground">{s.weight}{t.common.kg} × {s.reps}</span>
