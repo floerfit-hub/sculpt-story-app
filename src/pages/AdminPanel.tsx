@@ -21,6 +21,8 @@ import {
   Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download,
 } from "lucide-react";
 import { toCsv, downloadCsv, buildFilename } from "@/lib/csvExport";
+import { exportClientPdf } from "@/lib/pdfExport";
+import { FileText } from "lucide-react";
 
 type Profile = Tables<"profiles">;
 type ProgressEntry = Tables<"progress_entries">;
@@ -139,6 +141,25 @@ const AdminPanel = () => {
     toast({ title: "CSV exported" });
   };
 
+  const [pdfLoading, setPdfLoading] = useState<string | null>(null);
+  const handleExportPdf = async (client: ClientData) => {
+    setPdfLoading(client.profile.id);
+    try {
+      await exportClientPdf({
+        name: client.profile.full_name || "Unknown",
+        roles: client.roles.map((r) => r.role),
+        registrationDate: format(new Date(client.profile.created_at), "dd.MM.yyyy"),
+        entries: client.entries,
+        workouts: client.workouts,
+      });
+      toast({ title: "PDF exported" });
+    } catch (e) {
+      toast({ title: "PDF export failed", variant: "destructive" });
+    } finally {
+      setPdfLoading(null);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="py-20 text-center text-muted-foreground">
@@ -217,9 +238,24 @@ const AdminPanel = () => {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
+                    title="Export CSV"
                     onClick={(e) => { e.stopPropagation(); handleExportProgress(client); }}
                   >
                     <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Export PDF"
+                    disabled={pdfLoading === client.profile.id}
+                    onClick={(e) => { e.stopPropagation(); handleExportPdf(client); }}
+                  >
+                    {pdfLoading === client.profile.id ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    ) : (
+                      <FileText className="h-4 w-4" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"
