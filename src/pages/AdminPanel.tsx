@@ -217,9 +217,18 @@ const AdminPanel = () => {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
+                    onClick={(e) => { e.stopPropagation(); handleExportProgress(client); }}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
                     onClick={(e) => { e.stopPropagation(); setRoleDialog({ userId: client.profile.user_id, currentRoles: roleNames }); }}
                   >
                     <UserCog className="h-4 w-4" />
+                  </Button>
                   </Button>
                   {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                 </div>
