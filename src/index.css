@@ -6,44 +6,44 @@
 
 @layer base {
   :root {
-    --background: 220 15% 8%;
-    --foreground: 0 0% 96%;
+    --background: 220 10% 97%;
+    --foreground: 220 15% 10%;
 
-    --card: 220 15% 12%;
-    --card-foreground: 0 0% 96%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 10%;
 
-    --popover: 220 15% 10%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 10%;
 
-    --primary: 82 85% 55%;
-    --primary-foreground: 220 15% 5%;
+    --primary: 82 75% 42%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 12% 18%;
-    --secondary-foreground: 0 0% 90%;
+    --secondary: 220 10% 93%;
+    --secondary-foreground: 220 15% 15%;
 
-    --muted: 220 12% 16%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 220 10% 93%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 82 40% 15%;
-    --accent-foreground: 82 85% 65%;
+    --accent: 82 40% 93%;
+    --accent-foreground: 82 60% 28%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 12% 18%;
-    --input: 220 12% 20%;
-    --ring: 82 85% 55%;
+    --border: 220 10% 88%;
+    --input: 220 10% 88%;
+    --ring: 82 75% 42%;
 
     --radius: 0.875rem;
 
-    --sidebar-background: 220 15% 10%;
-    --sidebar-foreground: 0 0% 96%;
-    --sidebar-primary: 82 85% 55%;
-    --sidebar-primary-foreground: 220 15% 5%;
-    --sidebar-accent: 82 40% 15%;
-    --sidebar-accent-foreground: 82 85% 65%;
-    --sidebar-border: 220 12% 18%;
-    --sidebar-ring: 82 85% 55%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 15% 10%;
+    --sidebar-primary: 82 75% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 82 40% 93%;
+    --sidebar-accent-foreground: 82 60% 28%;
+    --sidebar-border: 220 10% 88%;
+    --sidebar-ring: 82 75% 42%;
 
     --font-display: 'Montserrat', sans-serif;
     --font-body: 'Inter', sans-serif;
@@ -51,8 +51,8 @@
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
 
-    --glass-bg: 220 15% 12% / 0.6;
-    --glass-border: 0 0% 100% / 0.08;
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 220 15% 10% / 0.08;
     --glass-blur: 16px;
   }
 
@@ -121,10 +121,11 @@
   }
 
   .glass-strong {
-    background: hsl(220 15% 12% / 0.8);
+    background: hsl(var(--glass-bg));
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid hsl(0 0% 100% / 0.1);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: 0 1px 3px hsl(220 15% 10% / 0.05);
   }
 
   .glow-primary {
