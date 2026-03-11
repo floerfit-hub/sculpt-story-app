@@ -18,22 +18,29 @@ const MUSCLE_GROUP_MAP: Record<string, MuscleKey> = {
   "Core": "core",
 };
 
-function getHeatColor(sets: number, opacity = 0.45): string {
+function getHeatHue(sets: number): number {
+  // Smooth gradient: 1 set = 120 (green), 25+ sets = 0 (red)
+  if (sets <= 0) return 120;
+  if (sets >= 25) return 0;
+  // Linear interpolation: green(120) → red(0)
+  return 120 - (sets / 25) * 120;
+}
+
+function getHeatColor(sets: number, opacity = 0.5): string {
   if (sets === 0) return "transparent";
-  if (sets < 10) return `hsla(120, 50%, 50%, ${opacity})`;
-  if (sets < 25) return `hsla(50, 90%, 50%, ${opacity})`;
-  if (sets < 40) return `hsla(30, 90%, 50%, ${opacity})`;
-  if (sets < 50) return `hsla(20, 90%, 45%, ${opacity})`;
-  return `hsla(0, 80%, 50%, ${opacity})`;
+  const hue = getHeatHue(sets);
+  // Increase saturation and brightness as sets increase
+  const sat = 50 + Math.min(sets, 25) * 2; // 50-100
+  const light = 50 - Math.min(sets, 25) * 0.4; // 50-40
+  return `hsla(${hue}, ${sat}%, ${light}%, ${opacity})`;
 }
 
 function getLegendColor(sets: number): string {
   if (sets === 0) return "hsl(0 0% 70%)";
-  if (sets < 10) return "hsl(120 50% 50%)";
-  if (sets < 25) return "hsl(50 90% 50%)";
-  if (sets < 40) return "hsl(30 90% 50%)";
-  if (sets < 50) return "hsl(20 90% 45%)";
-  return "hsl(0 80% 50%)";
+  const hue = getHeatHue(sets);
+  const sat = 50 + Math.min(sets, 25) * 2;
+  const light = 50 - Math.min(sets, 25) * 0.4;
+  return `hsl(${hue} ${sat}% ${light}%)`;
 }
 
 interface MuscleData {
@@ -41,69 +48,76 @@ interface MuscleData {
   exercises: string[];
 }
 
-// Overlay regions mapped to the dual-view image (back left, front right)
-// Coordinates are percentages of the image dimensions
+// Overlay regions traced to match muscle-map.png (300×600 natural size)
+// ViewBox: 0 0 300 600
 const OVERLAY_REGIONS: Record<MuscleKey, { paths: string[] }> = {
-  // Back view (left figure) - back muscles
+  // BACK — on rear figure (left, centered ~x=75)
   back: {
     paths: [
-      // Upper back on rear figure
-      "M 12,16 L 22,14 L 26,18 L 26,30 L 12,30 L 8,18 Z",
+      // Upper back / lats
+      "M 52,140 C 52,132 58,124 66,120 L 74,118 C 78,118 82,120 86,120 L 90,118 C 96,120 102,128 102,140 L 102,195 C 98,200 90,204 82,204 L 72,204 C 64,204 56,200 52,195 Z",
       // Lower back
-      "M 13,30 L 25,30 L 25,38 L 13,38 Z",
+      "M 58,204 C 62,207 70,210 78,210 C 86,210 92,207 96,204 L 96,240 C 92,245 86,248 78,248 C 70,248 64,245 58,240 Z",
     ],
   },
-  // Front view (right figure) - chest
+  // CHEST — on front figure (right, centered ~x=225)
   chest: {
     paths: [
-      "M 60,16 L 66,14 L 74,14 L 80,16 L 80,26 L 70,28 L 60,26 Z",
+      // Left pec
+      "M 196,128 C 200,122 206,118 214,120 L 220,125 C 222,130 222,140 220,148 C 216,154 210,158 204,156 C 198,154 196,146 196,140 Z",
+      // Right pec
+      "M 228,125 C 232,118 238,118 244,120 L 250,128 C 252,134 252,142 250,148 C 246,154 240,158 234,156 C 228,154 226,146 228,140 Z",
     ],
   },
-  // Shoulders on both figures
+  // SHOULDERS — deltoids
   shoulders: {
     paths: [
-      // Rear left shoulder
-      "M 6,13 L 12,12 L 14,16 L 8,18 Z",
-      // Rear right shoulder
-      "M 26,12 L 32,13 L 30,18 L 24,16 Z",
-      // Front left shoulder
-      "M 56,13 L 62,12 L 64,16 L 58,18 Z",
-      // Front right shoulder
-      "M 76,12 L 82,13 L 80,18 L 74,16 Z",
+      // Rear left delt
+      "M 38,110 C 42,100 48,96 54,100 L 54,120 C 52,130 46,134 40,130 Z",
+      // Rear right delt
+      "M 116,110 C 112,100 106,96 100,100 L 100,120 C 102,130 108,134 114,130 Z",
+      // Front left delt
+      "M 186,110 C 190,100 196,96 202,100 L 202,120 C 200,130 194,134 188,130 Z",
+      // Front right delt
+      "M 264,110 C 260,100 254,96 248,100 L 248,120 C 250,130 256,134 262,130 Z",
     ],
   },
-  // Arms on both figures
+  // ARMS — biceps/triceps
   arms: {
     paths: [
       // Rear left arm
-      "M 4,18 L 8,18 L 7,32 L 3,36 L 1,32 Z",
+      "M 36,130 C 34,140 30,160 28,180 C 26,200 26,210 28,220 L 32,220 C 34,210 36,196 38,180 C 40,164 42,148 42,134 Z",
       // Rear right arm
-      "M 30,18 L 34,18 L 37,32 L 35,36 L 31,32 Z",
+      "M 118,130 C 120,140 124,160 126,180 C 128,200 128,210 126,220 L 122,220 C 120,210 118,196 116,180 C 114,164 112,148 112,134 Z",
       // Front left arm
-      "M 54,18 L 58,18 L 57,32 L 53,36 L 51,32 Z",
+      "M 184,130 C 182,140 178,160 176,180 C 174,200 174,210 176,220 L 180,220 C 182,210 184,196 186,180 C 188,164 190,148 190,134 Z",
       // Front right arm
-      "M 80,18 L 84,18 L 87,32 L 85,36 L 81,32 Z",
+      "M 266,130 C 268,140 272,160 274,180 C 276,200 276,210 274,220 L 270,220 C 268,210 266,196 264,180 C 262,164 260,148 260,134 Z",
     ],
   },
-  // Core on front figure
+  // CORE — abs on front figure
   core: {
     paths: [
-      "M 62,28 L 76,28 L 76,40 L 62,40 Z",
+      "M 210,156 C 214,158 220,160 224,160 C 228,160 234,158 238,156 L 238,240 C 236,246 230,250 224,250 C 218,250 212,246 210,240 Z",
     ],
   },
-  // Legs & Glutes - glutes on rear, quads on front
+  // LEGS & GLUTES
   legsGlutes: {
     paths: [
       // Rear glutes
-      "M 10,40 L 28,40 L 27,50 L 11,50 Z",
-      // Rear left leg
-      "M 11,50 L 18,50 L 17,72 L 14,80 L 11,72 Z",
-      // Rear right leg
-      "M 20,50 L 27,50 L 27,72 L 24,80 L 21,72 Z",
-      // Front left leg
-      "M 61,42 L 68,42 L 67,72 L 64,80 L 61,72 Z",
-      // Front right leg
-      "M 70,42 L 77,42 L 77,72 L 74,80 L 71,72 Z",
+      "M 54,248 C 58,244 66,240 78,240 C 90,240 96,244 100,248 L 100,280 C 96,288 88,292 78,292 C 68,292 60,288 54,280 Z",
+      // Rear left hamstring
+      "M 54,292 C 58,290 64,288 70,288 L 74,288 L 72,400 C 70,410 68,416 66,420 C 62,412 58,396 56,370 Z",
+      // Rear right hamstring
+      "M 100,292 C 96,290 90,288 84,288 L 80,288 L 82,400 C 84,410 86,416 88,420 C 92,412 96,396 98,370 Z",
+      // Front left quad
+      "M 204,252 C 208,248 214,246 220,248 L 222,252 L 220,400 C 218,410 216,416 214,420 C 210,412 206,396 204,370 Z",
+      // Front right quad
+      "M 246,252 C 242,248 236,246 230,248 L 228,252 L 230,400 C 232,410 234,416 236,420 C 240,412 244,396 246,370 Z",
+      // Front left calf
+      "M 210,420 C 214,428 218,426 220,420 L 220,500 C 218,510 214,516 210,510 Z",
+      // Front right calf
+      "M 240,420 C 236,428 232,426 230,420 L 230,500 C 232,510 236,516 240,510 Z",
     ],
   },
 };
@@ -196,7 +210,7 @@ const MuscleHeatmap = () => {
               draggable={false}
             />
             <svg
-              viewBox="0 0 100 90"
+              viewBox="0 0 300 600"
               className="absolute inset-0 w-full h-full"
               preserveAspectRatio="xMidYMid meet"
             >
@@ -206,9 +220,10 @@ const MuscleHeatmap = () => {
                     <path
                       key={`${key}-${i}`}
                       d={path}
-                      fill={getHeatColor(data[key].sets, selected === key ? 0.6 : 0.4)}
+                      fill={getHeatColor(data[key].sets, selected === key ? 0.65 : 0.5)}
                       stroke={selected === key ? "hsl(var(--primary))" : "transparent"}
-                      strokeWidth={selected === key ? 0.5 : 0}
+                      strokeWidth={selected === key ? 1.5 : 0}
+                      strokeLinejoin="round"
                       className="cursor-pointer transition-all duration-200"
                       onClick={() => setSelected(selected === key ? null : key)}
                     />
@@ -221,11 +236,11 @@ const MuscleHeatmap = () => {
           <div className="flex flex-wrap justify-center gap-2 text-[10px]">
             {[
               { label: "0", color: getLegendColor(0) },
-              { label: "1-9", color: getLegendColor(5) },
-              { label: "10-24", color: getLegendColor(15) },
-              { label: "25-39", color: getLegendColor(30) },
-              { label: "40-49", color: getLegendColor(45) },
-              { label: "50+", color: getLegendColor(55) },
+              { label: "1-4", color: getLegendColor(2) },
+              { label: "5-9", color: getLegendColor(7) },
+              { label: "10-14", color: getLegendColor(12) },
+              { label: "15-24", color: getLegendColor(20) },
+              { label: "25+", color: getLegendColor(25) },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1">
                 <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: item.color }} />
