@@ -91,6 +91,15 @@ const CalculatorPage = () => {
   const canProceed = () => STEPS[step].fields.every((f) => form[f as keyof FormData]?.trim());
   const handleReset = () => { setResults(null); setStep(0); setForm(INITIAL); };
 
+  const handleCalculate = () => {
+    const res = calculate(form, t);
+    setResults(res);
+    localStorage.setItem("nutrition_results", JSON.stringify({
+      calories: res.calories, protein: res.protein, fat: res.fat, carbs: res.carbs,
+      bmr: res.bmr, tdee: res.tdee, updatedAt: new Date().toISOString(),
+    }));
+  };
+
   if (results) {
     const macros = [
       { label: t.calc.calories, value: results.calories, unit: "kcal", icon: Flame, color: "text-orange-500" },
@@ -203,7 +212,7 @@ const CalculatorPage = () => {
         {step < STEPS.length - 1 ? (
           <Button className="flex-1" disabled={!canProceed()} onClick={() => setStep(step + 1)}>{t.calc.next}<ChevronRight className="ml-1 h-4 w-4" /></Button>
         ) : (
-          <Button className="flex-1" disabled={!canProceed()} onClick={() => setResults(calculate(form, t))}>{t.calc.calculate}<CalcIcon className="ml-1 h-4 w-4" /></Button>
+          <Button className="flex-1" disabled={!canProceed()} onClick={handleCalculate}>{t.calc.calculate}<CalcIcon className="ml-1 h-4 w-4" /></Button>
         )}
       </div>
     </div>
