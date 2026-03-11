@@ -35,7 +35,7 @@ const WorkoutProgressCharts = ({ onBack }: { onBack: () => void }) => {
       const grouped: Record<string, { date: string; maxWeight: number; maxReps: number }[]> = {};
 
       for (const ex of exercises) {
-        const sets = (Array.isArray(ex.sets) ? ex.sets : []) as SetData[];
+        const sets = (Array.isArray(ex.sets) ? ex.sets : []) as unknown as SetData[];
         if (!sets.length) continue;
         const maxWeight = Math.max(...sets.map((s) => s.weight || 0));
         const maxReps = Math.max(...sets.map((s) => s.reps || 0));
