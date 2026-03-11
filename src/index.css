@@ -121,10 +121,11 @@
   }
 
   .glass-strong {
-    background: hsl(220 15% 12% / 0.8);
+    background: hsl(var(--glass-bg));
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid hsl(0 0% 100% / 0.1);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: 0 1px 3px hsl(220 15% 10% / 0.05);
   }
 
   .glow-primary {
