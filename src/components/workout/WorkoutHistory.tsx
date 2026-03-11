@@ -58,7 +58,7 @@ const WorkoutHistory = ({ onBack }: { onBack: () => void }) => {
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-display font-semibold">{format(new Date(w.started_at), "EEEE, MMM d yyyy")}</p>
+                  <p className="font-display font-semibold">{format(new Date(w.started_at), "EEEE, d MMM yyyy", { locale: ukLocale })}</p>
                   <p className="text-sm text-muted-foreground">{w.exercises.length} {t.workouts.exercises}</p>
                 </div>
                 <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform ${expanded ? "rotate-90" : ""}`} />
