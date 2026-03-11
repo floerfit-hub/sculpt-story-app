@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,12 +51,30 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           notes: ex.notes || "",
         }));
     }
+    // Restore from sessionStorage
+    const saved = sessionStorage.getItem("workout-in-progress");
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
     return [];
   });
   const [showLibrary, setShowLibrary] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // Persist exercises to sessionStorage on every change (skip in edit mode)
+  useEffect(() => {
+    if (!isEditing) {
+      sessionStorage.setItem("workout-in-progress", JSON.stringify(exercises));
+    }
+  }, [exercises, isEditing]);
+
+  // Clear persisted data when workout is saved
+  const clearPersistedData = useCallback(() => {
+    sessionStorage.removeItem("workout-in-progress");
+    sessionStorage.removeItem("workout-view");
+  }, []);
 
   const addExercise = (name: string, group: string) => {
     setExercises((prev) => [...prev, { name, muscleGroup: group, sets: [{ weight: "", reps: "" }], notes: "" }]);
@@ -102,6 +120,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         const { error: eErr } = await supabase.from("workout_exercises").insert(rows);
         if (eErr) throw eErr;
 
+        clearPersistedData();
         setSaved(true);
         toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       } else {
@@ -115,6 +134,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         }));
         const { error: eErr } = await supabase.from("workout_exercises").insert(rows);
         if (eErr) throw eErr;
+        clearPersistedData();
         setSaved(true);
         toast({ title: t.workouts.workoutSaved, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       }
