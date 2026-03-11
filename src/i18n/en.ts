@@ -54,6 +54,10 @@ export const en = {
     cancelDelete: "Cancel",
     entryDeleted: "Entry deleted",
     entryUpdated: "Entry updated",
+    muscleActivity: "Muscle Activity",
+    last30Days: "Last 30 days training heatmap",
+    setsLast30: "sets in the last 30 days",
+    noExercisesLogged: "No exercises logged for this group yet.",
   },
 
   // Add Entry
