@@ -110,7 +110,7 @@ const AdminPanel = () => {
     );
   }
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -287,7 +287,7 @@ const AdminPanel = () => {
                               {entry.photo_urls!.map((url, i) => (
                                 <img
                                   key={i}
-                                  src={`${supabaseUrl}/storage/v1/object/public/progress-photos/${url}`}
+                                  src={url}
                                   alt={`Progress photo ${i + 1}`}
                                   className="rounded-lg aspect-square object-cover w-full"
                                   loading="lazy"
