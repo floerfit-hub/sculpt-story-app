@@ -5,17 +5,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Play, BookOpen, History, BarChart3 } from "lucide-react";
 import StartWorkout from "@/components/workout/StartWorkout";
+import type { EditWorkoutData } from "@/components/workout/StartWorkout";
 import ExerciseLibrary from "@/components/workout/ExerciseLibrary";
 import WorkoutHistory from "@/components/workout/WorkoutHistory";
 import WorkoutProgressCharts from "@/components/workout/WorkoutProgressCharts";
 
-type WorkoutView = "hub" | "start" | "library" | "history" | "charts";
+type WorkoutView = "hub" | "start" | "library" | "history" | "charts" | "edit";
 
 const Workouts = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [view, setView] = useState<WorkoutView>("hub");
   const [workoutCount, setWorkoutCount] = useState(0);
+  const [editData, setEditData] = useState<EditWorkoutData | undefined>();
 
   useEffect(() => {
     if (!user) return;
@@ -26,9 +28,15 @@ const Workouts = () => {
       .then(({ count }) => setWorkoutCount(count ?? 0));
   }, [user]);
 
+  const handleEdit = (data: EditWorkoutData) => {
+    setEditData(data);
+    setView("edit");
+  };
+
   if (view === "start") return <StartWorkout onBack={() => setView("hub")} />;
+  if (view === "edit") return <StartWorkout onBack={() => { setEditData(undefined); setView("history"); }} editData={editData} />;
   if (view === "library") return <ExerciseLibrary onBack={() => setView("hub")} />;
-  if (view === "history") return <WorkoutHistory onBack={() => setView("hub")} />;
+  if (view === "history") return <WorkoutHistory onBack={() => setView("hub")} onEdit={handleEdit} />;
   if (view === "charts") return <WorkoutProgressCharts onBack={() => setView("hub")} />;
 
   const menuItems = [
