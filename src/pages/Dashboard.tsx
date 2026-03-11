@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, TrendingDown, TrendingUp, Minus, Scale, Ruler, Activity, Clock } from "lucide-react";
@@ -9,11 +10,11 @@ import { format, differenceInDays, addDays } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
 type ProgressEntry = Tables<"progress_entries">;
-
 const CHECKIN_INTERVAL = 14;
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,13 +36,8 @@ const Dashboard = () => {
   const latest = entries[0];
   const previous = entries[1];
 
-  // Calculate next check-in
-  const nextCheckinDate = latest
-    ? addDays(new Date(latest.entry_date), CHECKIN_INTERVAL)
-    : null;
-  const daysUntilCheckin = nextCheckinDate
-    ? differenceInDays(nextCheckinDate, new Date())
-    : 0;
+  const nextCheckinDate = latest ? addDays(new Date(latest.entry_date), CHECKIN_INTERVAL) : null;
+  const daysUntilCheckin = nextCheckinDate ? differenceInDays(nextCheckinDate, new Date()) : 0;
   const canLogEntry = !latest || daysUntilCheckin <= 0;
 
   const getTrend = (current?: number | null, prev?: number | null) => {
@@ -64,9 +60,9 @@ const Dashboard = () => {
   };
 
   const statCards = [
-    { label: "Weight", value: latest?.weight, prevValue: previous?.weight, unit: "kg", icon: Scale, trend: getTrend(latest?.weight, previous?.weight) },
-    { label: "Waist", value: latest?.waist, prevValue: previous?.waist, unit: "cm", icon: Ruler, trend: getTrend(latest?.waist, previous?.waist) },
-    { label: "Body Fat", value: latest?.body_fat, prevValue: previous?.body_fat, unit: "%", icon: Activity, trend: getTrend(latest?.body_fat, previous?.body_fat) },
+    { label: t.dashboard.weight, value: latest?.weight, prevValue: previous?.weight, unit: t.common.kg, icon: Scale, trend: getTrend(latest?.weight, previous?.weight) },
+    { label: t.dashboard.waist, value: latest?.waist, prevValue: previous?.waist, unit: t.common.cm, icon: Ruler, trend: getTrend(latest?.waist, previous?.waist) },
+    { label: t.dashboard.bodyFat, value: latest?.body_fat, prevValue: previous?.body_fat, unit: "%", icon: Activity, trend: getTrend(latest?.body_fat, previous?.body_fat) },
   ];
 
   if (loading) {
@@ -82,33 +78,32 @@ const Dashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-bold">
-            Hey, {profile?.full_name || "there"} 💪
+            {t.dashboard.hey}, {profile?.full_name || t.dashboard.there} 💪
           </h1>
-          <p className="text-muted-foreground">Track your transformation</p>
+          <p className="text-muted-foreground">{t.dashboard.trackTransformation}</p>
         </div>
         {canLogEntry ? (
           <Link to="/add-entry">
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
-              New Entry
+              {t.dashboard.newEntry}
             </Button>
           </Link>
         ) : (
           <Button variant="outline" disabled>
             <Clock className="mr-2 h-4 w-4" />
-            {daysUntilCheckin}d left
+            {daysUntilCheckin}{t.dashboard.daysLeft}
           </Button>
         )}
       </div>
 
-      {/* Next check-in banner */}
       {!canLogEntry && nextCheckinDate && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="flex items-center gap-3 p-4">
             <Clock className="h-5 w-5 text-primary shrink-0" />
             <p className="text-sm">
-              Your next progress check-in is available in{" "}
-              <span className="font-semibold text-primary">{daysUntilCheckin} day{daysUntilCheckin !== 1 ? "s" : ""}</span>
+              {t.dashboard.nextCheckin}{" "}
+              <span className="font-semibold text-primary">{daysUntilCheckin} {daysUntilCheckin !== 1 ? t.dashboard.days : t.dashboard.day}</span>
               {" "}({format(nextCheckinDate, "MMM d, yyyy")}).
             </p>
           </CardContent>
@@ -120,16 +115,15 @@ const Dashboard = () => {
           <CardContent className="flex items-center gap-3 p-4">
             <PlusCircle className="h-5 w-5 text-primary shrink-0" />
             <p className="text-sm">
-              Your bi-weekly check-in is ready!{" "}
+              {t.dashboard.checkinReady}{" "}
               <Link to="/add-entry" className="font-semibold text-primary underline underline-offset-2">
-                Log your progress now
+                {t.dashboard.logProgressNow}
               </Link>.
             </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Stat cards with comparison */}
       <div className="grid gap-4 sm:grid-cols-3">
         {statCards.map((stat) => {
           const diff = getDiff(stat.value, stat.prevValue);
@@ -145,14 +139,12 @@ const Dashboard = () => {
                     <span className="text-xl font-display font-semibold">
                       {stat.value != null ? stat.value : "—"}
                     </span>
-                    {stat.value != null && (
-                      <span className="text-sm text-muted-foreground">{stat.unit}</span>
-                    )}
+                    {stat.value != null && <span className="text-sm text-muted-foreground">{stat.unit}</span>}
                     <TrendIcon trend={stat.trend} />
                   </div>
                   {diff != null && (
                     <p className={`text-xs mt-0.5 ${diff < 0 ? "text-primary" : diff > 0 ? "text-destructive" : "text-muted-foreground"}`}>
-                      {diff > 0 ? "+" : ""}{diff} {stat.unit} vs previous
+                      {diff > 0 ? "+" : ""}{diff} {stat.unit} {t.dashboard.vsPrevious}
                     </p>
                   )}
                 </div>
@@ -162,41 +154,33 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Recent entries */}
       <Card>
         <CardHeader>
-          <CardTitle className="font-display text-lg">Recent Entries</CardTitle>
+          <CardTitle className="font-display text-lg">{t.dashboard.recentEntries}</CardTitle>
         </CardHeader>
         <CardContent>
           {entries.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">
-              <p>No entries yet. Start tracking your progress!</p>
+              <p>{t.dashboard.noEntries}</p>
               <Link to="/add-entry">
                 <Button className="mt-4" variant="outline">
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  Add First Entry
+                  {t.dashboard.addFirstEntry}
                 </Button>
               </Link>
             </div>
           ) : (
             <div className="space-y-3">
               {entries.slice(0, 5).map((entry) => (
-                <div
-                  key={entry.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
-                >
+                <div key={entry.id} className="flex items-center justify-between rounded-lg border p-3">
                   <div>
-                    <p className="font-medium font-display">
-                      {format(new Date(entry.entry_date), "MMM d, yyyy")}
-                    </p>
+                    <p className="font-medium font-display">{format(new Date(entry.entry_date), "MMM d, yyyy")}</p>
                     <p className="text-sm text-muted-foreground">
                       {[
-                        entry.weight && `${entry.weight}kg`,
-                        entry.waist && `Waist: ${entry.waist}cm`,
+                        entry.weight && `${entry.weight}${t.common.kg}`,
+                        entry.waist && `${t.dashboard.waist}: ${entry.waist}${t.common.cm}`,
                         entry.body_fat && `BF: ${entry.body_fat}%`,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
+                      ].filter(Boolean).join(" · ")}
                     </p>
                   </div>
                   {entry.photo_urls && entry.photo_urls.length > 0 && (

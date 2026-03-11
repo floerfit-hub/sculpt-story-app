@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,21 +14,13 @@ import { differenceInDays, addDays, format } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
 type ProgressEntry = Tables<"progress_entries">;
-
 const CHECKIN_INTERVAL = 14;
-
-const motivationalMessages = [
-  "Amazing work! Consistency is the key to transformation! 🔥",
-  "Every check-in brings you closer to your goals! 💪",
-  "You're showing up for yourself — that's what champions do! 🏆",
-  "Progress isn't always linear, but you're moving forward! 🚀",
-  "Two more weeks of greatness ahead! Keep pushing! ⭐",
-];
 
 const AddEntry = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [canLog, setCanLog] = useState(true);
@@ -39,12 +32,7 @@ const AddEntry = () => {
 
   const [form, setForm] = useState({
     entry_date: new Date().toISOString().split("T")[0],
-    weight: "",
-    waist: "",
-    chest: "",
-    hips: "",
-    body_fat: "",
-    notes: "",
+    weight: "", waist: "", chest: "", hips: "", body_fat: "", notes: "",
   });
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -53,22 +41,14 @@ const AddEntry = () => {
     if (!user) return;
     const checkEligibility = async () => {
       const { data } = await supabase
-        .from("progress_entries")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("entry_date", { ascending: false })
-        .limit(1);
-
+        .from("progress_entries").select("*").eq("user_id", user.id)
+        .order("entry_date", { ascending: false }).limit(1);
       if (data && data.length > 0) {
         const lastEntry = data[0];
         setPreviousEntry(lastEntry);
         const next = addDays(new Date(lastEntry.entry_date), CHECKIN_INTERVAL);
         const diff = differenceInDays(next, new Date());
-        if (diff > 0) {
-          setCanLog(false);
-          setDaysLeft(diff);
-          setNextDate(next);
-        }
+        if (diff > 0) { setCanLog(false); setDaysLeft(diff); setNextDate(next); }
       }
       setChecking(false);
     };
@@ -80,9 +60,7 @@ const AddEntry = () => {
     setPhotos((prev) => [...prev, ...files]);
     files.forEach((file) => {
       const reader = new FileReader();
-      reader.onload = (ev) => {
-        setPreviews((prev) => [...prev, ev.target?.result as string]);
-      };
+      reader.onload = (ev) => { setPreviews((prev) => [...prev, ev.target?.result as string]); };
       reader.readAsDataURL(file);
     });
   };
@@ -101,20 +79,15 @@ const AddEntry = () => {
     for (const photo of photos) {
       const ext = photo.name.split(".").pop();
       const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage
-        .from("progress-photos")
-        .upload(path, photo);
+      const { error } = await supabase.storage.from("progress-photos").upload(path, photo);
       if (!error) {
-        const { data: urlData } = supabase.storage
-          .from("progress-photos")
-          .getPublicUrl(path);
+        const { data: urlData } = supabase.storage.from("progress-photos").getPublicUrl(path);
         photoUrls.push(urlData.publicUrl);
       }
     }
 
     const entryData = {
-      user_id: user.id,
-      entry_date: form.entry_date,
+      user_id: user.id, entry_date: form.entry_date,
       weight: form.weight ? Number(form.weight) : null,
       waist: form.waist ? Number(form.waist) : null,
       chest: form.chest ? Number(form.chest) : null,
@@ -125,16 +98,15 @@ const AddEntry = () => {
     };
 
     const { error } = await supabase.from("progress_entries").insert(entryData);
-
     setLoading(false);
 
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t.addEntry.error, description: error.message, variant: "destructive" });
     } else {
       setSavedEntry(entryData);
       setShowComparison(true);
-      const msg = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
-      toast({ title: "Progress Logged! 🎉", description: msg });
+      const msg = t.motivation[Math.floor(Math.random() * t.motivation.length)];
+      toast({ title: t.addEntry.progressLogged, description: msg });
     }
   };
 
@@ -164,19 +136,13 @@ const AddEntry = () => {
         <Card className="border-primary/30">
           <CardContent className="py-12 text-center space-y-4">
             <Clock className="h-12 w-12 text-primary mx-auto" />
-            <h2 className="text-xl font-display font-bold">Not Yet!</h2>
+            <h2 className="text-xl font-display font-bold">{t.addEntry.notYet}</h2>
             <p className="text-muted-foreground">
-              Your next progress check-in is available in{" "}
-              <span className="font-semibold text-primary">{daysLeft} day{daysLeft !== 1 ? "s" : ""}</span>.
+              {t.addEntry.nextCheckinIn}{" "}
+              <span className="font-semibold text-primary">{daysLeft} {daysLeft !== 1 ? t.dashboard.days : t.dashboard.day}</span>.
             </p>
-            {nextDate && (
-              <p className="text-sm text-muted-foreground">
-                Come back on {format(nextDate, "MMMM d, yyyy")}
-              </p>
-            )}
-            <Button variant="outline" onClick={() => navigate("/")}>
-              Back to Dashboard
-            </Button>
+            {nextDate && <p className="text-sm text-muted-foreground">{t.addEntry.comeBackOn} {format(nextDate, "MMMM d, yyyy")}</p>}
+            <Button variant="outline" onClick={() => navigate("/")}>{t.addEntry.backToDashboard}</Button>
           </CardContent>
         </Card>
       </div>
@@ -185,10 +151,10 @@ const AddEntry = () => {
 
   if (showComparison && savedEntry) {
     const comparisons = [
-      { label: "Weight", unit: "kg", current: savedEntry.weight, prev: previousEntry?.weight },
-      { label: "Waist", unit: "cm", current: savedEntry.waist, prev: previousEntry?.waist },
-      { label: "Chest", unit: "cm", current: savedEntry.chest, prev: previousEntry?.chest },
-      { label: "Hips", unit: "cm", current: savedEntry.hips, prev: previousEntry?.hips },
+      { label: t.dashboard.weight, unit: t.common.kg, current: savedEntry.weight, prev: previousEntry?.weight },
+      { label: t.dashboard.waist, unit: t.common.cm, current: savedEntry.waist, prev: previousEntry?.waist },
+      { label: "Chest", unit: t.common.cm, current: savedEntry.chest, prev: previousEntry?.chest },
+      { label: "Hips", unit: t.common.cm, current: savedEntry.hips, prev: previousEntry?.hips },
     ];
 
     return (
@@ -196,18 +162,14 @@ const AddEntry = () => {
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="py-8 text-center space-y-3">
             <PartyPopper className="h-12 w-12 text-primary mx-auto" />
-            <h2 className="text-xl font-display font-bold">Great Job! 🎉</h2>
-            <p className="text-muted-foreground">
-              {motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)]}
-            </p>
+            <h2 className="text-xl font-display font-bold">{t.addEntry.greatJob}</h2>
+            <p className="text-muted-foreground">{t.motivation[Math.floor(Math.random() * t.motivation.length)]}</p>
           </CardContent>
         </Card>
 
         {previousEntry && (
           <Card>
-            <CardHeader>
-              <CardTitle className="font-display text-lg">Your Progress Comparison</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="font-display text-lg">{t.addEntry.progressComparison}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               {comparisons.map((c) => {
                 const diff = getDiff(c.current, c.prev);
@@ -232,99 +194,66 @@ const AddEntry = () => {
           </Card>
         )}
 
-        <Button className="w-full" onClick={() => navigate("/")}>
-          Back to Dashboard
-        </Button>
+        <Button className="w-full" onClick={() => navigate("/")}>{t.addEntry.backToDashboard}</Button>
       </div>
     );
   }
 
   const fields = [
-    { key: "weight", label: "Weight (kg)", placeholder: "75" },
-    { key: "waist", label: "Waist (cm)", placeholder: "80" },
-    { key: "chest", label: "Chest (cm)", placeholder: "95" },
-    { key: "hips", label: "Hips (cm)", placeholder: "90" },
-    { key: "body_fat", label: "Body Fat % (optional)", placeholder: "15" },
+    { key: "weight", label: t.addEntry.weightKg, placeholder: "75" },
+    { key: "waist", label: t.addEntry.waistCm, placeholder: "80" },
+    { key: "chest", label: t.addEntry.chestCm, placeholder: "95" },
+    { key: "hips", label: t.addEntry.hipsCm, placeholder: "90" },
+    { key: "body_fat", label: t.addEntry.bodyFatOptional, placeholder: "15" },
   ] as const;
 
   return (
     <div className="max-w-2xl animate-fade-in">
       <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-xl">Log Bi-Weekly Progress</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="font-display text-xl">{t.addEntry.logProgress}</CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={form.entry_date}
-                onChange={(e) => setForm({ ...form, entry_date: e.target.value })}
-                required
-              />
+              <Label htmlFor="date">{t.addEntry.date}</Label>
+              <Input id="date" type="date" value={form.entry_date} onChange={(e) => setForm({ ...form, entry_date: e.target.value })} required />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               {fields.map((f) => (
                 <div key={f.key} className="space-y-2">
                   <Label htmlFor={f.key}>{f.label}</Label>
-                  <Input
-                    id={f.key}
-                    type="number"
-                    step="0.1"
-                    placeholder={f.placeholder}
-                    value={form[f.key]}
-                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                  />
+                  <Input id={f.key} type="number" step="0.1" placeholder={f.placeholder} value={form[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
                 </div>
               ))}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                placeholder="How are you feeling? Any changes in diet or training?"
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                rows={3}
-              />
+              <Label htmlFor="notes">{t.addEntry.notes}</Label>
+              <Textarea id="notes" placeholder={t.addEntry.notesPlaceholder} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
             </div>
 
             <div className="space-y-2">
-              <Label>Progress Photos</Label>
+              <Label>{t.addEntry.progressPhotos}</Label>
               <div className="flex flex-wrap gap-3">
                 {previews.map((src, i) => (
                   <div key={i} className="relative h-24 w-24 overflow-hidden rounded-lg border">
                     <img src={src} alt="" className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(i)}
-                      className="absolute right-1 top-1 rounded-full bg-foreground/70 p-0.5 text-background"
-                    >
+                    <button type="button" onClick={() => removePhoto(i)} className="absolute right-1 top-1 rounded-full bg-foreground/70 p-0.5 text-background">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
                 ))}
                 <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary transition-colors">
                   <Upload className="h-5 w-5" />
-                  <span className="text-xs">Upload</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handlePhotoChange}
-                    className="hidden"
-                  />
+                  <span className="text-xs">{t.addEntry.upload}</span>
+                  <input type="file" accept="image/*" multiple onChange={handlePhotoChange} className="hidden" />
                 </label>
               </div>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
               <Save className="mr-2 h-4 w-4" />
-              {loading ? "Saving..." : "Save Entry"}
+              {loading ? t.addEntry.saving : t.addEntry.saveEntry}
             </Button>
           </form>
         </CardContent>

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { I18nProvider } from "@/i18n";
 import AppLayout from "@/components/AppLayout";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
@@ -45,21 +46,23 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/auth" element={<AuthRoute />} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/add-entry" element={<ProtectedRoute><AddEntry /></ProtectedRoute>} />
-            <Route path="/charts" element={<ProtectedRoute><Charts /></ProtectedRoute>} />
-            <Route path="/photos" element={<ProtectedRoute><Photos /></ProtectedRoute>} />
-            <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
-            <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
-            <Route path="/workouts" element={<ProtectedRoute><Workouts /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/coach" element={<ProtectedRoute><CoachView /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <Routes>
+              <Route path="/auth" element={<AuthRoute />} />
+              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/add-entry" element={<ProtectedRoute><AddEntry /></ProtectedRoute>} />
+              <Route path="/charts" element={<ProtectedRoute><Charts /></ProtectedRoute>} />
+              <Route path="/photos" element={<ProtectedRoute><Photos /></ProtectedRoute>} />
+              <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
+              <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
+              <Route path="/workouts" element={<ProtectedRoute><Workouts /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/coach" element={<ProtectedRoute><CoachView /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </I18nProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
