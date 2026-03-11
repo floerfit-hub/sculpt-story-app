@@ -121,15 +121,15 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
   // Header
   doc.setFontSize(18);
   doc.setTextColor(30, 30, 30);
-  doc.text("FloerFit — Звіт клієнта", margin, y);
+  doc.text("FloerFit \u2014 \u0417\u0432\u0456\u0442 \u043a\u043b\u0456\u0454\u043d\u0442\u0430", margin, y);
   y += 8;
 
   doc.setFontSize(12);
   doc.text(client.name, margin, y);
   doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
-  doc.text(`Ролі: ${client.roles.join(", ")}  |  Реєстрація: ${client.registrationDate}`, margin, y + 5);
-  doc.text(`Згенеровано: ${format(new Date(), "dd.MM.yyyy HH:mm")}`, margin, y + 10);
+  doc.text(`\u0420\u043e\u043b\u0456: ${client.roles.join(", ")}  |  \u0414\u0430\u0442\u0430 \u0440\u0435\u0454\u0441\u0442\u0440\u0430\u0446\u0456\u0457: ${client.registrationDate}`, margin, y + 5);
+  doc.text(`\u0421\u0442\u0432\u043e\u0440\u0435\u043d\u043e: ${format(new Date(), "dd.MM.yyyy HH:mm")}`, margin, y + 10);
   y += 18;
 
   doc.setDrawColor(200, 200, 200);
