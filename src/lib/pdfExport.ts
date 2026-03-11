@@ -14,15 +14,27 @@ interface ClientPdfData {
   workouts: Workout[];
 }
 
-async function loadImageAsBase64(url: string): Promise<string | null> {
+/** Load image, crop to 1:1 square (center crop), return as base64 JPEG */
+async function loadImageAsSquareBase64(url: string): Promise<string | null> {
   try {
     const response = await fetch(url);
     const blob = await response.blob();
+    const bitmap = await createImageBitmap(blob);
+
+    const size = Math.min(bitmap.width, bitmap.height);
+    const sx = (bitmap.width - size) / 2;
+    const sy = (bitmap.height - size) / 2;
+
+    const canvas = new OffscreenCanvas(size, size);
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(bitmap, sx, sy, size, size, 0, 0, size, size);
+
+    const outBlob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.85 });
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
       reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
+      reader.readAsDataURL(outBlob);
     });
   } catch {
     return null;
@@ -51,12 +63,10 @@ function drawSimpleChart(
   const chartH = height - 20;
   const chartY = y;
 
-  // Border
   doc.setDrawColor(200, 200, 200);
   doc.setLineWidth(0.3);
   doc.rect(chartX, chartY, chartW, chartH);
 
-  // Grid lines
   const values = data.map((d) => d.value);
   const minVal = Math.min(...values);
   const maxVal = Math.max(...values);
@@ -65,7 +75,6 @@ function drawSimpleChart(
   const yMin = minVal - padding;
   const yMax = maxVal + padding;
 
-  // Y-axis labels
   doc.setFontSize(7);
   doc.setTextColor(120, 120, 120);
   for (let i = 0; i <= 4; i++) {
@@ -78,14 +87,12 @@ function drawSimpleChart(
     }
   }
 
-  // X-axis labels
   const step = Math.max(1, Math.floor(data.length / 6));
   for (let i = 0; i < data.length; i += step) {
     const px = chartX + (chartW * i) / (data.length - 1);
     doc.text(data[i].label, px, chartY + chartH + 4, { align: "center" });
   }
 
-  // Draw line
   doc.setDrawColor(color[0], color[1], color[2]);
   doc.setLineWidth(0.8);
   const points: [number, number][] = data.map((d, i) => [
@@ -97,7 +104,6 @@ function drawSimpleChart(
     doc.line(points[i - 1][0], points[i - 1][1], points[i][0], points[i][1]);
   }
 
-  // Dots
   doc.setFillColor(color[0], color[1], color[2]);
   for (const [px, py] of points) {
     doc.circle(px, py, 1.2, "F");
@@ -115,18 +121,17 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
   // Header
   doc.setFontSize(18);
   doc.setTextColor(30, 30, 30);
-  doc.text("FloerFit — Client Report", margin, y);
+  doc.text("FloerFit — Звіт клієнта", margin, y);
   y += 8;
 
   doc.setFontSize(12);
   doc.text(client.name, margin, y);
   doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
-  doc.text(`Roles: ${client.roles.join(", ")}  |  Registered: ${client.registrationDate}`, margin, y + 5);
-  doc.text(`Generated: ${format(new Date(), "dd.MM.yyyy HH:mm")}`, margin, y + 10);
+  doc.text(`Ролі: ${client.roles.join(", ")}  |  Реєстрація: ${client.registrationDate}`, margin, y + 5);
+  doc.text(`Згенеровано: ${format(new Date(), "dd.MM.yyyy HH:mm")}`, margin, y + 10);
   y += 18;
 
-  // Divider
   doc.setDrawColor(200, 200, 200);
   doc.line(margin, y, pageWidth - margin, y);
   y += 6;
@@ -135,7 +140,7 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
   if (client.entries.length > 0) {
     doc.setFontSize(13);
     doc.setTextColor(30, 30, 30);
-    doc.text("Progress Entries", margin, y);
+    doc.text("Записи прогресу", margin, y);
     y += 4;
 
     const sortedEntries = [...client.entries].sort(
@@ -147,7 +152,7 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
       margin: { left: margin, right: margin },
       headStyles: { fillColor: [55, 65, 81], fontSize: 7 },
       bodyStyles: { fontSize: 7 },
-      head: [["Date", "Weight", "Body Fat %", "Waist", "Chest", "Hips", "Arm", "Glute", "Thigh"]],
+      head: [["Дата", "Вага", "Жир %", "Талія", "Груди", "Стегна", "Руки", "Сідниці", "Стегно"]],
       body: sortedEntries.map((e) => [
         format(new Date(e.entry_date), "dd.MM.yy"),
         e.weight ?? "—",
@@ -180,15 +185,15 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
 
     if (y + 55 > 280) { doc.addPage(); y = 20; }
     if (weightData.length >= 2) {
-      y = drawSimpleChart(doc, weightData, "Weight Progression (kg)", margin, y, chartWidth, 50, [59, 130, 246]);
+      y = drawSimpleChart(doc, weightData, "Прогрес ваги (кг)", margin, y, chartWidth, 50, [59, 130, 246]);
     }
     if (y + 55 > 280) { doc.addPage(); y = 20; }
     if (waistData.length >= 2) {
-      y = drawSimpleChart(doc, waistData, "Waist Progression (cm)", margin, y, chartWidth, 50, [234, 88, 12]);
+      y = drawSimpleChart(doc, waistData, "Прогрес талії (см)", margin, y, chartWidth, 50, [234, 88, 12]);
     }
     if (y + 55 > 280) { doc.addPage(); y = 20; }
     if (bodyFatData.length >= 2) {
-      y = drawSimpleChart(doc, bodyFatData, "Body Fat Progression (%)", margin, y, chartWidth, 50, [22, 163, 74]);
+      y = drawSimpleChart(doc, bodyFatData, "Прогрес жиру (%)", margin, y, chartWidth, 50, [22, 163, 74]);
     }
   }
 
@@ -197,14 +202,14 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
     if (y + 30 > 280) { doc.addPage(); y = 20; }
     doc.setFontSize(13);
     doc.setTextColor(30, 30, 30);
-    doc.text("Workout History", margin, y);
+    doc.text("Історія тренувань", margin, y);
     y += 4;
 
     const workoutRows = client.workouts.flatMap((w) =>
       w.workout_exercises.map((ex) => {
         const sets = Array.isArray(ex.sets) ? ex.sets : [];
         const setsStr = (sets as any[])
-          .map((s: any, i: number) => `${i + 1}: ${s.weight ?? 0}kg×${s.reps ?? 0}`)
+          .map((s: any, i: number) => `${i + 1}: ${s.weight ?? 0}кг×${s.reps ?? 0}`)
           .join(", ");
         return [
           format(new Date(w.started_at), "dd.MM.yy HH:mm"),
@@ -220,14 +225,14 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
       margin: { left: margin, right: margin },
       headStyles: { fillColor: [55, 65, 81], fontSize: 7 },
       bodyStyles: { fontSize: 7 },
-      head: [["Date", "Exercise", "Muscle Group", "Sets"]],
+      head: [["Дата", "Вправа", "Група м'язів", "Підходи"]],
       body: workoutRows,
     });
 
     y = (doc as any).lastAutoTable.finalY + 10;
   }
 
-  // ─── Photos ───
+  // ─── Photos (1:1 square, vertical layout — one per row) ───
   const entriesWithPhotos = client.entries.filter(
     (e) => e.photo_urls && e.photo_urls.length > 0
   );
@@ -236,8 +241,10 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
     if (y + 20 > 280) { doc.addPage(); y = 20; }
     doc.setFontSize(13);
     doc.setTextColor(30, 30, 30);
-    doc.text("Progress Photos", margin, y);
+    doc.text("Фото прогресу", margin, y);
     y += 6;
+
+    const imgSize = 75; // 75mm square — large, clear photos
 
     for (const entry of entriesWithPhotos) {
       if (y + 10 > 280) { doc.addPage(); y = 20; }
@@ -247,23 +254,23 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
       y += 4;
 
       const urls = entry.photo_urls!;
-      const imgSize = Math.min(55, (pageWidth - margin * 2 - (urls.length - 1) * 3) / Math.min(urls.length, 3));
 
       for (let i = 0; i < urls.length; i++) {
-        const col = i % 3;
-        if (i > 0 && col === 0) { y += imgSize + 4; }
         if (y + imgSize > 280) { doc.addPage(); y = 20; }
 
-        const base64 = await loadImageAsBase64(urls[i]);
+        const base64 = await loadImageAsSquareBase64(urls[i]);
         if (base64) {
           try {
-            doc.addImage(base64, "JPEG", margin + col * (imgSize + 3), y, imgSize, imgSize);
+            // Center the image horizontally
+            const imgX = (pageWidth - imgSize) / 2;
+            doc.addImage(base64, "JPEG", imgX, y, imgSize, imgSize);
+            y += imgSize + 5;
           } catch {
             // skip corrupt images
           }
         }
       }
-      y += imgSize + 6;
+      y += 3;
     }
   }
 
