@@ -152,7 +152,7 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
       margin: { left: margin, right: margin },
       headStyles: { fillColor: [55, 65, 81], fontSize: 7 },
       bodyStyles: { fontSize: 7 },
-      head: [["Дата", "Вага", "Жир %", "Талія", "Груди", "Стегна", "Руки", "Сідниці", "Стегно"]],
+      head: [["Дата", "Вага (кг)", "% жиру", "Талія (см)", "Груди (см)", "Стегна (см)", "Руки (см)", "Сідниці (см)", "Обхват стегна (см)"]],
       body: sortedEntries.map((e) => [
         format(new Date(e.entry_date), "dd.MM.yy"),
         e.weight ?? "—",
