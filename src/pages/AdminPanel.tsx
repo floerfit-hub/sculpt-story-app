@@ -139,7 +139,7 @@ const AdminPanel = () => {
     toast({ title: "CSV exported" });
   };
 
-
+  if (!isAdmin) {
     return (
       <div className="py-20 text-center text-muted-foreground">
         <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
