@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, Lightbulb, UserCircle } from "lucide-react";
+import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, Lightbulb, UserCircle, Swords } from "lucide-react";
 import InstallPrompt from "@/components/InstallPrompt";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
@@ -10,9 +10,9 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
 
   const navItems = [
     { to: "/", icon: LayoutDashboard, label: "Home" },
+    { to: "/workouts", icon: Dumbbell, label: "Workouts" },
     { to: "/add-entry", icon: PlusCircle, label: "Track" },
     { to: "/calculator", icon: Calculator, label: "Macros" },
-    { to: "/insights", icon: Lightbulb, label: "Insights" },
     { to: "/profile", icon: UserCircle, label: "Profile" },
   ];
 

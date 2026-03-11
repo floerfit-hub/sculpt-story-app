@@ -14,6 +14,7 @@ import CoachView from "@/pages/CoachView";
 import Calculator from "@/pages/Calculator";
 import Insights from "@/pages/Insights";
 import Profile from "@/pages/Profile";
+import Workouts from "@/pages/Workouts";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/photos" element={<ProtectedRoute><Photos /></ProtectedRoute>} />
             <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
             <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
+            <Route path="/workouts" element={<ProtectedRoute><Workouts /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/coach" element={<ProtectedRoute><CoachView /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
