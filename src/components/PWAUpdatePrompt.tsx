@@ -53,7 +53,7 @@ const PWAUpdatePrompt = () => {
                 onClick={() => updateServiceWorker(true)}
                 className="h-8 text-xs"
               >
-                {t.pwa?.update ?? "Update"}
+                {t.pwa.update}
               </Button>
               <Button
                 size="sm"
