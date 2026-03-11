@@ -372,6 +372,34 @@ export const en = {
     later: "Later",
   },
 
+  // Admin
+  admin: {
+    title: "Admin Panel",
+    subtitle: "Manage all users and their data",
+    accessDenied: "Admin access only",
+    unnamed: "Unnamed User",
+    workoutsCount: "workouts",
+    noEntries: "No progress entries yet",
+    noPhotos: "No photos yet",
+    noWorkouts: "No workouts yet",
+    entryDeleted: "Entry deleted",
+    workoutDeleted: "Workout deleted",
+    roleUpdated: "Role updated",
+    confirmDeleteTitle: "Confirm Deletion",
+    confirmDeleteDesc: "Are you sure? This action cannot be undone.",
+    removeRoleTitle: "Remove Role",
+    removeRoleDesc: "Are you sure you want to remove this role?",
+    manageRoles: "Manage Roles",
+    manageRolesDesc: "Add or remove roles for this user",
+    selectRole: "Select role",
+    addRole: "Add",
+    tabs: {
+      progress: "Progress",
+      photos: "Photos",
+      workouts: "Workouts",
+    } as Record<string, string>,
+  },
+
   // Common
   common: {
     error: "Error",
