@@ -18,8 +18,9 @@ import { format } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   Shield, Users, ChevronDown, ChevronUp, Trash2, UserCog,
-  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown,
+  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download,
 } from "lucide-react";
+import { toCsv, downloadCsv, buildFilename } from "@/lib/csvExport";
 
 type Profile = Tables<"profiles">;
 type ProgressEntry = Tables<"progress_entries">;
@@ -94,6 +95,50 @@ const AdminPanel = () => {
     fetchClients();
   };
 
+  const handleExportUsers = () => {
+    const headers = ["Name", "Registration Date", "Latest Weight (kg)", "Weight Trend", "Roles"];
+    const keys = ["name", "regDate", "weight", "trend", "roles"];
+    const rows = clients.map((c) => {
+      const latest = c.entries[0];
+      const prev = c.entries[1];
+      const diff = latest?.weight && prev?.weight ? latest.weight - prev.weight : null;
+      return {
+        name: c.profile.full_name || "—",
+        regDate: format(new Date(c.profile.created_at), "yyyy-MM-dd"),
+        weight: latest?.weight ?? "",
+        trend: diff !== null ? `${diff > 0 ? "+" : ""}${diff.toFixed(1)}` : "",
+        roles: c.roles.map((r) => r.role).join(", "),
+      };
+    });
+    const csv = toCsv(headers, rows, keys);
+    downloadCsv(csv, buildFilename("floerfit_users"));
+    toast({ title: "CSV exported" });
+  };
+
+  const handleExportProgress = (client: ClientData) => {
+    const name = (client.profile.full_name || "user").replace(/\s+/g, "_").toLowerCase();
+    const progressHeaders = ["Date", "Weight (kg)", "Body Fat (%)", "Waist (cm)", "Chest (cm)", "Hips (cm)", "Arm (cm)", "Glute (cm)", "Thigh (cm)", "Notes"];
+    const progressKeys = ["date", "weight", "bodyFat", "waist", "chest", "hips", "arm", "glute", "thigh", "notes"];
+    const progressRows = client.entries.map((e) => ({
+      date: format(new Date(e.entry_date), "yyyy-MM-dd"),
+      weight: e.weight ?? "", bodyFat: e.body_fat ?? "", waist: e.waist ?? "",
+      chest: e.chest ?? "", hips: e.hips ?? "", arm: e.arm_circumference ?? "",
+      glute: e.glute_circumference ?? "", thigh: e.thigh_circumference ?? "", notes: e.notes ?? "",
+    }));
+    const workoutHeaders = ["Date", "Exercise", "Muscle Group", "Sets (JSON)"];
+    const workoutKeys = ["date", "exercise", "muscle", "sets"];
+    const workoutRows = client.workouts.flatMap((w) =>
+      w.workout_exercises.map((ex) => ({
+        date: format(new Date(w.started_at), "yyyy-MM-dd HH:mm"),
+        exercise: ex.exercise_name, muscle: ex.muscle_group, sets: JSON.stringify(ex.sets),
+      }))
+    );
+    const combined = "=== PROGRESS ===\n" + toCsv(progressHeaders, progressRows, progressKeys) +
+      "\n\n=== WORKOUTS ===\n" + toCsv(workoutHeaders, workoutRows, workoutKeys);
+    downloadCsv(combined, buildFilename(`floerfit_${name}_progress`));
+    toast({ title: "CSV exported" });
+  };
+
   if (!isAdmin) {
     return (
       <div className="py-20 text-center text-muted-foreground">
@@ -123,10 +168,16 @@ const AdminPanel = () => {
           <h1 className="text-2xl font-display font-bold">{t.admin.title}</h1>
           <p className="text-sm text-muted-foreground">{t.admin.subtitle}</p>
         </div>
-        <Badge variant="secondary" className="ml-auto text-sm">
-          <Users className="h-3.5 w-3.5 mr-1" />
-          {clients.length}
-        </Badge>
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportUsers}>
+            <Download className="h-3.5 w-3.5 mr-1" />
+            Export CSV
+          </Button>
+          <Badge variant="secondary" className="text-sm">
+            <Users className="h-3.5 w-3.5 mr-1" />
+            {clients.length}
+          </Badge>
+        </div>
       </div>
 
       {clients.map((client) => {
@@ -162,6 +213,14 @@ const AdminPanel = () => {
                       {format(new Date(latestEntry.entry_date), "dd.MM.yyyy")}
                     </span>
                   )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => { e.stopPropagation(); handleExportProgress(client); }}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
