@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
+import { uk as ukLocale } from "date-fns/locale";
+
+const MUSCLE_GROUP_UK: Record<string, string> = {
+  "Legs & Glutes": "Ноги та сідниці",
+  "Back": "Спина",
+  "Chest": "Груди",
+  "Shoulders": "Плечі",
+  "Arms": "Руки",
+  "Core": "Кор",
+};
 
 interface SetData { weight: number; reps: number }
 interface WorkoutExerciseRow { id: string; exercise_name: string; muscle_group: string; sets: SetData[]; notes: string | null; sort_order: number }
@@ -48,7 +58,7 @@ const WorkoutHistory = ({ onBack }: { onBack: () => void }) => {
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-display font-semibold">{format(new Date(w.started_at), "EEEE, MMM d yyyy")}</p>
+                  <p className="font-display font-semibold">{format(new Date(w.started_at), "EEEE, d MMM yyyy", { locale: ukLocale })}</p>
                   <p className="text-sm text-muted-foreground">{w.exercises.length} {t.workouts.exercises}</p>
                 </div>
                 <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform ${expanded ? "rotate-90" : ""}`} />
@@ -59,7 +69,7 @@ const WorkoutHistory = ({ onBack }: { onBack: () => void }) => {
                     const sets = (Array.isArray(ex.sets) ? ex.sets : []) as SetData[];
                     return (
                       <div key={ex.id} className="space-y-1">
-                        <p className="font-medium text-sm">{ex.exercise_name} <span className="text-muted-foreground text-xs">({ex.muscle_group})</span></p>
+                        <p className="font-medium text-sm">{t.exerciseNames[ex.exercise_name] || ex.exercise_name} <span className="text-muted-foreground text-xs">({MUSCLE_GROUP_UK[ex.muscle_group] || ex.muscle_group})</span></p>
                         <div className="flex flex-wrap gap-2">
                           {sets.map((s, i) => (
                             <span key={i} className="rounded-md bg-accent px-2 py-1 text-xs text-accent-foreground">{s.weight}{t.common.kg} × {s.reps}</span>
