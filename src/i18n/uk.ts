@@ -8,6 +8,7 @@ export const uk: Translations = {
     macros: "Макроси",
     profile: "Профіль",
     insights: "Аналітика",
+    admin: "Адмін",
     appName: "FitTrack",
   },
 
@@ -356,6 +357,33 @@ export const uk: Translations = {
     updateDescription: "Оновіть, щоб отримати останні покращення",
     update: "Оновити",
     later: "Пізніше",
+  },
+
+  admin: {
+    title: "Адмін панель",
+    subtitle: "Керуйте всіма користувачами та їхніми даними",
+    accessDenied: "Доступ лише для адміністраторів",
+    unnamed: "Без імені",
+    workoutsCount: "тренувань",
+    noEntries: "Записів прогресу ще немає",
+    noPhotos: "Фото ще немає",
+    noWorkouts: "Тренувань ще немає",
+    entryDeleted: "Запис видалено",
+    workoutDeleted: "Тренування видалено",
+    roleUpdated: "Роль оновлено",
+    confirmDeleteTitle: "Підтвердження видалення",
+    confirmDeleteDesc: "Ви впевнені? Цю дію не можна скасувати.",
+    removeRoleTitle: "Видалити роль",
+    removeRoleDesc: "Ви впевнені, що хочете видалити цю роль?",
+    manageRoles: "Керування ролями",
+    manageRolesDesc: "Додайте або видаліть ролі користувача",
+    selectRole: "Оберіть роль",
+    addRole: "Додати",
+    tabs: {
+      progress: "Прогрес",
+      photos: "Фото",
+      workouts: "Тренування",
+    } as Record<string, string>,
   },
 
   common: {

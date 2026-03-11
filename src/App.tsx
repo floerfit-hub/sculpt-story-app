@@ -18,6 +18,7 @@ import Calculator from "@/pages/Calculator";
 import Insights from "@/pages/Insights";
 import Profile from "@/pages/Profile";
 import Workouts from "@/pages/Workouts";
+import AdminPanel from "@/pages/AdminPanel";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="/workouts" element={<ProtectedRoute><Workouts /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/coach" element={<ProtectedRoute><CoachView /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

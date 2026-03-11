@@ -2,11 +2,11 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
-import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, UserCircle } from "lucide-react";
+import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, UserCircle, Shield } from "lucide-react";
 import InstallPrompt from "@/components/InstallPrompt";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
-  const { profile } = useAuth();
+  const { profile, isAdmin } = useAuth();
   const location = useLocation();
   const { t } = useTranslation();
 
@@ -15,6 +15,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     { to: "/workouts", icon: Dumbbell, label: t.nav.workouts },
     { to: "/add-entry", icon: PlusCircle, label: t.nav.track },
     { to: "/calculator", icon: Calculator, label: t.nav.macros },
+    ...(isAdmin ? [{ to: "/admin", icon: Shield, label: t.nav.admin }] : []),
     { to: "/profile", icon: UserCircle, label: t.nav.profile },
   ];
 

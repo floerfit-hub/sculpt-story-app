@@ -6,6 +6,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   isCoach: boolean;
+  isAdmin: boolean;
   profile: { full_name: string | null } | null;
   loading: boolean;
   signOut: () => Promise<void>;
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   isCoach: false,
+  isAdmin: false,
   profile: null,
   loading: true,
   signOut: async () => {},
@@ -24,6 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isCoach, setIsCoach] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,13 +37,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Use setTimeout to avoid Supabase deadlock
           setTimeout(async () => {
             const { data: roles } = await supabase
               .from("user_roles")
               .select("role")
               .eq("user_id", session.user.id);
             setIsCoach(roles?.some((r) => r.role === "coach") ?? false);
+            setIsAdmin(roles?.some((r) => r.role === "admin") ?? false);
 
             const { data: prof } = await supabase
               .from("profiles")
@@ -52,6 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }, 0);
         } else {
           setIsCoach(false);
+          setIsAdmin(false);
           setProfile(null);
           setLoading(false);
         }
@@ -70,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, isCoach, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, isCoach, isAdmin, profile, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );
