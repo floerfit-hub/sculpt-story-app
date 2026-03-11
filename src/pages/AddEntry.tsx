@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
@@ -19,6 +19,7 @@ const CHECKIN_INTERVAL = 14;
 const AddEntry = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -30,15 +31,28 @@ const AddEntry = () => {
   const [showComparison, setShowComparison] = useState(false);
   const [savedEntry, setSavedEntry] = useState<Partial<ProgressEntry> | null>(null);
 
+  // Edit mode
+  const editEntry = (location.state as any)?.editEntry as ProgressEntry | undefined;
+  const isEditing = !!editEntry;
+
   const [form, setForm] = useState({
-    entry_date: new Date().toISOString().split("T")[0],
-    weight: "", waist: "", chest: "", hips: "", body_fat: "", notes: "",
+    entry_date: editEntry?.entry_date || new Date().toISOString().split("T")[0],
+    weight: editEntry?.weight?.toString() || "",
+    waist: editEntry?.waist?.toString() || "",
+    chest: editEntry?.chest?.toString() || "",
+    hips: editEntry?.hips?.toString() || "",
+    body_fat: editEntry?.body_fat?.toString() || "",
+    arm_circumference: (editEntry as any)?.arm_circumference?.toString() || "",
+    glute_circumference: (editEntry as any)?.glute_circumference?.toString() || "",
+    thigh_circumference: (editEntry as any)?.thigh_circumference?.toString() || "",
+    notes: editEntry?.notes || "",
   });
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
 
   useEffect(() => {
     if (!user) return;
+    if (isEditing) { setChecking(false); setCanLog(true); return; }
     const checkEligibility = async () => {
       const { data } = await supabase
         .from("progress_entries").select("*").eq("user_id", user.id)
@@ -53,7 +67,7 @@ const AddEntry = () => {
       setChecking(false);
     };
     checkEligibility();
-  }, [user]);
+  }, [user, isEditing]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -86,18 +100,38 @@ const AddEntry = () => {
       }
     }
 
-    const entryData = {
-      user_id: user.id, entry_date: form.entry_date,
+    const entryData: Record<string, any> = {
+      entry_date: form.entry_date,
       weight: form.weight ? Number(form.weight) : null,
       waist: form.waist ? Number(form.waist) : null,
       chest: form.chest ? Number(form.chest) : null,
       hips: form.hips ? Number(form.hips) : null,
       body_fat: form.body_fat ? Number(form.body_fat) : null,
+      arm_circumference: form.arm_circumference ? Number(form.arm_circumference) : null,
+      glute_circumference: form.glute_circumference ? Number(form.glute_circumference) : null,
+      thigh_circumference: form.thigh_circumference ? Number(form.thigh_circumference) : null,
       notes: form.notes || null,
-      photo_urls: photoUrls.length > 0 ? photoUrls : null,
     };
 
-    const { error } = await supabase.from("progress_entries").insert(entryData);
+    if (isEditing) {
+      if (photoUrls.length > 0) {
+        entryData.photo_urls = [...(editEntry?.photo_urls || []), ...photoUrls];
+      }
+      const { error } = await supabase.from("progress_entries").update(entryData).eq("id", editEntry!.id);
+      setLoading(false);
+      if (error) {
+        toast({ title: t.addEntry.error, description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: t.dashboard.entryUpdated });
+        navigate("/");
+      }
+      return;
+    }
+
+    entryData.user_id = user.id;
+    if (photoUrls.length > 0) entryData.photo_urls = photoUrls;
+
+    const { error } = await supabase.from("progress_entries").insert(entryData as any);
     setLoading(false);
 
     if (error) {
@@ -152,9 +186,9 @@ const AddEntry = () => {
   if (showComparison && savedEntry) {
     const comparisons = [
       { label: t.dashboard.weight, unit: t.common.kg, current: savedEntry.weight, prev: previousEntry?.weight },
-      { label: t.dashboard.waist, unit: t.common.cm, current: savedEntry.waist, prev: previousEntry?.waist },
-      { label: "Chest", unit: t.common.cm, current: savedEntry.chest, prev: previousEntry?.chest },
-      { label: "Hips", unit: t.common.cm, current: savedEntry.hips, prev: previousEntry?.hips },
+      { label: t.addEntry.waistCm, unit: t.common.cm, current: savedEntry.waist, prev: previousEntry?.waist },
+      { label: t.addEntry.chest, unit: t.common.cm, current: savedEntry.chest, prev: previousEntry?.chest },
+      { label: t.addEntry.hips, unit: t.common.cm, current: savedEntry.hips, prev: previousEntry?.hips },
     ];
 
     return (
@@ -204,13 +238,16 @@ const AddEntry = () => {
     { key: "waist", label: t.addEntry.waistCm, placeholder: "80" },
     { key: "chest", label: t.addEntry.chestCm, placeholder: "95" },
     { key: "hips", label: t.addEntry.hipsCm, placeholder: "90" },
+    { key: "arm_circumference", label: t.addEntry.armCm, placeholder: "35" },
+    { key: "glute_circumference", label: t.addEntry.gluteCm, placeholder: "100" },
+    { key: "thigh_circumference", label: t.addEntry.thighCm, placeholder: "55" },
     { key: "body_fat", label: t.addEntry.bodyFatOptional, placeholder: "15" },
   ] as const;
 
   return (
     <div className="max-w-2xl animate-fade-in">
       <Card>
-        <CardHeader><CardTitle className="font-display text-xl">{t.addEntry.logProgress}</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="font-display text-xl">{isEditing ? t.addEntry.update : t.addEntry.logProgress}</CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
@@ -222,7 +259,7 @@ const AddEntry = () => {
               {fields.map((f) => (
                 <div key={f.key} className="space-y-2">
                   <Label htmlFor={f.key}>{f.label}</Label>
-                  <Input id={f.key} type="number" step="0.1" placeholder={f.placeholder} value={form[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
+                  <Input id={f.key} type="number" step="0.1" placeholder={f.placeholder} value={(form as any)[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
                 </div>
               ))}
             </div>
@@ -253,7 +290,7 @@ const AddEntry = () => {
 
             <Button type="submit" className="w-full" disabled={loading}>
               <Save className="mr-2 h-4 w-4" />
-              {loading ? t.addEntry.saving : t.addEntry.saveEntry}
+              {loading ? (isEditing ? t.addEntry.updating : t.addEntry.saving) : (isEditing ? t.addEntry.update : t.addEntry.saveEntry)}
             </Button>
           </form>
         </CardContent>

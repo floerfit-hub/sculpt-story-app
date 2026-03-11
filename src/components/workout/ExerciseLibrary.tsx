@@ -11,9 +11,23 @@ const MUSCLE_EMOJIS: Record<MuscleGroup, string> = {
   "Legs & Glutes": "🦵", "Back": "🔙", "Chest": "💪", "Shoulders": "🏋️", "Arms": "💪", "Core": "🧱",
 };
 
+const MUSCLE_GROUP_KEYS: Record<MuscleGroup, string> = {
+  "Legs & Glutes": "legsGlutes",
+  "Back": "back",
+  "Chest": "chest",
+  "Shoulders": "shoulders",
+  "Arms": "arms",
+  "Core": "core",
+};
+
 const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const { t } = useTranslation();
   const [activeGroup, setActiveGroup] = useState<MuscleGroup | null>(null);
+
+  const getGroupLabel = (group: MuscleGroup) => {
+    const key = MUSCLE_GROUP_KEYS[group] as keyof typeof t.muscleGroups;
+    return t.muscleGroups[key];
+  };
 
   if (activeGroup) {
     const exercises = getExercisesByGroup(activeGroup);
@@ -21,7 +35,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
       <div className="space-y-4 animate-fade-in">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => setActiveGroup(null)}><ArrowLeft className="h-5 w-5" /></Button>
-          <h2 className="text-xl font-display font-bold">{activeGroup}</h2>
+          <h2 className="text-xl font-display font-bold">{getGroupLabel(activeGroup)}</h2>
         </div>
         <div className="grid gap-2">
           {exercises.map((ex) => (
@@ -50,7 +64,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{MUSCLE_EMOJIS[group]}</span>
                 <div>
-                  <p className="font-display font-semibold">{group}</p>
+                  <p className="font-display font-semibold">{getGroupLabel(group)}</p>
                   <p className="text-sm text-muted-foreground">{getExercisesByGroup(group).length} {t.workouts.exercises}</p>
                 </div>
               </div>
