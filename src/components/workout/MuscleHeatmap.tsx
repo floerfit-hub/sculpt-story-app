@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity } from "lucide-react";
 import type { Json } from "@/integrations/supabase/types";
+import muscleMapImage from "@/assets/muscle-map.png";
 
 type MuscleKey = "legsGlutes" | "back" | "chest" | "shoulders" | "arms" | "core";
 
@@ -17,28 +18,95 @@ const MUSCLE_GROUP_MAP: Record<string, MuscleKey> = {
   "Core": "core",
 };
 
-function getHeatColor(sets: number): string {
-  if (sets === 0) return "hsl(0 0% 80%)";
-  if (sets < 10) return "hsl(120 50% 55%)";
+function getHeatColor(sets: number, opacity = 0.45): string {
+  if (sets === 0) return "transparent";
+  if (sets < 10) return `hsla(120, 50%, 50%, ${opacity})`;
+  if (sets < 25) return `hsla(50, 90%, 50%, ${opacity})`;
+  if (sets < 40) return `hsla(30, 90%, 50%, ${opacity})`;
+  if (sets < 50) return `hsla(20, 90%, 45%, ${opacity})`;
+  return `hsla(0, 80%, 50%, ${opacity})`;
+}
+
+function getLegendColor(sets: number): string {
+  if (sets === 0) return "hsl(0 0% 70%)";
+  if (sets < 10) return "hsl(120 50% 50%)";
   if (sets < 25) return "hsl(50 90% 50%)";
   if (sets < 40) return "hsl(30 90% 50%)";
   if (sets < 50) return "hsl(20 90% 45%)";
   return "hsl(0 80% 50%)";
 }
 
-function getDarkHeatColor(sets: number): string {
-  if (sets === 0) return "hsl(0 0% 25%)";
-  if (sets < 10) return "hsl(120 40% 35%)";
-  if (sets < 25) return "hsl(50 70% 40%)";
-  if (sets < 40) return "hsl(30 70% 40%)";
-  if (sets < 50) return "hsl(20 70% 38%)";
-  return "hsl(0 65% 42%)";
-}
-
 interface MuscleData {
   sets: number;
   exercises: string[];
 }
+
+// Overlay regions mapped to the dual-view image (back left, front right)
+// Coordinates are percentages of the image dimensions
+const OVERLAY_REGIONS: Record<MuscleKey, { paths: string[] }> = {
+  // Back view (left figure) - back muscles
+  back: {
+    paths: [
+      // Upper back on rear figure
+      "M 12,16 L 22,14 L 26,18 L 26,30 L 12,30 L 8,18 Z",
+      // Lower back
+      "M 13,30 L 25,30 L 25,38 L 13,38 Z",
+    ],
+  },
+  // Front view (right figure) - chest
+  chest: {
+    paths: [
+      "M 60,16 L 66,14 L 74,14 L 80,16 L 80,26 L 70,28 L 60,26 Z",
+    ],
+  },
+  // Shoulders on both figures
+  shoulders: {
+    paths: [
+      // Rear left shoulder
+      "M 6,13 L 12,12 L 14,16 L 8,18 Z",
+      // Rear right shoulder
+      "M 26,12 L 32,13 L 30,18 L 24,16 Z",
+      // Front left shoulder
+      "M 56,13 L 62,12 L 64,16 L 58,18 Z",
+      // Front right shoulder
+      "M 76,12 L 82,13 L 80,18 L 74,16 Z",
+    ],
+  },
+  // Arms on both figures
+  arms: {
+    paths: [
+      // Rear left arm
+      "M 4,18 L 8,18 L 7,32 L 3,36 L 1,32 Z",
+      // Rear right arm
+      "M 30,18 L 34,18 L 37,32 L 35,36 L 31,32 Z",
+      // Front left arm
+      "M 54,18 L 58,18 L 57,32 L 53,36 L 51,32 Z",
+      // Front right arm
+      "M 80,18 L 84,18 L 87,32 L 85,36 L 81,32 Z",
+    ],
+  },
+  // Core on front figure
+  core: {
+    paths: [
+      "M 62,28 L 76,28 L 76,40 L 62,40 Z",
+    ],
+  },
+  // Legs & Glutes - glutes on rear, quads on front
+  legsGlutes: {
+    paths: [
+      // Rear glutes
+      "M 10,40 L 28,40 L 27,50 L 11,50 Z",
+      // Rear left leg
+      "M 11,50 L 18,50 L 17,72 L 14,80 L 11,72 Z",
+      // Rear right leg
+      "M 20,50 L 27,50 L 27,72 L 24,80 L 21,72 Z",
+      // Front left leg
+      "M 61,42 L 68,42 L 67,72 L 64,80 L 61,72 Z",
+      // Front right leg
+      "M 70,42 L 77,42 L 77,72 L 74,80 L 71,72 Z",
+    ],
+  },
+};
 
 const MuscleHeatmap = () => {
   const { user } = useAuth();
@@ -52,7 +120,6 @@ const MuscleHeatmap = () => {
     core: { sets: 0, exercises: [] },
   });
   const [selected, setSelected] = useState<MuscleKey | null>(null);
-  const isDark = document.documentElement.classList.contains("dark");
 
   useEffect(() => {
     if (!user) return;
@@ -100,8 +167,6 @@ const MuscleHeatmap = () => {
     fetchData();
   }, [user]);
 
-  const colorFn = isDark ? getDarkHeatColor : getHeatColor;
-
   const muscles: { key: MuscleKey; label: string }[] = [
     { key: "shoulders", label: t.muscleGroups.shoulders },
     { key: "chest", label: t.muscleGroups.chest },
@@ -122,93 +187,45 @@ const MuscleHeatmap = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center gap-4">
-          {/* Body SVG */}
-          <svg viewBox="0 0 200 380" className="w-48 h-auto" xmlns="http://www.w3.org/2000/svg">
-            {/* Head */}
-            <ellipse cx="100" cy="30" rx="18" ry="22" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="1" />
-            {/* Neck */}
-            <rect x="92" y="50" width="16" height="14" rx="4" fill="hsl(var(--muted))" />
-
-            {/* Shoulders */}
-            <ellipse cx="58" cy="72" rx="22" ry="12" fill={colorFn(data.shoulders.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "shoulders" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "shoulders" ? 2 : 1}
-              onClick={() => setSelected(selected === "shoulders" ? null : "shoulders")} />
-            <ellipse cx="142" cy="72" rx="22" ry="12" fill={colorFn(data.shoulders.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "shoulders" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "shoulders" ? 2 : 1}
-              onClick={() => setSelected(selected === "shoulders" ? null : "shoulders")} />
-
-            {/* Chest */}
-            <path d="M68 78 Q100 75 132 78 L128 115 Q100 120 72 115 Z" fill={colorFn(data.chest.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "chest" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "chest" ? 2 : 1}
-              onClick={() => setSelected(selected === "chest" ? null : "chest")} />
-
-            {/* Core */}
-            <rect x="74" y="118" width="52" height="60" rx="8" fill={colorFn(data.core.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "core" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "core" ? 2 : 1}
-              onClick={() => setSelected(selected === "core" ? null : "core")} />
-
-            {/* Back (shown as trapezius area behind shoulders) */}
-            <path d="M72 80 Q100 95 128 80 L126 115 Q100 108 74 115 Z" fill={colorFn(data.back.sets)}
-              className="cursor-pointer transition-all hover:opacity-80" opacity="0.5"
-              stroke={selected === "back" ? "hsl(var(--primary))" : "none"} strokeWidth={selected === "back" ? 2 : 0}
-              onClick={() => setSelected(selected === "back" ? null : "back")} />
-
-            {/* Left Arm */}
-            <rect x="32" y="80" width="20" height="55" rx="8" fill={colorFn(data.arms.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "arms" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "arms" ? 2 : 1}
-              onClick={() => setSelected(selected === "arms" ? null : "arms")} />
-            <rect x="30" y="138" width="18" height="45" rx="7" fill={colorFn(data.arms.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "arms" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "arms" ? 2 : 1}
-              onClick={() => setSelected(selected === "arms" ? null : "arms")} />
-
-            {/* Right Arm */}
-            <rect x="148" y="80" width="20" height="55" rx="8" fill={colorFn(data.arms.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "arms" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "arms" ? 2 : 1}
-              onClick={() => setSelected(selected === "arms" ? null : "arms")} />
-            <rect x="152" y="138" width="18" height="45" rx="7" fill={colorFn(data.arms.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "arms" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "arms" ? 2 : 1}
-              onClick={() => setSelected(selected === "arms" ? null : "arms")} />
-
-            {/* Legs & Glutes */}
-            <rect x="72" y="182" width="24" height="80" rx="8" fill={colorFn(data.legsGlutes.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "legsGlutes" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "legsGlutes" ? 2 : 1}
-              onClick={() => setSelected(selected === "legsGlutes" ? null : "legsGlutes")} />
-            <rect x="104" y="182" width="24" height="80" rx="8" fill={colorFn(data.legsGlutes.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "legsGlutes" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "legsGlutes" ? 2 : 1}
-              onClick={() => setSelected(selected === "legsGlutes" ? null : "legsGlutes")} />
-            {/* Calves */}
-            <rect x="74" y="266" width="20" height="60" rx="7" fill={colorFn(data.legsGlutes.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "legsGlutes" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "legsGlutes" ? 2 : 1}
-              onClick={() => setSelected(selected === "legsGlutes" ? null : "legsGlutes")} />
-            <rect x="106" y="266" width="20" height="60" rx="7" fill={colorFn(data.legsGlutes.sets)}
-              className="cursor-pointer transition-all hover:opacity-80"
-              stroke={selected === "legsGlutes" ? "hsl(var(--primary))" : "hsl(var(--border))"} strokeWidth={selected === "legsGlutes" ? 2 : 1}
-              onClick={() => setSelected(selected === "legsGlutes" ? null : "legsGlutes")} />
-            {/* Feet */}
-            <ellipse cx="84" cy="332" rx="12" ry="6" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="1" />
-            <ellipse cx="116" cy="332" rx="12" ry="6" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="1" />
-          </svg>
+          {/* Image with SVG overlay */}
+          <div className="relative w-full max-w-xs mx-auto">
+            <img
+              src={muscleMapImage}
+              alt="Muscle map"
+              className="w-full h-auto"
+              draggable={false}
+            />
+            <svg
+              viewBox="0 0 100 90"
+              className="absolute inset-0 w-full h-full"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              {(Object.entries(OVERLAY_REGIONS) as [MuscleKey, { paths: string[] }][]).map(
+                ([key, region]) =>
+                  region.paths.map((path, i) => (
+                    <path
+                      key={`${key}-${i}`}
+                      d={path}
+                      fill={getHeatColor(data[key].sets, selected === key ? 0.6 : 0.4)}
+                      stroke={selected === key ? "hsl(var(--primary))" : "transparent"}
+                      strokeWidth={selected === key ? 0.5 : 0}
+                      className="cursor-pointer transition-all duration-200"
+                      onClick={() => setSelected(selected === key ? null : key)}
+                    />
+                  ))
+              )}
+            </svg>
+          </div>
 
           {/* Legend */}
           <div className="flex flex-wrap justify-center gap-2 text-[10px]">
             {[
-              { label: "0", color: colorFn(0) },
-              { label: "1-9", color: colorFn(5) },
-              { label: "10-24", color: colorFn(15) },
-              { label: "25-39", color: colorFn(30) },
-              { label: "40-49", color: colorFn(45) },
-              { label: "50+", color: colorFn(55) },
+              { label: "0", color: getLegendColor(0) },
+              { label: "1-9", color: getLegendColor(5) },
+              { label: "10-24", color: getLegendColor(15) },
+              { label: "25-39", color: getLegendColor(30) },
+              { label: "40-49", color: getLegendColor(45) },
+              { label: "50+", color: getLegendColor(55) },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1">
                 <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: item.color }} />
