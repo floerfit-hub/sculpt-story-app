@@ -131,7 +131,7 @@ const AddEntry = () => {
     entryData.user_id = user.id;
     if (photoUrls.length > 0) entryData.photo_urls = photoUrls;
 
-    const { error } = await supabase.from("progress_entries").insert(entryData);
+    const { error } = await supabase.from("progress_entries").insert(entryData as any);
     setLoading(false);
 
     if (error) {
