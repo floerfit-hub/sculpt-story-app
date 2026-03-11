@@ -47,6 +47,13 @@ export const en = {
     noEntries: "No entries yet. Start tracking your progress!",
     addFirstEntry: "Add First Entry",
     vsPrevious: "vs previous",
+    editEntry: "Edit Entry",
+    deleteEntry: "Delete Entry",
+    deleteConfirm: "Are you sure you want to delete this entry? This cannot be undone.",
+    confirmDelete: "Delete",
+    cancelDelete: "Cancel",
+    entryDeleted: "Entry deleted",
+    entryUpdated: "Entry updated",
   },
 
   // Add Entry
@@ -54,10 +61,13 @@ export const en = {
     logProgress: "Log Bi-Weekly Progress",
     date: "Date",
     weightKg: "Weight (kg)",
-    waistCm: "Waist (cm)",
-    chestCm: "Chest (cm)",
+    waistCm: "Waist Circumference (cm)",
+    chestCm: "Chest Circumference (cm)",
     hipsCm: "Hips (cm)",
     bodyFatOptional: "Body Fat % (optional)",
+    armCm: "Arm Circumference (cm)",
+    gluteCm: "Glute Circumference (cm)",
+    thighCm: "Thigh Circumference (cm)",
     notes: "Notes",
     notesPlaceholder: "How are you feeling? Any changes in diet or training?",
     progressPhotos: "Progress Photos",
@@ -72,6 +82,13 @@ export const en = {
     progressComparison: "Your Progress Comparison",
     progressLogged: "Progress Logged! 🎉",
     error: "Error",
+    chest: "Chest",
+    hips: "Hips",
+    arm: "Arm",
+    glute: "Glute",
+    thigh: "Thigh",
+    update: "Update Entry",
+    updating: "Updating...",
   },
 
   // Motivational messages
@@ -123,6 +140,16 @@ export const en = {
     repsProgression: "Reps Progression",
   },
 
+  // Muscle groups
+  muscleGroups: {
+    legsGlutes: "Legs & Glutes",
+    back: "Back",
+    chest: "Chest",
+    shoulders: "Shoulders",
+    arms: "Arms",
+    core: "Core",
+  },
+
   // Exercise Library
   exerciseLib: {
     title: "Exercise Library",
@@ -130,7 +157,7 @@ export const en = {
 
   // Calculator
   calc: {
-    title: "Calorie Calculator",
+    title: "Calorie & Macro Calculator",
     subtitle: "Answer a few questions for personalized targets",
     basicInfo: "Basic Info",
     activityLevel: "Activity Level",
@@ -237,8 +264,12 @@ export const en = {
     title: "Progress Charts",
     addAtLeast2: "Add at least 2 entries to see charts.",
     weightProgress: "Weight Progress (kg)",
-    waistMeasurement: "Waist Measurement (cm)",
+    waistMeasurement: "Waist Circumference (cm)",
     bodyFatPercent: "Body Fat %",
+    armCircumference: "Arm Circumference (cm)",
+    gluteCircumference: "Glute Circumference (cm)",
+    thighCircumference: "Thigh Circumference (cm)",
+    chestCircumference: "Chest Circumference (cm)",
   },
 
   // Common

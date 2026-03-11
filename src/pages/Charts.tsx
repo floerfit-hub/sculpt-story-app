@@ -5,34 +5,35 @@ import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
-import type { Tables } from "@/integrations/supabase/types";
-
-type ProgressEntry = Tables<"progress_entries">;
 
 const Charts = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const [entries, setEntries] = useState<ProgressEntry[]>([]);
+  const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
+    const load = async () => {
       const { data } = await supabase
         .from("progress_entries").select("*").eq("user_id", user.id)
         .order("entry_date", { ascending: true });
       setEntries(data ?? []);
       setLoading(false);
     };
-    fetch();
+    load();
   }, [user]);
 
   const chartData = entries.map((e) => ({
     date: format(new Date(e.entry_date), "MMM d"),
-    weight: e.weight, waist: e.waist, bodyFat: e.body_fat,
+    weight: e.weight,
+    waist: e.waist,
+    bodyFat: e.body_fat,
+    chest: e.chest,
+    arm: e.arm_circumference,
+    glute: e.glute_circumference,
+    thigh: e.thigh_circumference,
   }));
-
-  const hasBodyFat = entries.some((e) => e.body_fat != null);
 
   if (loading) {
     return (
@@ -50,11 +51,19 @@ const Charts = () => {
     );
   }
 
-  const charts = [
-    { title: t.charts.weightProgress, dataKey: "weight", color: "hsl(142, 60%, 45%)" },
-    { title: t.charts.waistMeasurement, dataKey: "waist", color: "hsl(0, 0%, 20%)" },
-    ...(hasBodyFat ? [{ title: t.charts.bodyFatPercent, dataKey: "bodyFat", color: "hsl(142, 40%, 55%)" }] : []),
+  const hasData = (key: string) => entries.some((e: any) => e[key] != null);
+
+  const allCharts = [
+    { title: t.charts.weightProgress, dataKey: "weight", color: "hsl(142, 60%, 45%)", dbKey: "weight" },
+    { title: t.charts.waistMeasurement, dataKey: "waist", color: "hsl(0, 0%, 20%)", dbKey: "waist" },
+    { title: t.charts.chestCircumference, dataKey: "chest", color: "hsl(210, 60%, 50%)", dbKey: "chest" },
+    { title: t.charts.armCircumference, dataKey: "arm", color: "hsl(30, 70%, 50%)", dbKey: "arm_circumference" },
+    { title: t.charts.gluteCircumference, dataKey: "glute", color: "hsl(280, 50%, 50%)", dbKey: "glute_circumference" },
+    { title: t.charts.thighCircumference, dataKey: "thigh", color: "hsl(340, 60%, 50%)", dbKey: "thigh_circumference" },
+    { title: t.charts.bodyFatPercent, dataKey: "bodyFat", color: "hsl(142, 40%, 55%)", dbKey: "body_fat" },
   ];
+
+  const charts = allCharts.filter((c) => hasData(c.dbKey));
 
   return (
     <div className="space-y-6 animate-fade-in">

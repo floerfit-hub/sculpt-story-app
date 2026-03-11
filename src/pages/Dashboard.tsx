@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, TrendingDown, TrendingUp, Minus, Scale, Ruler, Activity, Clock } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { PlusCircle, TrendingDown, TrendingUp, Minus, Scale, Ruler, Activity, Clock, Pencil, Trash2 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
 type ProgressEntry = Tables<"progress_entries">;
@@ -15,23 +17,37 @@ const CHECKIN_INTERVAL = 14;
 const Dashboard = () => {
   const { user, profile } = useAuth();
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchEntries = async () => {
     if (!user) return;
-    const fetchEntries = async () => {
-      const { data } = await supabase
-        .from("progress_entries")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("entry_date", { ascending: false })
-        .limit(10);
-      setEntries(data ?? []);
-      setLoading(false);
-    };
-    fetchEntries();
-  }, [user]);
+    const { data } = await supabase
+      .from("progress_entries")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("entry_date", { ascending: false })
+      .limit(10);
+    setEntries(data ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchEntries(); }, [user]);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("progress_entries").delete().eq("id", deleteId);
+    if (!error) {
+      toast({ title: t.dashboard.entryDeleted });
+      setEntries((prev) => prev.filter((e) => e.id !== deleteId));
+    } else {
+      toast({ title: t.common.error, description: error.message, variant: "destructive" });
+    }
+    setDeleteId(null);
+  };
 
   const latest = entries[0];
   const previous = entries[1];
@@ -173,9 +189,9 @@ const Dashboard = () => {
             <div className="space-y-3">
               {entries.slice(0, 5).map((entry) => (
                 <div key={entry.id} className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium font-display">{format(new Date(entry.entry_date), "MMM d, yyyy")}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground truncate">
                       {[
                         entry.weight && `${entry.weight}${t.common.kg}`,
                         entry.waist && `${t.dashboard.waist}: ${entry.waist}${t.common.cm}`,
@@ -183,17 +199,50 @@ const Dashboard = () => {
                       ].filter(Boolean).join(" · ")}
                     </p>
                   </div>
-                  {entry.photo_urls && entry.photo_urls.length > 0 && (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-accent text-xs text-accent-foreground">
-                      📷 {entry.photo_urls.length}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1 shrink-0 ml-2">
+                    {entry.photo_urls && entry.photo_urls.length > 0 && (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-xs text-accent-foreground">
+                        📷{entry.photo_urls.length}
+                      </div>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => navigate("/add-entry", { state: { editEntry: entry } })}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => setDeleteId(entry.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.dashboard.deleteEntry}</AlertDialogTitle>
+            <AlertDialogDescription>{t.dashboard.deleteConfirm}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t.dashboard.cancelDelete}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t.dashboard.confirmDelete}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

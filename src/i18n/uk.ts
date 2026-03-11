@@ -46,16 +46,26 @@ export const uk: Translations = {
     noEntries: "Записів ще немає. Почніть відстежувати прогрес!",
     addFirstEntry: "Додати перший запис",
     vsPrevious: "vs попередній",
+    editEntry: "Редагувати",
+    deleteEntry: "Видалити",
+    deleteConfirm: "Ви впевнені, що хочете видалити цей запис? Цю дію не можна скасувати.",
+    confirmDelete: "Видалити",
+    cancelDelete: "Скасувати",
+    entryDeleted: "Запис видалено",
+    entryUpdated: "Запис оновлено",
   },
 
   addEntry: {
     logProgress: "Двотижневий запис прогресу",
     date: "Дата",
     weightKg: "Вага (кг)",
-    waistCm: "Талія (см)",
-    chestCm: "Груди (см)",
+    waistCm: "Обхват талії (см)",
+    chestCm: "Обхват грудей (см)",
     hipsCm: "Стегна (см)",
     bodyFatOptional: "% жиру (необов'язково)",
+    armCm: "Обхват руки (см)",
+    gluteCm: "Обхват сідниць (см)",
+    thighCm: "Обхват стегна (см)",
     notes: "Нотатки",
     notesPlaceholder: "Як ви себе почуваєте? Зміни в дієті чи тренуваннях?",
     progressPhotos: "Фото прогресу",
@@ -70,6 +80,13 @@ export const uk: Translations = {
     progressComparison: "Порівняння прогресу",
     progressLogged: "Прогрес записано! 🎉",
     error: "Помилка",
+    chest: "Груди",
+    hips: "Стегна",
+    arm: "Рука",
+    glute: "Сідниці",
+    thigh: "Стегно",
+    update: "Оновити запис",
+    updating: "Оновлення...",
   },
 
   motivation: [
@@ -119,12 +136,21 @@ export const uk: Translations = {
     repsProgression: "Прогрес повторів",
   },
 
+  muscleGroups: {
+    legsGlutes: "Ноги та сідниці",
+    back: "Спина",
+    chest: "Груди",
+    shoulders: "Плечі",
+    arms: "Руки",
+    core: "Кор",
+  },
+
   exerciseLib: {
     title: "Бібліотека вправ",
   },
 
   calc: {
-    title: "Калькулятор калорій",
+    title: "Калькулятор калорій та макросів",
     subtitle: "Відповідайте на питання для персоналізованих цілей",
     basicInfo: "Основна інформація",
     activityLevel: "Рівень активності",
@@ -227,8 +253,12 @@ export const uk: Translations = {
     title: "Графіки прогресу",
     addAtLeast2: "Додайте щонайменше 2 записи для графіків.",
     weightProgress: "Прогрес ваги (кг)",
-    waistMeasurement: "Вимірювання талії (см)",
+    waistMeasurement: "Обхват талії (см)",
     bodyFatPercent: "Відсоток жиру",
+    armCircumference: "Обхват руки (см)",
+    gluteCircumference: "Обхват сідниць (см)",
+    thighCircumference: "Обхват стегна (см)",
+    chestCircumference: "Обхват грудей (см)",
   },
 
   common: {
