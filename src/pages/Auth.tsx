@@ -49,41 +49,44 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md animate-fade-in">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl gradient-primary">
-            <Dumbbell className="h-7 w-7 text-primary-foreground" />
+    <div className="flex min-h-screen items-center justify-center bg-background px-5">
+      {/* Ambient glow */}
+      <div className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
+
+      <Card className="w-full max-w-md animate-fade-in relative">
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl gradient-primary glow-primary-strong">
+            <Dumbbell className="h-8 w-8 text-primary-foreground" />
           </div>
-          <CardTitle className="font-display text-2xl">
+          <CardTitle className="font-display text-2xl font-bold">
             {isSignUp ? t.auth.createAccount : t.auth.welcomeBack}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="mt-1">
             {isSignUp ? t.auth.startTracking : t.auth.logInToSee}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="pt-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {isSignUp && (
               <div className="space-y-2">
-                <Label htmlFor="name">{t.auth.fullName}</Label>
+                <Label htmlFor="name" className="text-sm font-medium">{t.auth.fullName}</Label>
                 <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" required />
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">{t.auth.email}</Label>
+              <Label htmlFor="email" className="text-sm font-medium">{t.auth.email}</Label>
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">{t.auth.password}</Label>
+              <Label htmlFor="password" className="text-sm font-medium">{t.auth.password}</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-12 text-base font-bold" disabled={loading}>
               {loading ? t.auth.loading : isSignUp ? t.auth.signUp : t.auth.logIn}
             </Button>
           </form>
-          <div className="mt-4 text-center">
-            <button onClick={() => setIsSignUp(!isSignUp)} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <div className="mt-6 text-center">
+            <button onClick={() => setIsSignUp(!isSignUp)} className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200">
               {isSignUp ? t.auth.alreadyHaveAccount : t.auth.dontHaveAccount}
             </button>
           </div>

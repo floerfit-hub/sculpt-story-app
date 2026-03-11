@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { PlusCircle, TrendingDown, TrendingUp, Minus, Scale, Ruler, Activity, Clock, Pencil, Trash2 } from "lucide-react";
-
 import { format, differenceInDays, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
@@ -52,7 +51,6 @@ const Dashboard = () => {
 
   const latest = entries[0];
   const previous = entries[1];
-
   const nextCheckinDate = latest ? addDays(new Date(latest.entry_date), CHECKIN_INTERVAL) : null;
   const daysUntilCheckin = nextCheckinDate ? differenceInDays(nextCheckinDate, new Date()) : 0;
   const canLogEntry = !latest || daysUntilCheckin <= 0;
@@ -91,17 +89,18 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-7 animate-fade-in">
+      {/* Hero section */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold">
+          <h1 className="text-2xl font-display font-extrabold tracking-tight">
             {t.dashboard.hey}, {profile?.full_name || t.dashboard.there} 💪
           </h1>
-          <p className="text-muted-foreground">{t.dashboard.trackTransformation}</p>
+          <p className="text-muted-foreground mt-1">{t.dashboard.trackTransformation}</p>
         </div>
         {canLogEntry ? (
           <Link to="/add-entry">
-            <Button>
+            <Button size="lg">
               <PlusCircle className="mr-2 h-4 w-4" />
               {t.dashboard.newEntry}
             </Button>
@@ -114,13 +113,16 @@ const Dashboard = () => {
         )}
       </div>
 
+      {/* Check-in banner */}
       {!canLogEntry && nextCheckinDate && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="flex items-center gap-3 p-4">
-            <Clock className="h-5 w-5 text-primary shrink-0" />
+        <Card className="border-primary/20 gradient-glow">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <Clock className="h-5 w-5 text-primary" />
+            </div>
             <p className="text-sm">
               {t.dashboard.nextCheckin}{" "}
-              <span className="font-semibold text-primary">{daysUntilCheckin} {daysUntilCheckin !== 1 ? t.dashboard.days : t.dashboard.day}</span>
+              <span className="font-bold text-primary text-glow">{daysUntilCheckin} {daysUntilCheckin !== 1 ? t.dashboard.days : t.dashboard.day}</span>
               {" "}({format(nextCheckinDate, "MMM d, yyyy")}).
             </p>
           </CardContent>
@@ -128,12 +130,14 @@ const Dashboard = () => {
       )}
 
       {canLogEntry && entries.length > 0 && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="flex items-center gap-3 p-4">
-            <PlusCircle className="h-5 w-5 text-primary shrink-0" />
+        <Card className="border-primary/20 gradient-glow">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <PlusCircle className="h-5 w-5 text-primary" />
+            </div>
             <p className="text-sm">
               {t.dashboard.checkinReady}{" "}
-              <Link to="/add-entry" className="font-semibold text-primary underline underline-offset-2">
+              <Link to="/add-entry" className="font-bold text-primary hover:underline underline-offset-2">
                 {t.dashboard.logProgressNow}
               </Link>.
             </p>
@@ -141,26 +145,27 @@ const Dashboard = () => {
         </Card>
       )}
 
+      {/* Stat cards */}
       <div className="grid gap-4 sm:grid-cols-3">
-        {statCards.map((stat) => {
+        {statCards.map((stat, i) => {
           const diff = getDiff(stat.value, stat.prevValue);
           return (
-            <Card key={stat.label}>
+            <Card key={stat.label} className="animate-fade-in-up" style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'backwards' }}>
               <CardContent className="flex items-center gap-4 p-5">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent">
                   <stat.icon className="h-5 w-5 text-accent-foreground" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl font-display font-semibold">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{stat.label}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-2xl font-display font-extrabold">
                       {stat.value != null ? stat.value : "—"}
                     </span>
                     {stat.value != null && <span className="text-sm text-muted-foreground">{stat.unit}</span>}
                     <TrendIcon trend={stat.trend} />
                   </div>
                   {diff != null && (
-                    <p className={`text-xs mt-0.5 ${diff < 0 ? "text-primary" : diff > 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                    <p className={`text-xs mt-1 font-medium ${diff < 0 ? "text-primary" : diff > 0 ? "text-destructive" : "text-muted-foreground"}`}>
                       {diff > 0 ? "+" : ""}{diff} {stat.unit} {t.dashboard.vsPrevious}
                     </p>
                   )}
@@ -171,16 +176,17 @@ const Dashboard = () => {
         })}
       </div>
 
+      {/* Recent entries */}
       <Card>
         <CardHeader>
-          <CardTitle className="font-display text-lg">{t.dashboard.recentEntries}</CardTitle>
+          <CardTitle className="text-lg">{t.dashboard.recentEntries}</CardTitle>
         </CardHeader>
         <CardContent>
           {entries.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">
+            <div className="py-10 text-center text-muted-foreground">
               <p>{t.dashboard.noEntries}</p>
               <Link to="/add-entry">
-                <Button className="mt-4" variant="outline">
+                <Button className="mt-5" variant="outline">
                   <PlusCircle className="mr-2 h-4 w-4" />
                   {t.dashboard.addFirstEntry}
                 </Button>
@@ -188,11 +194,15 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {entries.slice(0, 5).map((entry) => (
-                <div key={entry.id} className="flex items-center justify-between rounded-lg border p-3">
+              {entries.slice(0, 5).map((entry, i) => (
+                <div
+                  key={entry.id}
+                  className="flex items-center justify-between rounded-xl border border-border/50 p-4 transition-all duration-200 hover:bg-accent/30 animate-fade-in"
+                  style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'backwards' }}
+                >
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium font-display">{format(new Date(entry.entry_date), "MMM d, yyyy")}</p>
-                    <p className="text-sm text-muted-foreground truncate">
+                    <p className="font-display font-semibold">{format(new Date(entry.entry_date), "MMM d, yyyy")}</p>
+                    <p className="text-sm text-muted-foreground truncate mt-0.5">
                       {[
                         entry.weight && `${entry.weight}${t.common.kg}`,
                         entry.waist && `${t.dashboard.waist}: ${entry.waist}${t.common.cm}`,
@@ -200,16 +210,16 @@ const Dashboard = () => {
                       ].filter(Boolean).join(" · ")}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0 ml-2">
+                  <div className="flex items-center gap-1 shrink-0 ml-3">
                     {entry.photo_urls && entry.photo_urls.length > 0 && (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-xs text-accent-foreground">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-xs text-accent-foreground font-semibold">
                         📷{entry.photo_urls.length}
                       </div>
                     )}
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 rounded-lg"
                       onClick={() => navigate("/add-entry", { state: { editEntry: entry } })}
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -217,7 +227,7 @@ const Dashboard = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-destructive"
+                      className="h-8 w-8 rounded-lg text-destructive hover:text-destructive"
                       onClick={() => setDeleteId(entry.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -230,17 +240,15 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      
-
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="glass-strong rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>{t.dashboard.deleteEntry}</AlertDialogTitle>
             <AlertDialogDescription>{t.dashboard.deleteConfirm}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t.dashboard.cancelDelete}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogCancel className="rounded-xl">{t.dashboard.cancelDelete}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl">
               {t.dashboard.confirmDelete}
             </AlertDialogAction>
           </AlertDialogFooter>

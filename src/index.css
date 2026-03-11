@@ -2,84 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 8%;
+    --background: 220 15% 8%;
+    --foreground: 0 0% 96%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
+    --card: 220 15% 12%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
+    --popover: 220 15% 10%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 142 60% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 82 85% 55%;
+    --primary-foreground: 220 15% 5%;
 
-    --secondary: 0 0% 94%;
-    --secondary-foreground: 0 0% 15%;
+    --secondary: 220 12% 18%;
+    --secondary-foreground: 0 0% 90%;
 
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 220 12% 16%;
+    --muted-foreground: 220 10% 55%;
 
-    --accent: 142 40% 94%;
-    --accent-foreground: 142 60% 25%;
+    --accent: 82 40% 15%;
+    --accent-foreground: 82 85% 65%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 142 60% 45%;
+    --border: 220 12% 18%;
+    --input: 220 12% 20%;
+    --ring: 82 85% 55%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 8%;
-    --sidebar-primary: 142 60% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 142 40% 94%;
-    --sidebar-accent-foreground: 142 60% 25%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 142 60% 45%;
+    --sidebar-background: 220 15% 10%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 82 85% 55%;
+    --sidebar-primary-foreground: 220 15% 5%;
+    --sidebar-accent: 82 40% 15%;
+    --sidebar-accent-foreground: 82 85% 65%;
+    --sidebar-border: 220 12% 18%;
+    --sidebar-ring: 82 85% 55%;
 
-    --font-display: 'Space Grotesk', sans-serif;
+    --font-display: 'Montserrat', sans-serif;
     --font-body: 'Inter', sans-serif;
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
+
+    --glass-bg: 220 15% 12% / 0.6;
+    --glass-border: 0 0% 100% / 0.08;
+    --glass-blur: 16px;
   }
 
   .dark {
-    --background: 0 0% 5%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 95%;
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 142 60% 50%;
-    --primary-foreground: 0 0% 5%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 142 40% 15%;
-    --accent-foreground: 142 60% 70%;
+    --background: 220 15% 5%;
+    --foreground: 0 0% 96%;
+    --card: 220 15% 9%;
+    --card-foreground: 0 0% 96%;
+    --popover: 220 15% 8%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 82 85% 55%;
+    --primary-foreground: 220 15% 5%;
+    --secondary: 220 12% 14%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 220 12% 12%;
+    --muted-foreground: 220 10% 50%;
+    --accent: 82 40% 12%;
+    --accent-foreground: 82 85% 65%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 95%;
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 142 60% 50%;
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 142 60% 50%;
-    --sidebar-primary-foreground: 0 0% 5%;
-    --sidebar-accent: 142 40% 15%;
-    --sidebar-accent-foreground: 142 60% 70%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 142 60% 50%;
+    --border: 220 12% 14%;
+    --input: 220 12% 16%;
+    --ring: 82 85% 55%;
+    --sidebar-background: 220 15% 7%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 82 85% 55%;
+    --sidebar-primary-foreground: 220 15% 5%;
+    --sidebar-accent: 82 40% 12%;
+    --sidebar-accent-foreground: 82 85% 65%;
+    --sidebar-border: 220 12% 14%;
+    --sidebar-ring: 82 85% 55%;
+    --glass-bg: 220 15% 8% / 0.7;
+    --glass-border: 0 0% 100% / 0.06;
   }
 }
 
@@ -100,7 +106,37 @@
 
 @layer utilities {
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(142 60% 45%), hsl(142 71% 55%));
+    background: linear-gradient(135deg, hsl(82 85% 55%), hsl(82 85% 40%));
+  }
+
+  .gradient-glow {
+    background: linear-gradient(135deg, hsl(82 85% 55% / 0.2), hsl(82 85% 55% / 0.05));
+  }
+
+  .glass {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  .glass-strong {
+    background: hsl(220 15% 12% / 0.8);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid hsl(0 0% 100% / 0.1);
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(82 85% 55% / 0.15), 0 0 60px hsl(82 85% 55% / 0.05);
+  }
+
+  .glow-primary-strong {
+    box-shadow: 0 0 30px hsl(82 85% 55% / 0.25), 0 0 80px hsl(82 85% 55% / 0.1);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px hsl(82 85% 55% / 0.3);
   }
 
   .safe-top {
@@ -118,11 +154,22 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Remove all content from desktop sidebar since we use bottom nav now */
+/* Constrain main on desktop */
 @media (min-width: 1024px) {
   main {
     max-width: 640px;
     margin-left: auto;
     margin-right: auto;
   }
+}
+
+/* Subtle noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
 }
