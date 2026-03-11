@@ -61,7 +61,7 @@ const PWAUpdatePrompt = () => {
                 onClick={() => setShowPrompt(false)}
                 className="h-8 text-xs"
               >
-                {t.pwa?.later ?? "Later"}
+                {t.pwa.later}
               </Button>
             </div>
           </div>
