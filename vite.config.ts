@@ -5,7 +5,7 @@ import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig(({ mode }) => ({
-  base: "/sculpt-story-app/",
+  base: "./",
   server: {
     host: "::",
     port: 8080,
