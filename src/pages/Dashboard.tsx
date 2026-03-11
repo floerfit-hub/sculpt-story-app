@@ -229,6 +229,9 @@ const Dashboard = () => {
         </Card>
       )}
 
+      {/* Muscle Heatmap */}
+      <MuscleHeatmap />
+
       {/* Recent entries */}
       <Card>
         <CardHeader>
