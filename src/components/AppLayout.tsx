@@ -1,31 +1,32 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, Lightbulb, UserCircle, Swords } from "lucide-react";
+import { useTranslation } from "@/i18n";
+import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, UserCircle } from "lucide-react";
 import InstallPrompt from "@/components/InstallPrompt";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const { profile } = useAuth();
   const location = useLocation();
+  const { t } = useTranslation();
 
   const navItems = [
-    { to: "/", icon: LayoutDashboard, label: "Home" },
-    { to: "/workouts", icon: Dumbbell, label: "Workouts" },
-    { to: "/add-entry", icon: PlusCircle, label: "Track" },
-    { to: "/calculator", icon: Calculator, label: "Macros" },
-    { to: "/profile", icon: UserCircle, label: "Profile" },
+    { to: "/", icon: LayoutDashboard, label: t.nav.home },
+    { to: "/workouts", icon: Dumbbell, label: t.nav.workouts },
+    { to: "/add-entry", icon: PlusCircle, label: t.nav.track },
+    { to: "/calculator", icon: Calculator, label: t.nav.macros },
+    { to: "/profile", icon: UserCircle, label: t.nav.profile },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top bar */}
       <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-sm safe-top">
         <div className="flex h-14 items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
               <Dumbbell className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-display text-lg font-semibold">FitTrack</span>
+            <span className="font-display text-lg font-semibold">{t.nav.appName}</span>
           </Link>
           <span className="text-sm text-muted-foreground truncate max-w-[140px]">
             {profile?.full_name || ""}
@@ -33,10 +34,8 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
         </div>
       </header>
 
-      {/* Content */}
       <main className="px-4 py-5 pb-24 lg:pb-6 max-w-2xl mx-auto">{children}</main>
 
-      {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm safe-bottom">
         <div className="flex justify-around py-1.5 max-w-lg mx-auto">
           {navItems.map((item) => {
