@@ -120,6 +120,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         const { error: eErr } = await supabase.from("workout_exercises").insert(rows);
         if (eErr) throw eErr;
 
+        clearPersistedData();
         setSaved(true);
         toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       } else {
