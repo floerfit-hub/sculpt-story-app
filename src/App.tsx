@@ -48,6 +48,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <PWAUpdatePrompt />
         <HashRouter>
           <I18nProvider>
             <AuthProvider>
