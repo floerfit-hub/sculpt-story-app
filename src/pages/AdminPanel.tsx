@@ -238,9 +238,24 @@ const AdminPanel = () => {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
+                    title="Export CSV"
                     onClick={(e) => { e.stopPropagation(); handleExportProgress(client); }}
                   >
                     <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Export PDF"
+                    disabled={pdfLoading === client.profile.id}
+                    onClick={(e) => { e.stopPropagation(); handleExportPdf(client); }}
+                  >
+                    {pdfLoading === client.profile.id ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    ) : (
+                      <FileText className="h-4 w-4" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"
