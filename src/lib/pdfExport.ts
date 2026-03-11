@@ -225,7 +225,7 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
       margin: { left: margin, right: margin },
       headStyles: { fillColor: [55, 65, 81], fontSize: 7 },
       bodyStyles: { fontSize: 7 },
-      head: [["Дата", "Вправа", "Група м'язів", "Підходи"]],
+      head: [["Дата", "Вправа", "Група м\u2019язів", "Підходи"]],
       body: workoutRows,
     });
 
