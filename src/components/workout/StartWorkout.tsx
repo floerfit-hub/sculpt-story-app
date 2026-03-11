@@ -63,6 +63,19 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // Persist exercises to sessionStorage on every change (skip in edit mode)
+  useEffect(() => {
+    if (!isEditing) {
+      sessionStorage.setItem("workout-in-progress", JSON.stringify(exercises));
+    }
+  }, [exercises, isEditing]);
+
+  // Clear persisted data when workout is saved
+  const clearPersistedData = useCallback(() => {
+    sessionStorage.removeItem("workout-in-progress");
+    sessionStorage.removeItem("workout-view");
+  }, []);
+
   const addExercise = (name: string, group: string) => {
     setExercises((prev) => [...prev, { name, muscleGroup: group, sets: [{ weight: "", reps: "" }], notes: "" }]);
     setShowLibrary(false);
