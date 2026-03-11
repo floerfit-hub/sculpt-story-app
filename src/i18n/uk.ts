@@ -142,6 +142,14 @@ export const uk: Translations = {
     logSameExercise: "Запишіть одну вправу 2+ разів, щоб побачити графіки прогресу.",
     weightProgression: "Прогрес ваги (кг)",
     repsProgression: "Прогрес повторів",
+    addCustomExercise: "Додати свою вправу",
+    customExerciseName: "Назва вправи",
+    selectMuscleGroup: "Оберіть групу м'язів",
+    add: "Додати",
+    customExerciseAdded: "Вправу додано!",
+    customExercises: "Власні",
+    deleteExercise: "Видалити",
+    exerciseDeleted: "Вправу видалено",
   },
 
   muscleGroups: {
