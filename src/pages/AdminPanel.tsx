@@ -229,7 +229,6 @@ const AdminPanel = () => {
                   >
                     <UserCog className="h-4 w-4" />
                   </Button>
-                  </Button>
                   {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                 </div>
               </CardTitle>
