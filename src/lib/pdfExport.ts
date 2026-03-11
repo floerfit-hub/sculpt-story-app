@@ -185,15 +185,15 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
 
     if (y + 55 > 280) { doc.addPage(); y = 20; }
     if (weightData.length >= 2) {
-      y = drawSimpleChart(doc, weightData, "Прогрес ваги (кг)", margin, y, chartWidth, 50, [59, 130, 246]);
+      y = drawSimpleChart(doc, weightData, "Динаміка ваги (кг)", margin, y, chartWidth, 50, [59, 130, 246]);
     }
     if (y + 55 > 280) { doc.addPage(); y = 20; }
     if (waistData.length >= 2) {
-      y = drawSimpleChart(doc, waistData, "Прогрес талії (см)", margin, y, chartWidth, 50, [234, 88, 12]);
+      y = drawSimpleChart(doc, waistData, "Динаміка талії (см)", margin, y, chartWidth, 50, [234, 88, 12]);
     }
     if (y + 55 > 280) { doc.addPage(); y = 20; }
     if (bodyFatData.length >= 2) {
-      y = drawSimpleChart(doc, bodyFatData, "Прогрес жиру (%)", margin, y, chartWidth, 50, [22, 163, 74]);
+      y = drawSimpleChart(doc, bodyFatData, "Динаміка відсотка жиру (%)", margin, y, chartWidth, 50, [22, 163, 74]);
     }
   }
 
