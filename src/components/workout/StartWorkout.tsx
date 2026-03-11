@@ -96,7 +96,7 @@ const StartWorkout = ({ onBack }: { onBack: () => void }) => {
         <Card key={exIdx}>
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <div><p className="font-display font-semibold">{ex.name}</p><p className="text-xs text-muted-foreground">{ex.muscleGroup}</p></div>
+              <div><p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p><p className="text-xs text-muted-foreground">{(() => { const keyMap: Record<string, string> = { "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest", "Shoulders": "shoulders", "Arms": "arms", "Core": "core" }; const k = keyMap[ex.muscleGroup] as keyof typeof t.muscleGroups; return k ? t.muscleGroups[k] : ex.muscleGroup; })()}</p></div>
               <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
             </div>
             <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 text-xs text-muted-foreground font-medium">

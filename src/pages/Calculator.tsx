@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calculator as CalcIcon, ChevronRight, ChevronLeft, Flame, Beef, Droplets, Wheat, Brain } from "lucide-react";
+import type { Translations } from "@/i18n/en";
 
 interface FormData {
   gender: "male" | "female"; age: string; height: string; weight: string;
@@ -26,7 +27,7 @@ function stepMul(s: string) { return s === "<5000" ? 1.0 : s === "5000-8000" ? 1
 function workMul(w: string) { return w === "sedentary" ? 1.2 : w === "moderate" ? 1.4 : 1.6; }
 function trainMul(f: string) { return f === "0" ? 1.0 : f === "1-2" ? 1.05 : f === "3-4" ? 1.1 : 1.15; }
 
-function calculate(data: FormData): Results {
+function calculate(data: FormData, t: Translations): Results {
   const w = Number(data.weight), h = Number(data.height), a = Number(data.age);
   const bmr = calcBMR(data.gender, w, h, a);
   const tdee = Math.round(bmr * workMul(data.workActivity) * stepMul(data.steps) * trainMul(data.trainingFreq));
@@ -38,27 +39,28 @@ function calculate(data: FormData): Results {
   const fatPerKg = data.goal === "gain" ? 1.0 : 0.8;
   const protein = Math.round(w * protPerKg), fat = Math.round(w * fatPerKg);
   const carbs = Math.max(Math.round((calories - protein * 4 - fat * 9) / 4), 0);
-  const insights = genInsights(data, w, calories, tdee, protein);
+  const insights = genInsights(data, w, calories, tdee, protein, t);
   return { bmr: Math.round(bmr), tdee, calories, protein, fat, carbs, insights };
 }
 
-function genInsights(d: FormData, w: number, cal: number, tdee: number, prot: number): string[] {
+function genInsights(d: FormData, w: number, cal: number, tdee: number, prot: number, t: Translations): string[] {
   const ins: string[] = [];
+  const ci = t.calcInsights;
   if (d.goal === "loss") {
-    const def = tdee - cal; const wl = ((def * 7) / 7700).toFixed(2);
-    ins.push(`📉 ~${wl} kg/week fat loss. ~${(Number(wl) * 4).toFixed(1)} kg/month.`);
+    const def = tdee - cal; const wl = ((def * 7) / 7700).toFixed(2); const wlMonth = (Number(wl) * 4).toFixed(1);
+    ins.push(ci.fatLoss.replace("{wl}", wl).replace("{wlMonth}", wlMonth));
   } else if (d.goal === "gain") {
     const sur = cal - tdee; const wg = ((sur * 7) / 7700).toFixed(2);
-    ins.push(`📈 ~${wg} kg/week lean mass gain under optimal conditions.`);
-  } else { ins.push("⚖️ Maintenance: weight stable, body composition can still improve."); }
-  if (d.goal === "loss" && d.pace === "aggressive") ins.push("⚠️ Aggressive deficit → plateau risk after 4–6 weeks. Consider refeed days.");
-  if (d.goal === "loss" && d.steps === "<5000") ins.push("🚶 Low steps reduce NEAT. Aim for 8,000+.");
-  if (d.sleep === "<6") ins.push("😴 <6h sleep impairs recovery & fat loss. Aim for 7–8h.");
-  else if (d.sleep === "6-7") ins.push("💤 6–7h sleep is okay but 7–8h is optimal.");
-  if (d.trainingFreq === "0" || d.trainingFreq === "1-2") ins.push("🏋️ 0–2x/week limits muscle stimulus. Add 1–2 more sessions.");
-  if (d.goal === "gain" && d.trainingExp === "beginner") ins.push("🌟 Beginner advantage: expect faster gains in first 6–12 months!");
-  if (prot > w * 2) ins.push(`🥩 Protein (${prot}g) is high. Spread across 4–5 meals.`);
-  if (d.goal === "loss") ins.push("🥗 Focus on high-volume, low-calorie foods to stay full.");
+    ins.push(ci.muscleGain.replace("{wg}", wg));
+  } else { ins.push(ci.maintenance); }
+  if (d.goal === "loss" && d.pace === "aggressive") ins.push(ci.aggressiveDeficit);
+  if (d.goal === "loss" && d.steps === "<5000") ins.push(ci.lowSteps);
+  if (d.sleep === "<6") ins.push(ci.sleepLow);
+  else if (d.sleep === "6-7") ins.push(ci.sleepOk);
+  if (d.trainingFreq === "0" || d.trainingFreq === "1-2") ins.push(ci.lowTraining);
+  if (d.goal === "gain" && d.trainingExp === "beginner") ins.push(ci.beginnerAdvantage);
+  if (prot > w * 2) ins.push(ci.highProtein.replace("{prot}", String(prot)));
+  if (d.goal === "loss") ins.push(ci.highVolumeFoods);
   return ins;
 }
 
@@ -201,7 +203,7 @@ const CalculatorPage = () => {
         {step < STEPS.length - 1 ? (
           <Button className="flex-1" disabled={!canProceed()} onClick={() => setStep(step + 1)}>{t.calc.next}<ChevronRight className="ml-1 h-4 w-4" /></Button>
         ) : (
-          <Button className="flex-1" disabled={!canProceed()} onClick={() => setResults(calculate(form))}>{t.calc.calculate}<CalcIcon className="ml-1 h-4 w-4" /></Button>
+          <Button className="flex-1" disabled={!canProceed()} onClick={() => setResults(calculate(form, t))}>{t.calc.calculate}<CalcIcon className="ml-1 h-4 w-4" /></Button>
         )}
       </div>
     </div>
