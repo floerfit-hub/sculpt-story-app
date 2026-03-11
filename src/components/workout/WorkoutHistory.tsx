@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
+import { uk as ukLocale } from "date-fns/locale";
+
+const MUSCLE_GROUP_UK: Record<string, string> = {
+  "Legs & Glutes": "Ноги та сідниці",
+  "Back": "Спина",
+  "Chest": "Груди",
+  "Shoulders": "Плечі",
+  "Arms": "Руки",
+  "Core": "Кор",
+};
 
 interface SetData { weight: number; reps: number }
 interface WorkoutExerciseRow { id: string; exercise_name: string; muscle_group: string; sets: SetData[]; notes: string | null; sort_order: number }
