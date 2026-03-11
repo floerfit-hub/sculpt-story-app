@@ -146,6 +146,14 @@ export const en = {
     logSameExercise: "Log the same exercise across 2+ workouts to see progress charts.",
     weightProgression: "Weight Progression (kg)",
     repsProgression: "Reps Progression",
+    addCustomExercise: "Add Custom Exercise",
+    customExerciseName: "Exercise Name",
+    selectMuscleGroup: "Select Muscle Group",
+    add: "Add",
+    customExerciseAdded: "Custom exercise added!",
+    customExercises: "Custom",
+    deleteExercise: "Delete",
+    exerciseDeleted: "Exercise deleted",
   },
 
   // Muscle groups
