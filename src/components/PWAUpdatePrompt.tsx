@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw, X } from "lucide-react";
 
 const PWAUpdatePrompt = () => {
-  const { t } = useI18n();
+  const { t } = useTranslation();
   const [showPrompt, setShowPrompt] = useState(false);
 
   const {
