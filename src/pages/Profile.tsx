@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation, type Language } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Save, Download, Globe } from "lucide-react";
+import { User, LogOut, Save, Download, Globe, Moon, Sun } from "lucide-react";
 
 const LANGUAGES: { code: Language; label: string }[] = [
   { code: "en", label: "English" },
@@ -18,6 +19,7 @@ const Profile = () => {
   const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
   const { t, lang, setLanguage } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const [name, setName] = useState(profile?.full_name || "");
   const [saving, setSaving] = useState(false);
   const [isStandalone] = useState(window.matchMedia("(display-mode: standalone)").matches);
@@ -58,6 +60,37 @@ const Profile = () => {
             <Save className="mr-2 h-4 w-4" />
             {saving ? t.profile.saving : t.profile.saveChanges}
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Theme */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-lg flex items-center gap-2">
+            {theme === "dark" ? <Moon className="h-5 w-5 text-primary" /> : <Sun className="h-5 w-5 text-primary" />}
+            {t.profile.theme}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">{t.profile.themeDesc}</p>
+          <div className="flex gap-2">
+            <Button
+              variant={theme === "dark" ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setTheme("dark")}
+            >
+              <Moon className="mr-2 h-4 w-4" />
+              {t.profile.dark}
+            </Button>
+            <Button
+              variant={theme === "light" ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setTheme("light")}
+            >
+              <Sun className="mr-2 h-4 w-4" />
+              {t.profile.light}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

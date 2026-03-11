@@ -230,6 +230,8 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
+      <MuscleHeatmap />
+
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
