@@ -14,11 +14,45 @@ import { useToast } from "@/hooks/use-toast";
 interface SetData { weight: number | ""; reps: number | "" }
 interface WorkoutExercise { name: string; muscleGroup: string; sets: SetData[]; notes: string }
 
-const StartWorkout = ({ onBack }: { onBack: () => void }) => {
+export interface EditWorkoutData {
+  id: string;
+  started_at: string;
+  finished_at: string | null;
+  notes: string | null;
+  exercises: {
+    id: string;
+    exercise_name: string;
+    muscle_group: string;
+    sets: { weight: number; reps: number }[];
+    notes: string | null;
+    sort_order: number;
+  }[];
+}
+
+interface StartWorkoutProps {
+  onBack: () => void;
+  editData?: EditWorkoutData;
+}
+
+const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
+  const isEditing = !!editData;
+
+  const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
+    if (editData) {
+      return editData.exercises
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((ex) => ({
+          name: ex.exercise_name,
+          muscleGroup: ex.muscle_group,
+          sets: ex.sets.map((s) => ({ weight: s.weight as number | "", reps: s.reps as number | "" })),
+          notes: ex.notes || "",
+        }));
+    }
+    return [];
+  });
   const [showLibrary, setShowLibrary] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -51,17 +85,39 @@ const StartWorkout = ({ onBack }: { onBack: () => void }) => {
     if (!user || exercises.length === 0) return;
     setSaving(true);
     try {
-      const { data: workout, error: wErr } = await supabase.from("workouts").insert({ user_id: user.id, finished_at: new Date().toISOString() }).select("id").single();
-      if (wErr || !workout) throw wErr;
-      const rows = exercises.map((ex, i) => ({
-        workout_id: workout.id, exercise_name: ex.name, muscle_group: ex.muscleGroup,
-        sets: ex.sets.filter((s) => s.weight !== "" || s.reps !== "").map((s) => ({ weight: Number(s.weight) || 0, reps: Number(s.reps) || 0 })),
-        notes: ex.notes || null, sort_order: i,
-      }));
-      const { error: eErr } = await supabase.from("workout_exercises").insert(rows);
-      if (eErr) throw eErr;
-      setSaved(true);
-      toast({ title: t.workouts.workoutSaved, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
+      if (isEditing && editData) {
+        // Update existing workout
+        const { error: wErr } = await supabase.from("workouts").update({ notes: null }).eq("id", editData.id);
+        if (wErr) throw wErr;
+
+        // Delete old exercises and insert new ones
+        const { error: delErr } = await supabase.from("workout_exercises").delete().eq("workout_id", editData.id);
+        if (delErr) throw delErr;
+
+        const rows = exercises.map((ex, i) => ({
+          workout_id: editData.id, exercise_name: ex.name, muscle_group: ex.muscleGroup,
+          sets: ex.sets.filter((s) => s.weight !== "" || s.reps !== "").map((s) => ({ weight: Number(s.weight) || 0, reps: Number(s.reps) || 0 })),
+          notes: ex.notes || null, sort_order: i,
+        }));
+        const { error: eErr } = await supabase.from("workout_exercises").insert(rows);
+        if (eErr) throw eErr;
+
+        setSaved(true);
+        toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
+      } else {
+        // Create new workout
+        const { data: workout, error: wErr } = await supabase.from("workouts").insert({ user_id: user.id, finished_at: new Date().toISOString() }).select("id").single();
+        if (wErr || !workout) throw wErr;
+        const rows = exercises.map((ex, i) => ({
+          workout_id: workout.id, exercise_name: ex.name, muscle_group: ex.muscleGroup,
+          sets: ex.sets.filter((s) => s.weight !== "" || s.reps !== "").map((s) => ({ weight: Number(s.weight) || 0, reps: Number(s.reps) || 0 })),
+          notes: ex.notes || null, sort_order: i,
+        }));
+        const { error: eErr } = await supabase.from("workout_exercises").insert(rows);
+        if (eErr) throw eErr;
+        setSaved(true);
+        toast({ title: t.workouts.workoutSaved, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
+      }
     } catch (e: any) {
       toast({ title: t.workouts.errorSaving, description: e?.message, variant: "destructive" });
     } finally { setSaving(false); }
@@ -85,7 +141,7 @@ const StartWorkout = ({ onBack }: { onBack: () => void }) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft className="h-5 w-5" /></Button>
-          <h2 className="text-xl font-display font-bold">{t.workouts.newWorkout}</h2>
+          <h2 className="text-xl font-display font-bold">{isEditing ? t.workouts.editWorkout : t.workouts.newWorkout}</h2>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setShowTimer(true)}><Timer className="h-5 w-5" /></Button>
       </div>
@@ -122,7 +178,7 @@ const StartWorkout = ({ onBack }: { onBack: () => void }) => {
 
       {exercises.length > 0 && (
         <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
-          <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.savingDots : t.workouts.finishSave}
+          <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.updatingDots : isEditing ? t.workouts.updateWorkout : t.workouts.finishSave}
         </Button>
       )}
 

@@ -154,6 +154,13 @@ export const en = {
     customExercises: "Custom",
     deleteExercise: "Delete",
     exerciseDeleted: "Exercise deleted",
+    editWorkout: "Edit Workout",
+    updateWorkout: "Update Workout",
+    updatingDots: "Updating…",
+    workoutUpdated: "Workout updated! ✏️",
+    deleteWorkout: "Delete Workout",
+    deleteWorkoutConfirm: "Are you sure you want to delete this workout? This cannot be undone.",
+    workoutDeleted: "Workout deleted",
   },
 
   // Muscle groups
