@@ -23,7 +23,7 @@ const STORAGE_KEY = "fittrack-lang";
 export const I18nProvider = ({ children }: { children: ReactNode }) => {
   const [lang, setLang] = useState<Language>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return (saved === "uk" ? "uk" : "en") as Language;
+    return (saved === "en" ? "en" : "uk") as Language;
   });
 
   const setLanguage = useCallback((l: Language) => {
