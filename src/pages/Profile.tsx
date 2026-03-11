@@ -15,6 +15,11 @@ const LANGUAGES: { code: Language; label: string }[] = [
   { code: "uk", label: "Українська" },
 ];
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 const Profile = () => {
   const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
@@ -23,6 +28,27 @@ const Profile = () => {
   const [name, setName] = useState(profile?.full_name || "");
   const [saving, setSaving] = useState(false);
   const [isStandalone] = useState(window.matchMedia("(display-mode: standalone)").matches);
+  const [isIOS] = useState(/iPad|iPhone|iPod/.test(navigator.userAgent));
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = useCallback(async () => {
+    if (!deferredPrompt) return;
+    await deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setDeferredPrompt(null);
+      toast({ title: t.profile.installApp, description: "✅" });
+    }
+  }, [deferredPrompt, toast, t]);
 
   const handleSave = async () => {
     if (!user) return;
