@@ -290,8 +290,9 @@ const AdminPanel = () => {
                                   key={i}
                                   src={url}
                                   alt={`Progress photo ${i + 1}`}
-                                  className="rounded-lg aspect-square object-cover w-full"
+                                  className="rounded-lg aspect-square object-cover w-full cursor-pointer hover:opacity-80 transition-opacity"
                                   loading="lazy"
+                                  onClick={() => setLightbox({ urls: entry.photo_urls!, index: i })}
                                 />
                               ))}
                             </div>
