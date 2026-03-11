@@ -220,11 +220,11 @@ const MuscleHeatmap = () => {
                     <path
                       key={`${key}-${i}`}
                       d={path}
-                      fill={data[key].sets > 0 ? getHeatColor(data[key].sets, 0.5) : "rgba(100,200,255,0.2)"}
-                      stroke="rgba(255,0,0,0.7)"
-                      strokeWidth={0.3}
+                      fill={getHeatColor(data[key].sets, selected === key ? 0.65 : 0.5)}
+                      stroke={selected === key ? "hsl(var(--primary))" : "transparent"}
+                      strokeWidth={selected === key ? 0.5 : 0}
                       strokeLinejoin="round"
-                      className="cursor-pointer"
+                      className="cursor-pointer transition-all duration-200"
                       onClick={() => setSelected(selected === key ? null : key)}
                     />
                   ))
