@@ -14,6 +14,7 @@ import CoachView from "@/pages/CoachView";
 import Calculator from "@/pages/Calculator";
 import Insights from "@/pages/Insights";
 import Profile from "@/pages/Profile";
+import Workouts from "@/pages/Workouts";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
