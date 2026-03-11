@@ -43,42 +43,51 @@ export type Database = {
       }
       progress_entries: {
         Row: {
+          arm_circumference: number | null
           body_fat: number | null
           chest: number | null
           created_at: string
           entry_date: string
+          glute_circumference: number | null
           hips: number | null
           id: string
           notes: string | null
           photo_urls: string[] | null
+          thigh_circumference: number | null
           updated_at: string
           user_id: string
           waist: number | null
           weight: number | null
         }
         Insert: {
+          arm_circumference?: number | null
           body_fat?: number | null
           chest?: number | null
           created_at?: string
           entry_date?: string
+          glute_circumference?: number | null
           hips?: number | null
           id?: string
           notes?: string | null
           photo_urls?: string[] | null
+          thigh_circumference?: number | null
           updated_at?: string
           user_id: string
           waist?: number | null
           weight?: number | null
         }
         Update: {
+          arm_circumference?: number | null
           body_fat?: number | null
           chest?: number | null
           created_at?: string
           entry_date?: string
+          glute_circumference?: number | null
           hips?: number | null
           id?: string
           notes?: string | null
           photo_urls?: string[] | null
+          thigh_circumference?: number | null
           updated_at?: string
           user_id?: string
           waist?: number | null
