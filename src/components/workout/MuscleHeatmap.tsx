@@ -239,11 +239,11 @@ const MuscleHeatmap = () => {
           <div className="flex flex-wrap justify-center gap-2 text-[10px]">
             {[
               { label: "0", color: getLegendColor(0) },
-              { label: "1-9", color: getLegendColor(5) },
-              { label: "10-24", color: getLegendColor(15) },
-              { label: "25-39", color: getLegendColor(30) },
-              { label: "40-49", color: getLegendColor(45) },
-              { label: "50+", color: getLegendColor(55) },
+              { label: "1-4", color: getLegendColor(2) },
+              { label: "5-9", color: getLegendColor(7) },
+              { label: "10-14", color: getLegendColor(12) },
+              { label: "15-24", color: getLegendColor(20) },
+              { label: "25+", color: getLegendColor(25) },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1">
                 <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: item.color }} />
