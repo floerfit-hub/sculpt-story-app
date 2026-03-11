@@ -47,7 +47,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter basename="/sculpt-story-app">
           <I18nProvider>
             <AuthProvider>
               <Routes>
