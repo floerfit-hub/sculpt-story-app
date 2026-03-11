@@ -18,22 +18,29 @@ const MUSCLE_GROUP_MAP: Record<string, MuscleKey> = {
   "Core": "core",
 };
 
-function getHeatColor(sets: number, opacity = 0.45): string {
+function getHeatHue(sets: number): number {
+  // Smooth gradient: 1 set = 120 (green), 25+ sets = 0 (red)
+  if (sets <= 0) return 120;
+  if (sets >= 25) return 0;
+  // Linear interpolation: green(120) → red(0)
+  return 120 - (sets / 25) * 120;
+}
+
+function getHeatColor(sets: number, opacity = 0.5): string {
   if (sets === 0) return "transparent";
-  if (sets < 10) return `hsla(120, 50%, 50%, ${opacity})`;
-  if (sets < 25) return `hsla(50, 90%, 50%, ${opacity})`;
-  if (sets < 40) return `hsla(30, 90%, 50%, ${opacity})`;
-  if (sets < 50) return `hsla(20, 90%, 45%, ${opacity})`;
-  return `hsla(0, 80%, 50%, ${opacity})`;
+  const hue = getHeatHue(sets);
+  // Increase saturation and brightness as sets increase
+  const sat = 50 + Math.min(sets, 25) * 2; // 50-100
+  const light = 50 - Math.min(sets, 25) * 0.4; // 50-40
+  return `hsla(${hue}, ${sat}%, ${light}%, ${opacity})`;
 }
 
 function getLegendColor(sets: number): string {
   if (sets === 0) return "hsl(0 0% 70%)";
-  if (sets < 10) return "hsl(120 50% 50%)";
-  if (sets < 25) return "hsl(50 90% 50%)";
-  if (sets < 40) return "hsl(30 90% 50%)";
-  if (sets < 50) return "hsl(20 90% 45%)";
-  return "hsl(0 80% 50%)";
+  const hue = getHeatHue(sets);
+  const sat = 50 + Math.min(sets, 25) * 2;
+  const light = 50 - Math.min(sets, 25) * 0.4;
+  return `hsl(${hue} ${sat}% ${light}%)`;
 }
 
 interface MuscleData {
