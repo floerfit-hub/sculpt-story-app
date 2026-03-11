@@ -8,30 +8,34 @@ import type { Json } from "@/integrations/supabase/types";
 import MuscleBodySvg, { type MuscleKey } from "./MuscleBodySvg";
 
 const MUSCLE_GROUP_MAP: Record<string, MuscleKey> = {
-  "Legs & Glutes": "quadriceps",
-  "Back": "upper_back",
+  "Legs & Glutes": "legs",
+  "Back": "back",
   "Chest": "chest",
   "Shoulders": "shoulders",
-  "Arms": "biceps",
+  "Arms": "arms",
   "Core": "abs",
 };
 
-function getHeatColor(sets: number, opacity = 0.6): string {
+/* Neon lime glow color based on set count */
+function getNeonFill(sets: number, selected: boolean): string {
   if (sets === 0) return "transparent";
   const t = Math.min(sets, 50) / 50;
-  const r = Math.round(168 + (255 - 168) * t);
-  const g = Math.round(230 + (76 - 230) * t);
-  const b = Math.round(163 + (76 - 163) * t);
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  // From subtle lime to bright neon lime
+  const opacity = selected ? 0.55 + t * 0.3 : 0.25 + t * 0.35;
+  return `hsla(82, 85%, ${55 - t * 10}%, ${opacity})`;
+}
+
+function getNeonGlow(sets: number, selected: boolean): string {
+  if (sets === 0) return "transparent";
+  return selected ? "hsl(82, 85%, 55%)" : sets > 10 ? "hsl(82, 85%, 45%)" : "transparent";
 }
 
 function getLegendColor(sets: number): string {
-  if (sets === 0) return "hsl(0 0% 75%)";
+  if (sets === 0) return "hsl(var(--muted-foreground) / 0.3)";
   const t = Math.min(sets, 50) / 50;
-  const r = Math.round(168 + (255 - 168) * t);
-  const g = Math.round(230 + (76 - 230) * t);
-  const b = Math.round(163 + (76 - 163) * t);
-  return `rgb(${r}, ${g}, ${b})`;
+  const l = 55 - t * 10;
+  const opacity = 0.4 + t * 0.6;
+  return `hsla(82, 85%, ${l}%, ${opacity})`;
 }
 
 interface MuscleData {
@@ -40,9 +44,7 @@ interface MuscleData {
 }
 
 const ALL_KEYS: MuscleKey[] = [
-  "chest", "upper_back", "lower_back", "shoulders",
-  "biceps", "triceps", "abs", "glutes",
-  "quadriceps", "hamstrings", "calves",
+  "chest", "back", "shoulders", "arms", "forearms", "abs", "glutes", "legs",
 ];
 
 function emptyData(): Record<MuscleKey, MuscleData> {
@@ -92,21 +94,18 @@ const MuscleHeatmap = () => {
   const muscles: { key: MuscleKey; label: string }[] = [
     { key: "shoulders", label: t.muscleGroups.shoulders },
     { key: "chest", label: t.muscleGroups.chest },
-    { key: "biceps", label: "Biceps" },
-    { key: "triceps", label: "Triceps" },
-    { key: "upper_back", label: "Upper Back" },
-    { key: "lower_back", label: "Lower Back" },
+    { key: "arms", label: "Arms" },
+    { key: "forearms", label: "Forearms" },
+    { key: "back", label: "Back" },
     { key: "abs", label: t.muscleGroups.core },
     { key: "glutes", label: "Glutes" },
-    { key: "quadriceps", label: "Quads" },
-    { key: "hamstrings", label: "Hamstrings" },
-    { key: "calves", label: "Calves" },
+    { key: "legs", label: "Legs" },
   ];
 
   const toggle = (key: MuscleKey) => setSelected(selected === key ? null : key);
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader className="pb-2">
         <CardTitle className="font-display text-lg flex items-center gap-2">
           <Activity className="h-5 w-5 text-primary" />
@@ -117,9 +116,10 @@ const MuscleHeatmap = () => {
       <CardContent>
         <div className="flex flex-col items-center gap-4">
           <MuscleBodySvg
-            getFill={(k) => getHeatColor(data[k].sets, selected === k ? 0.75 : 0.6)}
-            getStroke={(k) => (selected === k ? "hsl(var(--primary))" : "transparent")}
-            getStrokeWidth={(k) => (selected === k ? 1.5 : 0)}
+            getFill={(k) => getNeonFill(data[k].sets, selected === k)}
+            getStroke={(k) => selected === k ? "hsl(82, 85%, 55%)" : data[k].sets > 0 ? "hsl(82, 85%, 55% / 0.3)" : "transparent"}
+            getStrokeWidth={(k) => selected === k ? 2 : data[k].sets > 0 ? 0.5 : 0}
+            getGlow={(k) => getNeonGlow(data[k].sets, selected === k)}
             onClickMuscle={toggle}
           />
 
@@ -146,7 +146,7 @@ const MuscleHeatmap = () => {
                 onClick={() => toggle(m.key)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   selected === m.key
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary text-primary-foreground glow-primary"
                     : "bg-muted text-muted-foreground hover:bg-accent"
                 }`}
               >
@@ -156,7 +156,7 @@ const MuscleHeatmap = () => {
           </div>
 
           {selected && (
-            <div className="w-full rounded-lg border bg-accent/50 p-3 animate-fade-in">
+            <div className="w-full rounded-lg border border-primary/20 bg-accent/50 p-3 animate-fade-in">
               <p className="font-display font-semibold text-sm">
                 {muscles.find((m) => m.key === selected)?.label}
               </p>
