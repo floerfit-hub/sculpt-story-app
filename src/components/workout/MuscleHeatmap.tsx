@@ -214,24 +214,15 @@ const MuscleHeatmap = () => {
               className="absolute inset-0 w-full h-full"
               preserveAspectRatio="xMidYMid meet"
             >
-              {/* Debug calibration rectangles */}
-              <rect x="0" y="0" width="10" height="10" fill="red" opacity="0.8" />
-              <rect x="145" y="0" width="10" height="10" fill="blue" opacity="0.8" />
-              <rect x="290" y="0" width="10" height="10" fill="red" opacity="0.8" />
-              <rect x="0" y="590" width="10" height="10" fill="red" opacity="0.8" />
-              <rect x="290" y="590" width="10" height="10" fill="red" opacity="0.8" />
-              {/* Cross-hairs at figure centers */}
-              <rect x="73" y="50" width="4" height="4" fill="yellow" opacity="0.9" />
-              <rect x="223" y="50" width="4" height="4" fill="yellow" opacity="0.9" />
               {(Object.entries(OVERLAY_REGIONS) as [MuscleKey, { paths: string[] }][]).map(
                 ([key, region]) =>
                   region.paths.map((path, i) => (
                     <path
                       key={`${key}-${i}`}
                       d={path}
-                      fill={getHeatColor(data[key].sets, selected === key ? 0.65 : 0.45)}
-                      stroke="rgba(255,0,0,0.5)"
-                      strokeWidth={1}
+                      fill={getHeatColor(data[key].sets, selected === key ? 0.6 : 0.4)}
+                      stroke={selected === key ? "hsl(var(--primary))" : "transparent"}
+                      strokeWidth={selected === key ? 1.5 : 0}
                       strokeLinejoin="round"
                       className="cursor-pointer transition-all duration-200"
                       onClick={() => setSelected(selected === key ? null : key)}
