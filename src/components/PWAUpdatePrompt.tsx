@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
-import { useI18n } from "@/i18n";
+import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, X } from "lucide-react";
 
