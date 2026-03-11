@@ -22,6 +22,14 @@ const Dashboard = () => {
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [nutrition, setNutrition] = useState<{ calories: number; protein: number; fat: number; carbs: number } | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("nutrition_results");
+      if (saved) setNutrition(JSON.parse(saved));
+    } catch {}
+  }, []);
 
   const fetchEntries = async () => {
     if (!user) return;
