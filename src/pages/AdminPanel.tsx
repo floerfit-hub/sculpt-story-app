@@ -408,6 +408,44 @@ const AdminPanel = () => {
           <DialogFooter />
         </DialogContent>
       </Dialog>
+
+      {/* Lightbox */}
+      <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 sm:p-4 bg-black/95 border-none">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Photo</DialogTitle>
+            <DialogDescription>Full screen photo view</DialogDescription>
+          </DialogHeader>
+          {lightbox && (
+            <div className="relative flex items-center justify-center min-h-[60vh]">
+              <img
+                src={lightbox.urls[lightbox.index]}
+                alt="Full size"
+                className="max-w-full max-h-[85vh] object-contain rounded-lg"
+              />
+              {lightbox.urls.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setLightbox({ ...lightbox, index: (lightbox.index - 1 + lightbox.urls.length) % lightbox.urls.length })}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/20 hover:bg-background/40 flex items-center justify-center text-white transition-colors"
+                  >
+                    <ChevronUp className="h-5 w-5 -rotate-90" />
+                  </button>
+                  <button
+                    onClick={() => setLightbox({ ...lightbox, index: (lightbox.index + 1) % lightbox.urls.length })}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/20 hover:bg-background/40 flex items-center justify-center text-white transition-colors"
+                  >
+                    <ChevronDown className="h-5 w-5 -rotate-90" />
+                  </button>
+                </>
+              )}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-white/70">
+                {lightbox.index + 1} / {lightbox.urls.length}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
