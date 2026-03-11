@@ -41,7 +41,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           {exercises.map((ex) => (
             <Card key={ex.name} className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform`} onClick={() => selectable && onSelect?.(ex.name, ex.muscleGroup)}>
               <CardContent className="flex items-center justify-between p-4">
-                <span className="font-medium">{ex.name}</span>
+                <span className="font-medium">{t.exerciseNames[ex.name] || ex.name}</span>
                 {selectable && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
               </CardContent>
             </Card>
