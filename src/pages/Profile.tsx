@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,11 @@ const LANGUAGES: { code: Language; label: string }[] = [
   { code: "uk", label: "Українська" },
 ];
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 const Profile = () => {
   const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
@@ -23,6 +28,27 @@ const Profile = () => {
   const [name, setName] = useState(profile?.full_name || "");
   const [saving, setSaving] = useState(false);
   const [isStandalone] = useState(window.matchMedia("(display-mode: standalone)").matches);
+  const [isIOS] = useState(/iPad|iPhone|iPod/.test(navigator.userAgent));
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = useCallback(async () => {
+    if (!deferredPrompt) return;
+    await deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setDeferredPrompt(null);
+      toast({ title: t.profile.installApp, description: "✅" });
+    }
+  }, [deferredPrompt, toast, t]);
 
   const handleSave = async () => {
     if (!user) return;
@@ -120,12 +146,19 @@ const Profile = () => {
       </Card>
 
       {!isStandalone && (
-        <Card className="border-primary/30">
+        <Card
+          className="border-primary/30 cursor-pointer transition-all duration-200 hover:border-primary/60 active:scale-[0.98]"
+          onClick={isIOS ? undefined : handleInstall}
+        >
           <CardContent className="p-4 flex items-center gap-3">
-            <Download className="h-5 w-5 text-primary shrink-0" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl gradient-primary glow-primary">
+              <Download className="h-5 w-5 text-primary-foreground" />
+            </div>
             <div className="flex-1">
               <p className="font-display font-semibold text-sm">{t.profile.installApp}</p>
-              <p className="text-xs text-muted-foreground">{t.profile.addToHome}</p>
+              <p className="text-xs text-muted-foreground">
+                {isIOS ? "Tap Share → Add to Home Screen" : t.profile.addToHome}
+              </p>
             </div>
           </CardContent>
         </Card>
