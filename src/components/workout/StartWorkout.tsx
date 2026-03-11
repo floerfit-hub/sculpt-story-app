@@ -51,6 +51,11 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           notes: ex.notes || "",
         }));
     }
+    // Restore from sessionStorage
+    const saved = sessionStorage.getItem("workout-in-progress");
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
     return [];
   });
   const [showLibrary, setShowLibrary] = useState(false);
