@@ -18,8 +18,9 @@ import { format } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   Shield, Users, ChevronDown, ChevronUp, Trash2, UserCog,
-  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown,
+  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download,
 } from "lucide-react";
+import { toCsv, downloadCsv, buildFilename } from "@/lib/csvExport";
 
 type Profile = Tables<"profiles">;
 type ProgressEntry = Tables<"progress_entries">;
