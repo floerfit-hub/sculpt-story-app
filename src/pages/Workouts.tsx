@@ -15,7 +15,10 @@ type WorkoutView = "hub" | "start" | "library" | "history" | "charts" | "edit";
 const Workouts = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const [view, setView] = useState<WorkoutView>("hub");
+  const [view, setView] = useState<WorkoutView>(() => {
+    const saved = sessionStorage.getItem("workout-view");
+    return (saved as WorkoutView) || "hub";
+  });
   const [workoutCount, setWorkoutCount] = useState(0);
   const [editData, setEditData] = useState<EditWorkoutData | undefined>();
 
