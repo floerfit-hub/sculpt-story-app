@@ -24,24 +24,24 @@ export default defineConfig(({ mode }) => ({
         short_name: "FitTrack",
         description: "Track your fitness progress, calculate calories, and stay motivated",
         theme_color: "#22c55e",
-        background_color: "#fafafa",
+        background_color: "#0a0a0a",
         display: "standalone",
         orientation: "portrait",
         scope: "/sculpt-story-app/",
         start_url: "/sculpt-story-app/",
         icons: [
           {
-            src: "/pwa-icon-192.png",
+            src: "pwa-icon-192.png",
             sizes: "192x192",
             type: "image/png",
           },
           {
-            src: "/pwa-icon-512.png",
+            src: "pwa-icon-512.png",
             sizes: "512x512",
             type: "image/png",
           },
           {
-            src: "/pwa-icon-512.png",
+            src: "pwa-icon-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
