@@ -232,46 +232,53 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
     y = (doc as any).lastAutoTable.finalY + 10;
   }
 
-  // ─── Photos (1:1 square, vertical layout — one per row) ───
-  const entriesWithPhotos = client.entries.filter(
-    (e) => e.photo_urls && e.photo_urls.length > 0
-  );
+  // ─── Photos (2 per row grid, 1:1 square, date under each photo) ───
+  const entriesWithPhotos = [...client.entries]
+    .filter((e) => e.photo_urls && e.photo_urls.length > 0)
+    .sort((a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime());
 
   if (entriesWithPhotos.length > 0) {
     if (y + 20 > 280) { doc.addPage(); y = 20; }
     doc.setFontSize(13);
     doc.setTextColor(30, 30, 30);
     doc.text("Фото прогресу", margin, y);
-    y += 6;
+    y += 8;
 
-    const imgSize = 75; // 75mm square — large, clear photos
+    const cols = 2;
+    const gap = 6;
+    const availableW = pageWidth - margin * 2;
+    const imgSize = (availableW - gap * (cols - 1)) / cols;
+    const cellHeight = imgSize + 8; // photo + date label
 
+    // Flatten all photos with their dates
+    const allPhotos: { url: string; date: string }[] = [];
     for (const entry of entriesWithPhotos) {
-      if (y + 10 > 280) { doc.addPage(); y = 20; }
-      doc.setFontSize(9);
-      doc.setTextColor(80, 80, 80);
-      doc.text(format(new Date(entry.entry_date), "dd.MM.yyyy"), margin, y);
-      y += 4;
+      const dateStr = format(new Date(entry.entry_date), "dd.MM.yyyy");
+      for (const url of entry.photo_urls!) {
+        allPhotos.push({ url, date: dateStr });
+      }
+    }
 
-      const urls = entry.photo_urls!;
+    for (let i = 0; i < allPhotos.length; i++) {
+      const col = i % cols;
+      if (col === 0 && i > 0) { y += cellHeight; }
+      if (col === 0 && y + cellHeight > 280) { doc.addPage(); y = 20; }
 
-      for (let i = 0; i < urls.length; i++) {
-        if (y + imgSize > 280) { doc.addPage(); y = 20; }
-
-        const base64 = await loadImageAsSquareBase64(urls[i]);
-        if (base64) {
-          try {
-            // Center the image horizontally
-            const imgX = (pageWidth - imgSize) / 2;
-            doc.addImage(base64, "JPEG", imgX, y, imgSize, imgSize);
-            y += imgSize + 5;
-          } catch {
-            // skip corrupt images
-          }
+      const imgX = margin + col * (imgSize + gap);
+      const base64 = await loadImageAsSquareBase64(allPhotos[i].url);
+      if (base64) {
+        try {
+          doc.addImage(base64, "JPEG", imgX, y, imgSize, imgSize);
+          // Date label centered under the photo
+          doc.setFontSize(8);
+          doc.setTextColor(100, 100, 100);
+          doc.text(allPhotos[i].date, imgX + imgSize / 2, y + imgSize + 4, { align: "center" });
+        } catch {
+          // skip corrupt images
         }
       }
-      y += 3;
     }
+    y += cellHeight + 4;
   }
 
   const safeName = (client.name || "user").replace(/\s+/g, "_").toLowerCase();
