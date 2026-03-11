@@ -91,6 +91,15 @@ const CalculatorPage = () => {
   const canProceed = () => STEPS[step].fields.every((f) => form[f as keyof FormData]?.trim());
   const handleReset = () => { setResults(null); setStep(0); setForm(INITIAL); };
 
+  const handleCalculate = () => {
+    const res = calculate(form, t);
+    setResults(res);
+    localStorage.setItem("nutrition_results", JSON.stringify({
+      calories: res.calories, protein: res.protein, fat: res.fat, carbs: res.carbs,
+      bmr: res.bmr, tdee: res.tdee, updatedAt: new Date().toISOString(),
+    }));
+  };
+
   if (results) {
     const macros = [
       { label: t.calc.calories, value: results.calories, unit: "kcal", icon: Flame, color: "text-orange-500" },
