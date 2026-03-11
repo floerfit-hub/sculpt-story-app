@@ -53,6 +53,10 @@ export const uk: Translations = {
     cancelDelete: "Скасувати",
     entryDeleted: "Запис видалено",
     entryUpdated: "Запис оновлено",
+    muscleActivity: "Активність м'язів",
+    last30Days: "Теплова карта тренувань за 30 днів",
+    setsLast30: "підходів за останні 30 днів",
+    noExercisesLogged: "Ще немає вправ для цієї групи.",
   },
 
   addEntry: {
