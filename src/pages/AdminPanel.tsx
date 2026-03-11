@@ -95,7 +95,51 @@ const AdminPanel = () => {
     fetchClients();
   };
 
-  if (!isAdmin) {
+  const handleExportUsers = () => {
+    const headers = ["Name", "Registration Date", "Latest Weight (kg)", "Weight Trend", "Roles"];
+    const keys = ["name", "regDate", "weight", "trend", "roles"];
+    const rows = clients.map((c) => {
+      const latest = c.entries[0];
+      const prev = c.entries[1];
+      const diff = latest?.weight && prev?.weight ? latest.weight - prev.weight : null;
+      return {
+        name: c.profile.full_name || "—",
+        regDate: format(new Date(c.profile.created_at), "yyyy-MM-dd"),
+        weight: latest?.weight ?? "",
+        trend: diff !== null ? `${diff > 0 ? "+" : ""}${diff.toFixed(1)}` : "",
+        roles: c.roles.map((r) => r.role).join(", "),
+      };
+    });
+    const csv = toCsv(headers, rows, keys);
+    downloadCsv(csv, buildFilename("floerfit_users"));
+    toast({ title: "CSV exported" });
+  };
+
+  const handleExportProgress = (client: ClientData) => {
+    const name = (client.profile.full_name || "user").replace(/\s+/g, "_").toLowerCase();
+    const progressHeaders = ["Date", "Weight (kg)", "Body Fat (%)", "Waist (cm)", "Chest (cm)", "Hips (cm)", "Arm (cm)", "Glute (cm)", "Thigh (cm)", "Notes"];
+    const progressKeys = ["date", "weight", "bodyFat", "waist", "chest", "hips", "arm", "glute", "thigh", "notes"];
+    const progressRows = client.entries.map((e) => ({
+      date: format(new Date(e.entry_date), "yyyy-MM-dd"),
+      weight: e.weight ?? "", bodyFat: e.body_fat ?? "", waist: e.waist ?? "",
+      chest: e.chest ?? "", hips: e.hips ?? "", arm: e.arm_circumference ?? "",
+      glute: e.glute_circumference ?? "", thigh: e.thigh_circumference ?? "", notes: e.notes ?? "",
+    }));
+    const workoutHeaders = ["Date", "Exercise", "Muscle Group", "Sets (JSON)"];
+    const workoutKeys = ["date", "exercise", "muscle", "sets"];
+    const workoutRows = client.workouts.flatMap((w) =>
+      w.workout_exercises.map((ex) => ({
+        date: format(new Date(w.started_at), "yyyy-MM-dd HH:mm"),
+        exercise: ex.exercise_name, muscle: ex.muscle_group, sets: JSON.stringify(ex.sets),
+      }))
+    );
+    const combined = "=== PROGRESS ===\n" + toCsv(progressHeaders, progressRows, progressKeys) +
+      "\n\n=== WORKOUTS ===\n" + toCsv(workoutHeaders, workoutRows, workoutKeys);
+    downloadCsv(combined, buildFilename(`floerfit_${name}_progress`));
+    toast({ title: "CSV exported" });
+  };
+
+
     return (
       <div className="py-20 text-center text-muted-foreground">
         <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
