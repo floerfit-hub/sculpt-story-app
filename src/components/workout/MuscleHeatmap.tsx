@@ -210,7 +210,7 @@ const MuscleHeatmap = () => {
               draggable={false}
             />
             <svg
-              viewBox="0 0 200 180"
+              viewBox="0 0 300 600"
               className="absolute inset-0 w-full h-full"
               preserveAspectRatio="xMidYMid meet"
             >
@@ -222,7 +222,7 @@ const MuscleHeatmap = () => {
                       d={path}
                       fill={getHeatColor(data[key].sets, selected === key ? 0.65 : 0.45)}
                       stroke={selected === key ? "hsl(var(--primary))" : "transparent"}
-                      strokeWidth={selected === key ? 1 : 0}
+                      strokeWidth={selected === key ? 1.5 : 0}
                       strokeLinejoin="round"
                       className="cursor-pointer transition-all duration-200"
                       onClick={() => setSelected(selected === key ? null : key)}
