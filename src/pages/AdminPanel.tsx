@@ -168,10 +168,16 @@ const AdminPanel = () => {
           <h1 className="text-2xl font-display font-bold">{t.admin.title}</h1>
           <p className="text-sm text-muted-foreground">{t.admin.subtitle}</p>
         </div>
-        <Badge variant="secondary" className="ml-auto text-sm">
-          <Users className="h-3.5 w-3.5 mr-1" />
-          {clients.length}
-        </Badge>
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportUsers}>
+            <Download className="h-3.5 w-3.5 mr-1" />
+            Export CSV
+          </Button>
+          <Badge variant="secondary" className="text-sm">
+            <Users className="h-3.5 w-3.5 mr-1" />
+            {clients.length}
+          </Badge>
+        </div>
       </div>
 
       {clients.map((client) => {
