@@ -146,12 +146,19 @@ const Profile = () => {
       </Card>
 
       {!isStandalone && (
-        <Card className="border-primary/30">
+        <Card
+          className="border-primary/30 cursor-pointer transition-all duration-200 hover:border-primary/60 active:scale-[0.98]"
+          onClick={isIOS ? undefined : handleInstall}
+        >
           <CardContent className="p-4 flex items-center gap-3">
-            <Download className="h-5 w-5 text-primary shrink-0" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl gradient-primary glow-primary">
+              <Download className="h-5 w-5 text-primary-foreground" />
+            </div>
             <div className="flex-1">
               <p className="font-display font-semibold text-sm">{t.profile.installApp}</p>
-              <p className="text-xs text-muted-foreground">{t.profile.addToHome}</p>
+              <p className="text-xs text-muted-foreground">
+                {isIOS ? "Tap Share → Add to Home Screen" : t.profile.addToHome}
+              </p>
             </div>
           </CardContent>
         </Card>
