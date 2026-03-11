@@ -43,6 +43,7 @@ const AdminPanel = () => {
   const [tab, setTab] = useState<"progress" | "photos" | "workouts">("progress");
   const [roleDialog, setRoleDialog] = useState<{ userId: string; currentRoles: string[] } | null>(null);
   const [newRole, setNewRole] = useState<string>("");
+  const [lightbox, setLightbox] = useState<{ urls: string[]; index: number } | null>(null);
 
   const fetchClients = async () => {
     setLoading(true);
