@@ -357,6 +357,14 @@ export const en = {
     chestCircumference: "Chest Circumference (cm)",
   },
 
+  // PWA
+  pwa: {
+    updateAvailable: "New version available",
+    updateDescription: "Refresh to get the latest features and fixes",
+    update: "Update",
+    later: "Later",
+  },
+
   // Common
   common: {
     error: "Error",

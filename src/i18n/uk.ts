@@ -344,6 +344,13 @@ export const uk: Translations = {
     chestCircumference: "Обхват грудей (см)",
   },
 
+  pwa: {
+    updateAvailable: "Доступна нова версія",
+    updateDescription: "Оновіть, щоб отримати останні покращення",
+    update: "Оновити",
+    later: "Пізніше",
+  },
+
   common: {
     error: "Помилка",
     kg: "кг",

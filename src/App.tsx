@@ -6,6 +6,7 @@ import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { I18nProvider } from "@/i18n";
 import { ThemeProvider } from "@/hooks/useTheme";
+import PWAUpdatePrompt from "@/components/PWAUpdatePrompt";
 import AppLayout from "@/components/AppLayout";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
@@ -47,6 +48,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <PWAUpdatePrompt />
         <HashRouter>
           <I18nProvider>
             <AuthProvider>
