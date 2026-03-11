@@ -21,6 +21,8 @@ import {
   Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download,
 } from "lucide-react";
 import { toCsv, downloadCsv, buildFilename } from "@/lib/csvExport";
+import { exportClientPdf } from "@/lib/pdfExport";
+import { FileText } from "lucide-react";
 
 type Profile = Tables<"profiles">;
 type ProgressEntry = Tables<"progress_entries">;
