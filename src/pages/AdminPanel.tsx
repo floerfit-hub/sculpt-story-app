@@ -110,7 +110,7 @@ const AdminPanel = () => {
     );
   }
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  
 
   return (
     <div className="space-y-6 animate-fade-in">
