@@ -121,15 +121,15 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
   // Header
   doc.setFontSize(18);
   doc.setTextColor(30, 30, 30);
-  doc.text("FloerFit — Звіт клієнта", margin, y);
+  doc.text("FloerFit \u2014 \u0417\u0432\u0456\u0442 \u043a\u043b\u0456\u0454\u043d\u0442\u0430", margin, y);
   y += 8;
 
   doc.setFontSize(12);
   doc.text(client.name, margin, y);
   doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
-  doc.text(`Ролі: ${client.roles.join(", ")}  |  Реєстрація: ${client.registrationDate}`, margin, y + 5);
-  doc.text(`Згенеровано: ${format(new Date(), "dd.MM.yyyy HH:mm")}`, margin, y + 10);
+  doc.text(`\u0420\u043e\u043b\u0456: ${client.roles.join(", ")}  |  \u0414\u0430\u0442\u0430 \u0440\u0435\u0454\u0441\u0442\u0440\u0430\u0446\u0456\u0457: ${client.registrationDate}`, margin, y + 5);
+  doc.text(`\u0421\u0442\u0432\u043e\u0440\u0435\u043d\u043e: ${format(new Date(), "dd.MM.yyyy HH:mm")}`, margin, y + 10);
   y += 18;
 
   doc.setDrawColor(200, 200, 200);
@@ -152,7 +152,7 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
       margin: { left: margin, right: margin },
       headStyles: { fillColor: [55, 65, 81], fontSize: 7 },
       bodyStyles: { fontSize: 7 },
-      head: [["Дата", "Вага", "Жир %", "Талія", "Груди", "Стегна", "Руки", "Сідниці", "Стегно"]],
+      head: [["Дата", "Вага (кг)", "% жиру", "Талія (см)", "Груди (см)", "Стегна (см)", "Руки (см)", "Сідниці (см)", "Обхват стегна (см)"]],
       body: sortedEntries.map((e) => [
         format(new Date(e.entry_date), "dd.MM.yy"),
         e.weight ?? "—",
@@ -185,15 +185,15 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
 
     if (y + 55 > 280) { doc.addPage(); y = 20; }
     if (weightData.length >= 2) {
-      y = drawSimpleChart(doc, weightData, "Прогрес ваги (кг)", margin, y, chartWidth, 50, [59, 130, 246]);
+      y = drawSimpleChart(doc, weightData, "Динаміка ваги (кг)", margin, y, chartWidth, 50, [59, 130, 246]);
     }
     if (y + 55 > 280) { doc.addPage(); y = 20; }
     if (waistData.length >= 2) {
-      y = drawSimpleChart(doc, waistData, "Прогрес талії (см)", margin, y, chartWidth, 50, [234, 88, 12]);
+      y = drawSimpleChart(doc, waistData, "Динаміка талії (см)", margin, y, chartWidth, 50, [234, 88, 12]);
     }
     if (y + 55 > 280) { doc.addPage(); y = 20; }
     if (bodyFatData.length >= 2) {
-      y = drawSimpleChart(doc, bodyFatData, "Прогрес жиру (%)", margin, y, chartWidth, 50, [22, 163, 74]);
+      y = drawSimpleChart(doc, bodyFatData, "Динаміка відсотка жиру (%)", margin, y, chartWidth, 50, [22, 163, 74]);
     }
   }
 
@@ -225,53 +225,60 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
       margin: { left: margin, right: margin },
       headStyles: { fillColor: [55, 65, 81], fontSize: 7 },
       bodyStyles: { fontSize: 7 },
-      head: [["Дата", "Вправа", "Група м'язів", "Підходи"]],
+      head: [["Дата", "Вправа", "Група м\u2019язів", "Підходи"]],
       body: workoutRows,
     });
 
     y = (doc as any).lastAutoTable.finalY + 10;
   }
 
-  // ─── Photos (1:1 square, vertical layout — one per row) ───
-  const entriesWithPhotos = client.entries.filter(
-    (e) => e.photo_urls && e.photo_urls.length > 0
-  );
+  // ─── Photos (2 per row grid, 1:1 square, date under each photo) ───
+  const entriesWithPhotos = [...client.entries]
+    .filter((e) => e.photo_urls && e.photo_urls.length > 0)
+    .sort((a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime());
 
   if (entriesWithPhotos.length > 0) {
     if (y + 20 > 280) { doc.addPage(); y = 20; }
     doc.setFontSize(13);
     doc.setTextColor(30, 30, 30);
     doc.text("Фото прогресу", margin, y);
-    y += 6;
+    y += 8;
 
-    const imgSize = 75; // 75mm square — large, clear photos
+    const cols = 2;
+    const gap = 6;
+    const availableW = pageWidth - margin * 2;
+    const imgSize = (availableW - gap * (cols - 1)) / cols;
+    const cellHeight = imgSize + 8; // photo + date label
 
+    // Flatten all photos with their dates
+    const allPhotos: { url: string; date: string }[] = [];
     for (const entry of entriesWithPhotos) {
-      if (y + 10 > 280) { doc.addPage(); y = 20; }
-      doc.setFontSize(9);
-      doc.setTextColor(80, 80, 80);
-      doc.text(format(new Date(entry.entry_date), "dd.MM.yyyy"), margin, y);
-      y += 4;
+      const dateStr = format(new Date(entry.entry_date), "dd.MM.yyyy");
+      for (const url of entry.photo_urls!) {
+        allPhotos.push({ url, date: dateStr });
+      }
+    }
 
-      const urls = entry.photo_urls!;
+    for (let i = 0; i < allPhotos.length; i++) {
+      const col = i % cols;
+      if (col === 0 && i > 0) { y += cellHeight; }
+      if (col === 0 && y + cellHeight > 280) { doc.addPage(); y = 20; }
 
-      for (let i = 0; i < urls.length; i++) {
-        if (y + imgSize > 280) { doc.addPage(); y = 20; }
-
-        const base64 = await loadImageAsSquareBase64(urls[i]);
-        if (base64) {
-          try {
-            // Center the image horizontally
-            const imgX = (pageWidth - imgSize) / 2;
-            doc.addImage(base64, "JPEG", imgX, y, imgSize, imgSize);
-            y += imgSize + 5;
-          } catch {
-            // skip corrupt images
-          }
+      const imgX = margin + col * (imgSize + gap);
+      const base64 = await loadImageAsSquareBase64(allPhotos[i].url);
+      if (base64) {
+        try {
+          doc.addImage(base64, "JPEG", imgX, y, imgSize, imgSize);
+          // Date label centered under the photo
+          doc.setFontSize(8);
+          doc.setTextColor(100, 100, 100);
+          doc.text(allPhotos[i].date, imgX + imgSize / 2, y + imgSize + 4, { align: "center" });
+        } catch {
+          // skip corrupt images
         }
       }
-      y += 3;
     }
+    y += cellHeight + 4;
   }
 
   const safeName = (client.name || "user").replace(/\s+/g, "_").toLowerCase();
