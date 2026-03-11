@@ -314,6 +314,10 @@ export const uk: Translations = {
     signOut: "Вийти",
     language: "Мова",
     languageDesc: "Оберіть бажану мову",
+    theme: "Тема",
+    themeDesc: "Оберіть бажану тему",
+    dark: "Темна",
+    light: "Світла",
   },
 
   charts: {

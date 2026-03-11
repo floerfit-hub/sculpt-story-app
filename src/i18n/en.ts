@@ -326,6 +326,10 @@ export const en = {
     signOut: "Sign Out",
     language: "Language",
     languageDesc: "Choose your preferred language",
+    theme: "Theme",
+    themeDesc: "Choose your preferred theme",
+    dark: "Dark",
+    light: "Light",
   },
 
   // Charts
