@@ -8,6 +8,7 @@ export const uk: Translations = {
     macros: "Макроси",
     profile: "Профіль",
     insights: "Аналітика",
+    admin: "Адмін",
     appName: "FitTrack",
   },
 

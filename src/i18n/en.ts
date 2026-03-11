@@ -7,6 +7,7 @@ export const en = {
     macros: "Macros",
     profile: "Profile",
     insights: "Insights",
+    admin: "Admin",
     appName: "FitTrack",
   },
 
