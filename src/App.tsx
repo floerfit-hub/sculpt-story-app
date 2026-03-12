@@ -55,6 +55,7 @@ const App = () => (
           <I18nProvider>
             <AuthProvider>
               <PremiumProvider>
+              <Routes>
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/add-entry" element={<ProtectedRoute><AddEntry /></ProtectedRoute>} />
