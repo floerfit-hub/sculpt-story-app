@@ -26,6 +26,8 @@ import Privacy from "@/pages/Privacy";
 import Refund from "@/pages/Refund";
 import Pricing from "@/pages/Pricing";
 import WelcomePro from "@/pages/WelcomePro";
+import Contact from "@/pages/Contact";
+import Index from "@/pages/Index";
 
 const queryClient = new QueryClient();
 
