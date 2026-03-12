@@ -87,6 +87,7 @@ const Insights = () => {
   }
 
   return (
+    <PremiumGate feature="AI Training Insights" blur={false}>
     <div className="space-y-6 animate-fade-in">
       <h1 className="text-2xl font-display font-bold">{t.insights.title}</h1>
 
@@ -114,6 +115,7 @@ const Insights = () => {
         </div>
       )}
     </div>
+    </PremiumGate>
   );
 };
 
