@@ -70,6 +70,7 @@ const App = () => (
             <AuthProvider>
               <PremiumProvider>
               <Routes>
+                <Route path="/landing" element={<LandingRoute />} />
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/add-entry" element={<ProtectedRoute><AddEntry /></ProtectedRoute>} />
@@ -86,6 +87,7 @@ const App = () => (
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/refund" element={<Refund />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               </PremiumProvider>
