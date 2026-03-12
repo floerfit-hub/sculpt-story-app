@@ -102,6 +102,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const clearPersistedData = useCallback(() => {
     sessionStorage.removeItem("workout-in-progress");
     sessionStorage.removeItem("workout-view");
+    sessionStorage.removeItem("workout-start-time");
   }, []);
 
   const addExercise = (name: string, group: string) => {
