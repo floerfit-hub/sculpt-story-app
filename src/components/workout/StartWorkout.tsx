@@ -72,12 +72,17 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   });
   const [elapsed, setElapsed] = useState(0);
 
-  // Start timer when first exercise is added
+  // Start timer when first exercise is added, reset when all removed
   useEffect(() => {
-    if (!isEditing && exercises.length > 0 && startTime === null) {
+    if (isEditing) return;
+    if (exercises.length > 0 && startTime === null) {
       const now = Date.now();
       sessionStorage.setItem("workout-start-time", String(now));
       setStartTime(now);
+    } else if (exercises.length === 0 && startTime !== null) {
+      sessionStorage.removeItem("workout-start-time");
+      setStartTime(null);
+      setElapsed(0);
     }
   }, [exercises.length, startTime, isEditing]);
 
