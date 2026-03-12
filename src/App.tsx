@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { PremiumProvider } from "@/hooks/usePremium";
 import { I18nProvider } from "@/i18n";
 import { ThemeProvider } from "@/hooks/useTheme";
 import PWAUpdatePrompt from "@/components/PWAUpdatePrompt";
