@@ -101,11 +101,22 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
           <Card key={w.id} className="cursor-pointer" onClick={() => setExpandedId(expanded ? null : w.id)}>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="font-display font-semibold">{format(new Date(w.started_at), "EEEE, d MMM yyyy", { locale: ukLocale })}</p>
-                  <p className="text-sm text-muted-foreground">{w.exercises.length} {t.workouts.exercises}</p>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>{w.exercises.length} {t.workouts.exercises}</span>
+                    {w.finished_at && (
+                      <>
+                        <span>·</span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {formatDuration(new Date(w.started_at), new Date(w.finished_at))}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform ${expanded ? "rotate-90" : ""}`} />
+                <ChevronRight className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${expanded ? "rotate-90" : ""}`} />
               </div>
               {expanded && (
                 <div className="space-y-3 pt-2 border-t">
