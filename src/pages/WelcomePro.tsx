@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation, type Language } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Crown, Dumbbell, BarChart3, Target, Sparkles } from "lucide-react";
@@ -26,6 +27,7 @@ interface ConfettiPiece {
 
 const WelcomePro = () => {
   const { profile } = useAuth();
+  const { t, lang, setLanguage } = useTranslation();
   const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
 
   useEffect(() => {
@@ -41,10 +43,14 @@ const WelcomePro = () => {
   }, []);
 
   const features = [
-    { icon: BarChart3, title: "Advanced Muscle-Group Analytics", desc: "Deep breakdowns of every muscle group with performance trends." },
-    { icon: Target, title: "Unlimited Workout History", desc: "Access your complete training history with advanced filters." },
-    { icon: Sparkles, title: "Custom Training Plans", desc: "AI-powered plans tailored to your goals and progress." },
+    { icon: BarChart3, title: t.welcome.featureAnalytics, desc: t.welcome.featureAnalyticsDesc },
+    { icon: Target, title: t.welcome.featureHistory, desc: t.welcome.featureHistoryDesc },
+    { icon: Sparkles, title: t.welcome.featurePlans, desc: t.welcome.featurePlansDesc },
   ];
+
+  const handleLangToggle = (l: Language) => {
+    setLanguage(l);
+  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -53,7 +59,7 @@ const WelcomePro = () => {
         {confetti.map((piece) => (
           <div
             key={piece.id}
-            className="absolute animate-bounce"
+            className="absolute"
             style={{
               left: `${piece.x}%`,
               top: "-20px",
@@ -77,6 +83,24 @@ const WelcomePro = () => {
       `}</style>
 
       <div className="max-w-lg mx-auto px-5 py-12 space-y-8 relative z-20">
+        {/* Language toggle */}
+        <div className="flex justify-center gap-2">
+          <Button
+            variant={lang === "uk" ? "default" : "outline"}
+            size="sm"
+            onClick={() => handleLangToggle("uk")}
+          >
+            🇺🇦 УКР
+          </Button>
+          <Button
+            variant={lang === "en" ? "default" : "outline"}
+            size="sm"
+            onClick={() => handleLangToggle("en")}
+          >
+            🇬🇧 ENG
+          </Button>
+        </div>
+
         {/* Crown icon */}
         <div className="flex justify-center">
           <div className="flex h-20 w-20 items-center justify-center rounded-3xl gradient-primary glow-primary animate-fade-in">
@@ -87,10 +111,10 @@ const WelcomePro = () => {
         {/* Header */}
         <div className="text-center space-y-3 animate-fade-in">
           <h1 className="text-2xl font-display font-extrabold tracking-tight">
-            Welcome to the Elite, {profile?.full_name || "Champion"}! 🎉
+            {t.welcome.title.replace("FitTrack Pro", `FitTrack Pro, ${profile?.full_name || "Champion"}`)}
           </h1>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            Your FitTrack Pro features are now fully unlocked. Get ready to hit your goals with precision.
+            {t.welcome.subtitle}
           </p>
         </div>
 
@@ -116,7 +140,7 @@ const WelcomePro = () => {
           <Link to="/">
             <Button className="w-full" size="lg">
               <Dumbbell className="mr-2 h-5 w-5" />
-              Start Training Now
+              {t.welcome.cta}
             </Button>
           </Link>
         </div>
