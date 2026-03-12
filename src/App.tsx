@@ -24,6 +24,7 @@ import NotFound from "@/pages/NotFound";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import Refund from "@/pages/Refund";
+import Pricing from "@/pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/coach" element={<ProtectedRoute><CoachView /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+                <Route path="/pricing" element={<Pricing />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/refund" element={<Refund />} />
