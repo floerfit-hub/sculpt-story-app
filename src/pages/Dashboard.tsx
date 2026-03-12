@@ -242,8 +242,8 @@ const Dashboard = () => {
               <Crown className="h-4.5 w-4.5 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-display font-bold">Thank you for being a Pro member! 🏆</p>
-              <p className="text-xs text-muted-foreground">All premium features are unlocked.</p>
+              <p className="text-sm font-display font-bold">Дякуємо за Pro підписку! 🏆</p>
+              <p className="text-xs text-muted-foreground">Всі преміум-функції розблоковано.</p>
             </div>
           </CardContent>
         </Card>

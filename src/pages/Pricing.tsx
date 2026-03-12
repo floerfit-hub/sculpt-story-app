@@ -12,7 +12,7 @@ const Pricing = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { profile } = useAuth();
-  const { activateMockPremium } = usePremium();
+  // activateMockPremium and cooldown moved below
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -42,7 +42,10 @@ const Pricing = () => {
     { feature: "Priority support", free: false, pro: true },
   ];
 
+  const { activateMockPremium, cooldown } = usePremium();
+
   const handleBuy = async (plan: "monthly" | "yearly") => {
+    if (cooldown) return;
     setLoading(plan);
     await activateMockPremium(plan);
     toast({
@@ -143,7 +146,7 @@ const Pricing = () => {
                   variant="outline"
                   className="w-full"
                   onClick={() => handleBuy("monthly")}
-                  disabled={loading !== null}
+                  disabled={loading !== null || cooldown}
                 >
                   {loading === "monthly" ? t.premium.activating : "Start Free Trial"}
                 </Button>
@@ -162,7 +165,7 @@ const Pricing = () => {
                 <Button
                   className="w-full"
                   onClick={() => handleBuy("yearly")}
-                  disabled={loading !== null}
+                  disabled={loading !== null || cooldown}
                 >
                   {loading === "yearly" ? t.premium.activating : "Start Free Trial"}
                 </Button>

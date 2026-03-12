@@ -35,7 +35,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
             {isPremium && (
               <span className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 px-2 py-0.5 text-[10px] font-bold text-yellow-500">
                 <Crown className="h-3 w-3" />
-                PRO
+                Pro версія
               </span>
             )}
             <span className="text-sm text-muted-foreground truncate max-w-[120px] font-medium">
@@ -76,9 +76,10 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
 
       <footer className="pb-20 lg:pb-4 px-5 pt-4">
         <div className="flex justify-center gap-4 text-xs text-muted-foreground">
-          <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-          <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-          <Link to="/refund" className="hover:text-foreground transition-colors">Refund</Link>
+          <Link to="/terms" className="hover:text-foreground transition-colors">Умови</Link>
+          <Link to="/privacy" className="hover:text-foreground transition-colors">Конфіденційність</Link>
+          <Link to="/refund" className="hover:text-foreground transition-colors">Повернення</Link>
+          <Link to="/contact" className="hover:text-foreground transition-colors">Контакти</Link>
         </div>
       </footer>
 
