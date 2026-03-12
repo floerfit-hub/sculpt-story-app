@@ -139,21 +139,21 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 min-w-0"
                         onClick={(e) => { e.stopPropagation(); handleEdit(w); }}
                       >
-                        <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                        {t.workouts.editWorkout}
+                        <Pencil className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{t.workouts.editWorkout}</span>
                       </Button>
                     )}
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 text-destructive hover:text-destructive"
+                      className="flex-1 min-w-0 text-destructive hover:text-destructive"
                       onClick={(e) => { e.stopPropagation(); setDeleteId(w.id); }}
                     >
-                      <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                      {t.workouts.deleteWorkout}
+                      <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{t.workouts.deleteWorkout}</span>
                     </Button>
                   </div>
                 </div>
