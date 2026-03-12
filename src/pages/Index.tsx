@@ -5,23 +5,23 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
   const features = [
-    { icon: Dumbbell, title: "Workout Tracking", desc: "Log every set, rep, and weight. Track 40+ exercises across 6 muscle groups with a built-in rest timer." },
-    { icon: BarChart3, title: "Muscle Analytics", desc: "Visualize training volume with muscle heatmaps, strength progression charts, and body composition trends." },
-    { icon: Target, title: "Body Measurements", desc: "Track weight, waist, chest, arms, glutes, thighs, and body fat percentage with bi-weekly check-ins." },
-    { icon: Sparkles, title: "AI Insights", desc: "Get personalized training recommendations, plateau detection, and nutrition optimization powered by AI." },
-    { icon: Shield, title: "Progress Photos", desc: "Upload and compare progress photos side-by-side to visually track your transformation over time." },
-    { icon: Zap, title: "Calorie & Macro Calculator", desc: "Personalized calorie and macronutrient targets based on your goals, activity level, and body composition." },
+    { icon: Dumbbell, title: "Відстеження тренувань", desc: "Записуйте кожний підхід, повторення та вагу. Відстежуйте 40+ вправ у 6 м'язових групах з вбудованим таймером відпочинку." },
+    { icon: BarChart3, title: "Аналітика м'язів", desc: "Візуалізуйте обсяг тренувань за допомогою теплових карт м'язів, графіків прогресу сили та трендів складу тіла." },
+    { icon: Target, title: "Вимірювання тіла", desc: "Відстежуйте вагу, талію, груди, руки, сідниці, стегна та відсоток жиру з перевірками кожні два тижні." },
+    { icon: Sparkles, title: "AI-інсайти", desc: "Отримуйте персоналізовані рекомендації щодо тренувань, виявлення плато та оптимізацію харчування на основі ШІ." },
+    { icon: Shield, title: "Фото прогресу", desc: "Завантажуйте та порівнюйте фото прогресу поруч, щоб візуально відстежувати вашу трансформацію." },
+    { icon: Zap, title: "Калькулятор калорій та макросів", desc: "Персоналізовані цілі калорій та макронутрієнтів на основі ваших цілей, рівня активності та складу тіла." },
   ];
 
   const steps = [
-    { num: "01", title: "Create Your Account", desc: "Sign up in seconds. No credit card required to start." },
-    { num: "02", title: "Log Your Workouts", desc: "Track exercises, sets, reps, and weights. Use our library of 40+ exercises." },
-    { num: "03", title: "Track Your Progress", desc: "Log body measurements and photos every two weeks to monitor your transformation." },
-    { num: "04", title: "Get Smarter Insights", desc: "Unlock AI-powered analytics, muscle heatmaps, and personalized recommendations with Pro." },
+    { num: "01", title: "Створіть акаунт", desc: "Реєстрація за кілька секунд. Кредитна картка не потрібна." },
+    { num: "02", title: "Записуйте тренування", desc: "Відстежуйте вправи, підходи, повторення та вагу. Бібліотека з 40+ вправ." },
+    { num: "03", title: "Слідкуйте за прогресом", desc: "Фіксуйте вимірювання тіла та фото кожні два тижні для моніторингу трансформації." },
+    { num: "04", title: "Отримуйте розумні інсайти", desc: "Відкрийте AI-аналітику, теплові карти м'язів та персоналізовані рекомендації з Pro." },
   ];
 
-  const freeFeatures = ["Basic workout logging", "Exercise library (40+ exercises)", "Bi-weekly body measurements", "Weight & waist tracking", "Progress photo uploads"];
-  const proFeatures = ["Everything in Free", "Muscle group heatmap analytics", "AI training insights & recommendations", "Advanced strength progression charts", "Body composition dashboard", "Fitness Score tracking", "Unlimited workout history with filters", "Priority support"];
+  const freeFeatures = ["Базове логування тренувань", "Бібліотека вправ (40+ вправ)", "Вимірювання тіла кожні 2 тижні", "Відстеження ваги та талії", "Завантаження фото прогресу"];
+  const proFeatures = ["Все з безкоштовного плану", "Теплова карта м'язових груп", "AI-інсайти та рекомендації", "Розширені графіки прогресу сили", "Панель складу тіла", "Відстеження Fitness Score", "Необмежена історія тренувань з фільтрами", "Пріоритетна підтримка"];
 
   return (
     <div className="min-h-screen bg-background">
@@ -36,10 +36,10 @@ const Index = () => {
           </Link>
           <div className="flex items-center gap-3">
             <Link to="/auth">
-              <Button variant="ghost" size="sm">Log In</Button>
+              <Button variant="ghost" size="sm">Увійти</Button>
             </Link>
             <Link to="/auth">
-              <Button size="sm">Sign Up Free</Button>
+              <Button size="sm">Реєстрація</Button>
             </Link>
           </div>
         </div>
@@ -48,34 +48,34 @@ const Index = () => {
       {/* Hero */}
       <section className="max-w-5xl mx-auto px-5 pt-16 pb-20 text-center space-y-6">
         <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
-          <Zap className="h-3 w-3" /> Workout Tracking & Muscle Analytics SaaS
+          <Zap className="h-3 w-3" /> Відстеження тренувань та аналітика м'язів SaaS
         </div>
         <h1 className="text-4xl md:text-5xl font-display font-extrabold tracking-tight leading-tight max-w-3xl mx-auto">
-          Track Workouts. Analyze Muscles. <span className="text-primary">Transform Your Body.</span>
+          Відстежуй тренування. Аналізуй м'язи. <span className="text-primary">Трансформуй своє тіло.</span>
         </h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-          FitTrack Pro is a comprehensive fitness tracking platform for logging workouts, monitoring body measurements, and getting AI-powered insights to optimize your training and nutrition.
+          FitTrack Pro — це комплексна платформа для відстеження фітнесу: логування тренувань, моніторинг вимірювань тіла та AI-інсайти для оптимізації тренувань і харчування.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
           <Link to="/auth">
             <Button size="lg" className="text-base px-8">
-              Get Started Free <ArrowRight className="ml-2 h-4 w-4" />
+              Почати безкоштовно <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
           <Link to="/pricing">
             <Button variant="outline" size="lg" className="text-base px-8">
-              View Pricing
+              Переглянути ціни
             </Button>
           </Link>
         </div>
-        <p className="text-xs text-muted-foreground">No credit card required · Free plan available · Cancel anytime</p>
+        <p className="text-xs text-muted-foreground">Кредитна картка не потрібна · Безкоштовний план · Скасування в будь-який час</p>
       </section>
 
       {/* Features */}
       <section className="max-w-5xl mx-auto px-5 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-display font-extrabold">Everything You Need to Track Your Fitness</h2>
-          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">From basic workout logging to advanced AI-powered analytics — FitTrack Pro covers your entire fitness journey.</p>
+          <h2 className="text-3xl font-display font-extrabold">Все необхідне для відстеження фітнесу</h2>
+          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">Від базового логування тренувань до розширеної AI-аналітики — FitTrack Pro покриває весь ваш фітнес-шлях.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {features.map(({ icon: Icon, title, desc }) => (
@@ -95,8 +95,8 @@ const Index = () => {
       {/* How It Works */}
       <section className="max-w-5xl mx-auto px-5 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-display font-extrabold">How It Works</h2>
-          <p className="text-muted-foreground mt-3">Get started in four simple steps</p>
+          <h2 className="text-3xl font-display font-extrabold">Як це працює</h2>
+          <p className="text-muted-foreground mt-3">Почніть за чотири простих кроки</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {steps.map(({ num, title, desc }) => (
@@ -112,34 +112,34 @@ const Index = () => {
       {/* Pricing Comparison */}
       <section className="max-w-5xl mx-auto px-5 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-display font-extrabold">Simple, Transparent Pricing</h2>
-          <p className="text-muted-foreground mt-3">Start free, upgrade when you're ready</p>
+          <h2 className="text-3xl font-display font-extrabold">Прості та прозорі ціни</h2>
+          <p className="text-muted-foreground mt-3">Почніть безкоштовно, оновіть коли будете готові</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           <Card>
             <CardContent className="p-6 space-y-4">
-              <h3 className="font-display font-bold text-xl">Free</h3>
-              <p className="text-3xl font-display font-extrabold">$0 <span className="text-sm font-normal text-muted-foreground">/ forever</span></p>
+              <h3 className="font-display font-bold text-xl">Безкоштовний</h3>
+              <p className="text-3xl font-display font-extrabold">$0 <span className="text-sm font-normal text-muted-foreground">/ назавжди</span></p>
               <ul className="space-y-2">
                 {freeFeatures.map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm"><Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />{f}</li>
                 ))}
               </ul>
-              <Link to="/auth"><Button variant="outline" className="w-full">Get Started</Button></Link>
+              <Link to="/auth"><Button variant="outline" className="w-full">Почати</Button></Link>
             </CardContent>
           </Card>
           <Card className="border-primary/40 relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-lg">POPULAR</div>
+            <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-lg">ПОПУЛЯРНИЙ</div>
             <CardContent className="p-6 space-y-4">
               <h3 className="font-display font-bold text-xl">Pro</h3>
-              <p className="text-3xl font-display font-extrabold">$1 <span className="text-sm font-normal text-muted-foreground">/ month</span></p>
-              <p className="text-xs text-muted-foreground">or $10/year (save 17%) · 7-day free trial</p>
+              <p className="text-3xl font-display font-extrabold">$1 <span className="text-sm font-normal text-muted-foreground">/ місяць</span></p>
+              <p className="text-xs text-muted-foreground">або $10/рік (економія 17%) · 7 днів безкоштовно</p>
               <ul className="space-y-2">
                 {proFeatures.map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm"><Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />{f}</li>
                 ))}
               </ul>
-              <Link to="/pricing"><Button className="w-full">Start Free Trial <ChevronRight className="ml-1 h-4 w-4" /></Button></Link>
+              <Link to="/pricing"><Button className="w-full">Почати безкоштовний тріал <ChevronRight className="ml-1 h-4 w-4" /></Button></Link>
             </CardContent>
           </Card>
         </div>
@@ -148,17 +148,17 @@ const Index = () => {
       {/* Contact */}
       <section className="max-w-5xl mx-auto px-5 py-16">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-display font-extrabold">Contact Us</h2>
-          <p className="text-muted-foreground mt-3">Have questions? We're here to help.</p>
+          <h2 className="text-3xl font-display font-extrabold">Зв'яжіться з нами</h2>
+          <p className="text-muted-foreground mt-3">Маєте питання? Ми тут, щоб допомогти.</p>
         </div>
         <Card className="max-w-lg mx-auto">
           <CardContent className="p-6 text-center space-y-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 mx-auto">
               <Mail className="h-6 w-6 text-primary" />
             </div>
-            <p className="text-sm text-muted-foreground">For support, billing, or general inquiries:</p>
+            <p className="text-sm text-muted-foreground">З питань підтримки, оплати або загальних запитів:</p>
             <a href="mailto:support@fittrack.app" className="text-primary font-semibold hover:underline">support@fittrack.app</a>
-            <p className="text-xs text-muted-foreground">We typically respond within 24 hours.</p>
+            <p className="text-xs text-muted-foreground">Ми зазвичай відповідаємо протягом 24 годин.</p>
           </CardContent>
         </Card>
       </section>
@@ -172,12 +172,12 @@ const Index = () => {
               <span className="font-display font-bold text-sm">FitTrack Pro</span>
             </div>
             <div className="flex gap-6 text-sm text-muted-foreground">
-              <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
-              <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-              <Link to="/refund" className="hover:text-foreground transition-colors">Refund Policy</Link>
-              <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+              <Link to="/terms" className="hover:text-foreground transition-colors">Умови використання</Link>
+              <Link to="/privacy" className="hover:text-foreground transition-colors">Конфіденційність</Link>
+              <Link to="/refund" className="hover:text-foreground transition-colors">Повернення коштів</Link>
+              <Link to="/contact" className="hover:text-foreground transition-colors">Контакти</Link>
             </div>
-            <p className="text-xs text-muted-foreground">© 2026 FitTrack Pro. All rights reserved.</p>
+            <p className="text-xs text-muted-foreground">© 2026 FitTrack Pro. Усі права захищені.</p>
           </div>
         </div>
       </footer>
