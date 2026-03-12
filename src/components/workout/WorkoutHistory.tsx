@@ -4,7 +4,7 @@ import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, Clock, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { uk as ukLocale } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +46,14 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const formatDuration = (start: Date, end: Date) => {
+    const totalSeconds = Math.floor((end.getTime() - start.getTime()) / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    if (h > 0) return `${h}год ${m}хв`;
+    return `${m} хв`;
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -101,11 +109,22 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
           <Card key={w.id} className="cursor-pointer" onClick={() => setExpandedId(expanded ? null : w.id)}>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="font-display font-semibold">{format(new Date(w.started_at), "EEEE, d MMM yyyy", { locale: ukLocale })}</p>
-                  <p className="text-sm text-muted-foreground">{w.exercises.length} {t.workouts.exercises}</p>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>{w.exercises.length} {t.workouts.exercises}</span>
+                    {w.finished_at && (
+                      <>
+                        <span>·</span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {formatDuration(new Date(w.started_at), new Date(w.finished_at))}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform ${expanded ? "rotate-90" : ""}`} />
+                <ChevronRight className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${expanded ? "rotate-90" : ""}`} />
               </div>
               {expanded && (
                 <div className="space-y-3 pt-2 border-t">
@@ -128,21 +147,21 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 min-w-0"
                         onClick={(e) => { e.stopPropagation(); handleEdit(w); }}
                       >
-                        <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                        {t.workouts.editWorkout}
+                        <Pencil className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{t.workouts.editWorkout}</span>
                       </Button>
                     )}
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 text-destructive hover:text-destructive"
+                      className="flex-1 min-w-0 text-destructive hover:text-destructive"
                       onClick={(e) => { e.stopPropagation(); setDeleteId(w.id); }}
                     >
-                      <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                      {t.workouts.deleteWorkout}
+                      <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{t.workouts.deleteWorkout}</span>
                     </Button>
                   </div>
                 </div>
