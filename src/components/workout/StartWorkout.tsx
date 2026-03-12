@@ -64,19 +64,25 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [saved, setSaved] = useState(false);
   const [finalDuration, setFinalDuration] = useState<number>(0);
 
-  // Workout timer
-  const [startTime] = useState<number>(() => {
+  // Workout timer — starts only when first exercise is added
+  const [startTime, setStartTime] = useState<number | null>(() => {
     if (isEditing) return Date.now();
     const saved = sessionStorage.getItem("workout-start-time");
-    if (saved) return Number(saved);
-    const now = Date.now();
-    sessionStorage.setItem("workout-start-time", String(now));
-    return now;
+    return saved ? Number(saved) : null;
   });
   const [elapsed, setElapsed] = useState(0);
 
+  // Start timer when first exercise is added
   useEffect(() => {
-    if (saved) return;
+    if (!isEditing && exercises.length > 0 && startTime === null) {
+      const now = Date.now();
+      sessionStorage.setItem("workout-start-time", String(now));
+      setStartTime(now);
+    }
+  }, [exercises.length, startTime, isEditing]);
+
+  useEffect(() => {
+    if (saved || startTime === null) return;
     const interval = setInterval(() => {
       setElapsed(Math.floor((Date.now() - startTime) / 1000));
     }, 1000);
