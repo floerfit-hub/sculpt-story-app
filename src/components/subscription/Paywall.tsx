@@ -31,10 +31,12 @@ const Paywall = ({ onClose, inline = false }: PaywallProps) => {
 
   const handlePurchase = async (plan: "monthly" | "yearly") => {
     setLoading(plan);
-    // Mock success — replace with Paddle checkout later
-    await activateMockPremium(plan);
-    toast({ title: t.premium.activated, description: t.premium.enjoyPremium });
+    toast({
+      title: "Paddle Checkout Pending",
+      description: "Paddle Checkout will be active once account verification is complete. Premium features are enabled for testing.",
+    });
     setLoading(null);
+    navigate("/pricing");
     onClose?.();
   };
 

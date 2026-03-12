@@ -64,6 +64,14 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
         </div>
       </nav>
 
+      <footer className="pb-20 lg:pb-4 px-5 pt-4">
+        <div className="flex justify-center gap-4 text-xs text-muted-foreground">
+          <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+          <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+          <Link to="/refund" className="hover:text-foreground transition-colors">Refund</Link>
+        </div>
+      </footer>
+
       <InstallPrompt />
     </div>
   );

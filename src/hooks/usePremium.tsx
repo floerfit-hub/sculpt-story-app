@@ -68,7 +68,8 @@ export const PremiumProvider = ({ children }: { children: ReactNode }) => {
     fetchSubscription();
   }, [fetchSubscription]);
 
-  const isPremium = subscription != null && subscription.plan !== "free" && (subscription.status === "active" || subscription.status === "trialing");
+  // AUTO-GRANT PREMIUM FOR TESTING (remove when Paddle is live)
+  const isPremium = true;
   const isTrialing = subscription?.status === "trialing";
 
   const trialDaysLeft = isTrialing && subscription?.trial_end
