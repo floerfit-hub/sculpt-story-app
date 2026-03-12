@@ -26,6 +26,8 @@ import Privacy from "@/pages/Privacy";
 import Refund from "@/pages/Refund";
 import Pricing from "@/pages/Pricing";
 import WelcomePro from "@/pages/WelcomePro";
+import Contact from "@/pages/Contact";
+import Index from "@/pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -38,7 +40,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/landing" replace />;
   return <AppLayout>{children}</AppLayout>;
 };
 
@@ -47,6 +49,13 @@ const AuthRoute = () => {
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return <Auth />;
+};
+
+const LandingRoute = () => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) return <Navigate to="/" replace />;
+  return <Index />;
 };
 
 const App = () => (
@@ -61,6 +70,7 @@ const App = () => (
             <AuthProvider>
               <PremiumProvider>
               <Routes>
+                <Route path="/landing" element={<LandingRoute />} />
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/add-entry" element={<ProtectedRoute><AddEntry /></ProtectedRoute>} />
@@ -77,6 +87,7 @@ const App = () => (
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/refund" element={<Refund />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               </PremiumProvider>
