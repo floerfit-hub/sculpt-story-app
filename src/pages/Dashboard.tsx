@@ -233,6 +233,20 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-5 animate-fade-in">
+      {/* Pro Thank You Banner */}
+      {isPremium && (
+        <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15">
+              <Crown className="h-4.5 w-4.5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-display font-bold">Thank you for being a Pro member! 🏆</p>
+              <p className="text-xs text-muted-foreground">All premium features are unlocked.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {/* Hero */}
       <div className="flex items-center justify-between">
         <div>
