@@ -8,6 +8,7 @@ import InstallPrompt from "@/components/InstallPrompt";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const { profile, isAdmin } = useAuth();
+  const { isPremium } = usePremium();
   const location = useLocation();
   const { t } = useTranslation();
 
