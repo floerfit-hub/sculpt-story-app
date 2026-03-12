@@ -165,7 +165,7 @@ const Pricing = () => {
                 <Button
                   className="w-full"
                   onClick={() => handleBuy("yearly")}
-                  disabled={loading !== null}
+                  disabled={loading !== null || cooldown}
                 >
                   {loading === "yearly" ? t.premium.activating : "Start Free Trial"}
                 </Button>
