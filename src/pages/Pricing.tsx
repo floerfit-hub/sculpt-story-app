@@ -1,5 +1,8 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "@/i18n";
+import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Crown, Target, Flame, Brain, BarChart3, Zap, Check, ArrowLeft, Info } from "lucide-react";
@@ -8,6 +11,10 @@ import { useToast } from "@/hooks/use-toast";
 const Pricing = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { profile } = useAuth();
+  const { activateMockPremium } = usePremium();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState<string | null>(null);
 
   const features = [
     { icon: Target, label: t.premium.featureFitnessScore },
@@ -17,11 +24,16 @@ const Pricing = () => {
     { icon: Zap, label: t.premium.featureBodyComp },
   ];
 
-  const handleBuy = () => {
+  const handleBuy = async (plan: "monthly" | "yearly") => {
+    setLoading(plan);
+    // Simulated Paddle checkout
+    await activateMockPremium(plan);
     toast({
-      title: "Paddle Checkout Pending",
-      description: "Paddle Checkout will be active once account verification is complete. Premium features are enabled for testing.",
+      title: `Welcome to Pro, ${profile?.full_name || "Champion"}! 🚀`,
+      description: "Premium subscription activated successfully! Your premium features are now unlocked.",
     });
+    setLoading(null);
+    navigate("/welcome-pro");
   };
 
   return (
@@ -39,7 +51,7 @@ const Pricing = () => {
           <CardContent className="p-4 flex gap-3 items-start">
             <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <p className="text-sm text-muted-foreground">
-              Paddle Checkout will be active once account verification is complete. Premium features are currently enabled for testing.
+              Paddle Checkout will be active once account verification is complete. Premium features are enabled for testing.
             </p>
           </CardContent>
         </Card>
@@ -64,8 +76,13 @@ const Pricing = () => {
               <p className="font-display font-bold">{t.premium.monthly}</p>
               <p className="text-3xl font-display font-extrabold">$1</p>
               <p className="text-xs text-muted-foreground">/ {t.premium.month}</p>
-              <Button variant="outline" className="w-full" onClick={handleBuy}>
-                Buy Now
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => handleBuy("monthly")}
+                disabled={loading !== null}
+              >
+                {loading === "monthly" ? t.premium.activating : "Buy Now"}
               </Button>
             </CardContent>
           </Card>
@@ -78,8 +95,12 @@ const Pricing = () => {
               <p className="font-display font-bold">{t.premium.yearly}</p>
               <p className="text-3xl font-display font-extrabold">$10</p>
               <p className="text-xs text-muted-foreground">/ {t.premium.year}</p>
-              <Button className="w-full" onClick={handleBuy}>
-                Buy Now
+              <Button
+                className="w-full"
+                onClick={() => handleBuy("yearly")}
+                disabled={loading !== null}
+              >
+                {loading === "yearly" ? t.premium.activating : "Buy Now"}
               </Button>
             </CardContent>
           </Card>

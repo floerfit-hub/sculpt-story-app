@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { usePremium } from "@/hooks/usePremium";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { PlusCircle, Clock, Pencil, Trash2 } from "lucide-react";
+import { PlusCircle, Clock, Pencil, Trash2, Crown } from "lucide-react";
 import { format, differenceInDays, addDays, startOfMonth, subDays, differenceInCalendarDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
@@ -27,6 +28,7 @@ interface SetData { weight: number; reps: number }
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
+  const { isPremium } = usePremium();
   const { t } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -232,6 +234,20 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-5 animate-fade-in">
+      {/* Pro Thank You Banner */}
+      {isPremium && (
+        <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15">
+              <Crown className="h-4.5 w-4.5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-display font-bold">Thank you for being a Pro member! 🏆</p>
+              <p className="text-xs text-muted-foreground">All premium features are unlocked.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {/* Hero */}
       <div className="flex items-center justify-between">
         <div>
