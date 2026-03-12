@@ -47,6 +47,14 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  const formatDuration = (start: Date, end: Date) => {
+    const totalSeconds = Math.floor((end.getTime() - start.getTime()) / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    if (h > 0) return `${h}год ${m}хв`;
+    return `${m} хв`;
+  };
+
   useEffect(() => {
     if (!user) return;
     loadWorkouts();
