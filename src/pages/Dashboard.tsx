@@ -28,6 +28,7 @@ interface SetData { weight: number; reps: number }
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
+  const { isPremium } = usePremium();
   const { t } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
