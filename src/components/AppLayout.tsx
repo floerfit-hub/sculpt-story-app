@@ -31,9 +31,17 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
             </div>
             <span className="font-display text-lg font-bold tracking-tight">{t.nav.appName}</span>
           </Link>
-          <span className="text-sm text-muted-foreground truncate max-w-[140px] font-medium">
-            {profile?.full_name || ""}
-          </span>
+          <div className="flex items-center gap-2">
+            {isPremium && (
+              <span className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 px-2 py-0.5 text-[10px] font-bold text-yellow-500">
+                <Crown className="h-3 w-3" />
+                PRO
+              </span>
+            )}
+            <span className="text-sm text-muted-foreground truncate max-w-[120px] font-medium">
+              {profile?.full_name || ""}
+            </span>
+          </div>
         </div>
       </header>
 

@@ -73,6 +73,7 @@ const App = () => (
                 <Route path="/coach" element={<ProtectedRoute><CoachView /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                 <Route path="/pricing" element={<Pricing />} />
+                <Route path="/welcome-pro" element={<ProtectedRoute><WelcomePro /></ProtectedRoute>} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/refund" element={<Refund />} />
