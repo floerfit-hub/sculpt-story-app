@@ -1,19 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { PlusCircle, TrendingDown, TrendingUp, Minus, Scale, Ruler, Activity, Clock, Pencil, Trash2, Flame, Beef, Droplets, Wheat } from "lucide-react";
-
-import { format, differenceInDays, addDays } from "date-fns";
+import { PlusCircle, Clock, Pencil, Trash2 } from "lucide-react";
+import { format, differenceInDays, addDays, startOfMonth, subDays, differenceInCalendarDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
+import FitnessScore from "@/components/dashboard/FitnessScore";
+import WeightChart from "@/components/dashboard/WeightChart";
+import MeasurementsCard from "@/components/dashboard/MeasurementsCard";
+import MuscleHeatmap from "@/components/dashboard/MuscleHeatmap";
+import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
+import NutritionSummary from "@/components/dashboard/NutritionSummary";
+import SmartInsights from "@/components/dashboard/SmartInsights";
+
 type ProgressEntry = Tables<"progress_entries">;
 const CHECKIN_INTERVAL = 14;
+
+interface SetData { weight: number; reps: number }
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
@@ -24,6 +33,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [nutrition, setNutrition] = useState<{ calories: number; protein: number; fat: number; carbs: number } | null>(null);
+  const [workouts, setWorkouts] = useState<Tables<"workouts">[]>([]);
+  const [workoutExercises, setWorkoutExercises] = useState<Tables<"workout_exercises">[]>([]);
 
   useEffect(() => {
     try {
@@ -32,19 +43,34 @@ const Dashboard = () => {
     } catch {}
   }, []);
 
-  const fetchEntries = async () => {
+  useEffect(() => {
     if (!user) return;
-    const { data } = await supabase
-      .from("progress_entries")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("entry_date", { ascending: false })
-      .limit(10);
-    setEntries(data ?? []);
-    setLoading(false);
-  };
 
-  useEffect(() => { fetchEntries(); }, [user]);
+    const fetchAll = async () => {
+      const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
+
+      const [entriesRes, workoutsRes] = await Promise.all([
+        supabase.from("progress_entries").select("*").eq("user_id", user.id).order("entry_date", { ascending: true }),
+        supabase.from("workouts").select("*").eq("user_id", user.id).order("started_at", { ascending: true }),
+      ]);
+
+      const allEntries = entriesRes.data ?? [];
+      const allWorkouts = workoutsRes.data ?? [];
+      setEntries(allEntries);
+      setWorkouts(allWorkouts);
+
+      if (allWorkouts.length > 0) {
+        const { data: exercises } = await supabase
+          .from("workout_exercises").select("*")
+          .in("workout_id", allWorkouts.map((w) => w.id));
+        setWorkoutExercises(exercises ?? []);
+      }
+
+      setLoading(false);
+    };
+
+    fetchAll();
+  }, [user]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -58,36 +84,142 @@ const Dashboard = () => {
     setDeleteId(null);
   };
 
-  const latest = entries[0];
-  const previous = entries[1];
+  // Derived data
+  const sortedEntriesDesc = useMemo(() => [...entries].reverse(), [entries]);
+  const latest = sortedEntriesDesc[0];
+  const previous = sortedEntriesDesc[1];
   const nextCheckinDate = latest ? addDays(new Date(latest.entry_date), CHECKIN_INTERVAL) : null;
   const daysUntilCheckin = nextCheckinDate ? differenceInDays(nextCheckinDate, new Date()) : 0;
   const canLogEntry = !latest || daysUntilCheckin <= 0;
 
-  const getTrend = (current?: number | null, prev?: number | null) => {
-    if (current == null || prev == null) return null;
-    if (current < prev) return "down";
-    if (current > prev) return "up";
-    return "same";
-  };
+  // Workout stats
+  const monthStart = startOfMonth(new Date());
+  const workoutsThisMonth = useMemo(
+    () => workouts.filter((w) => new Date(w.started_at) >= monthStart).length,
+    [workouts, monthStart]
+  );
 
-  const getDiff = (current?: number | null, prev?: number | null) => {
-    if (current == null || prev == null) return null;
-    return Number((current - prev).toFixed(1));
-  };
+  const totalSetsThisMonth = useMemo(() => {
+    const monthWorkoutIds = new Set(workouts.filter((w) => new Date(w.started_at) >= monthStart).map((w) => w.id));
+    return workoutExercises
+      .filter((e) => monthWorkoutIds.has(e.workout_id))
+      .reduce((sum, e) => sum + (Array.isArray(e.sets) ? (e.sets as unknown as SetData[]).length : 0), 0);
+  }, [workouts, workoutExercises, monthStart]);
 
-  const TrendIcon = ({ trend }: { trend: string | null }) => {
-    if (trend === "down") return <TrendingDown className="h-4 w-4 text-primary" />;
-    if (trend === "up") return <TrendingUp className="h-4 w-4 text-destructive" />;
-    if (trend === "same") return <Minus className="h-4 w-4 text-muted-foreground" />;
-    return null;
-  };
+  // Workout streak (consecutive days with workouts, looking back)
+  const currentStreak = useMemo(() => {
+    if (workouts.length === 0) return 0;
+    const workoutDays = new Set(workouts.map((w) => format(new Date(w.started_at), "yyyy-MM-dd")));
+    let streak = 0;
+    let day = new Date();
+    // Check today first, if no workout today, check yesterday
+    if (!workoutDays.has(format(day, "yyyy-MM-dd"))) {
+      day = subDays(day, 1);
+      if (!workoutDays.has(format(day, "yyyy-MM-dd"))) return 0;
+    }
+    while (workoutDays.has(format(day, "yyyy-MM-dd"))) {
+      streak++;
+      day = subDays(day, 1);
+    }
+    return streak;
+  }, [workouts]);
 
-  const statCards = [
-    { label: t.dashboard.weight, value: latest?.weight, prevValue: previous?.weight, unit: t.common.kg, icon: Scale, trend: getTrend(latest?.weight, previous?.weight) },
-    { label: t.dashboard.waist, value: latest?.waist, prevValue: previous?.waist, unit: t.common.cm, icon: Ruler, trend: getTrend(latest?.waist, previous?.waist) },
-    { label: t.dashboard.bodyFat, value: latest?.body_fat, prevValue: previous?.body_fat, unit: "%", icon: Activity, trend: getTrend(latest?.body_fat, previous?.body_fat) },
-  ];
+  // Muscle heatmap data (last 30 days)
+  const muscleData = useMemo(() => {
+    const thirtyDaysAgo = subDays(new Date(), 30);
+    const recentWorkoutIds = new Set(
+      workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).map((w) => w.id)
+    );
+    const groups: Record<string, number> = {};
+    workoutExercises
+      .filter((e) => recentWorkoutIds.has(e.workout_id))
+      .forEach((e) => {
+        const sets = Array.isArray(e.sets) ? (e.sets as unknown as SetData[]).length : 0;
+        groups[e.muscle_group] = (groups[e.muscle_group] || 0) + sets;
+      });
+    return groups;
+  }, [workouts, workoutExercises]);
+
+  // Strength trending (any exercise with increasing max weight in last 3+ sessions)
+  const strengthTrending = useMemo(() => {
+    const exerciseHistory: Record<string, number[]> = {};
+    const sortedWorkouts = [...workouts].sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime());
+    const workoutOrder = Object.fromEntries(sortedWorkouts.map((w, i) => [w.id, i]));
+
+    workoutExercises
+      .sort((a, b) => (workoutOrder[a.workout_id] ?? 0) - (workoutOrder[b.workout_id] ?? 0))
+      .forEach((e) => {
+        const sets = Array.isArray(e.sets) ? (e.sets as unknown as SetData[]) : [];
+        const maxW = Math.max(...sets.map((s) => s.weight || 0), 0);
+        if (!exerciseHistory[e.exercise_name]) exerciseHistory[e.exercise_name] = [];
+        exerciseHistory[e.exercise_name].push(maxW);
+      });
+
+    return Object.values(exerciseHistory).some((weights) => {
+      if (weights.length < 3) return false;
+      const last3 = weights.slice(-3);
+      return last3[2] > last3[0];
+    });
+  }, [workouts, workoutExercises]);
+
+  // Fitness Score calculation
+  const fitnessScores = useMemo(() => {
+    // Training consistency: based on workouts per week in last 30 days
+    const thirtyDaysAgo = subDays(new Date(), 30);
+    const recentWorkouts = workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).length;
+    const workoutsPerWeek = (recentWorkouts / 30) * 7;
+    const trainingConsistency = Math.min(100, Math.round((workoutsPerWeek / 4) * 100));
+
+    // Strength progress
+    let strengthProgress = 50; // default
+    const exerciseHistory: Record<string, number[]> = {};
+    const sortedW = [...workouts].sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime());
+    const wOrder = Object.fromEntries(sortedW.map((w, i) => [w.id, i]));
+    workoutExercises
+      .sort((a, b) => (wOrder[a.workout_id] ?? 0) - (wOrder[b.workout_id] ?? 0))
+      .forEach((e) => {
+        const sets = Array.isArray(e.sets) ? (e.sets as unknown as SetData[]) : [];
+        const maxW = Math.max(...sets.map((s) => s.weight || 0), 0);
+        if (!exerciseHistory[e.exercise_name]) exerciseHistory[e.exercise_name] = [];
+        exerciseHistory[e.exercise_name].push(maxW);
+      });
+    const improvements = Object.values(exerciseHistory).filter((weights) => {
+      if (weights.length < 2) return false;
+      return weights[weights.length - 1] > weights[0];
+    }).length;
+    const totalExercises = Object.keys(exerciseHistory).length;
+    if (totalExercises > 0) {
+      strengthProgress = Math.min(100, Math.round((improvements / totalExercises) * 100));
+    }
+
+    // Body measurements progress
+    let bodyProgress = 50;
+    if (entries.length >= 2) {
+      const first = entries[0];
+      const last = entries[entries.length - 1];
+      let positiveChanges = 0;
+      let totalMeasured = 0;
+      // For waist/body_fat: decrease = good. For others: depends on goal, use neutral.
+      if (last.waist != null && first.waist != null) { totalMeasured++; if (last.waist <= first.waist) positiveChanges++; }
+      if (last.body_fat != null && first.body_fat != null) { totalMeasured++; if (last.body_fat <= first.body_fat) positiveChanges++; }
+      if (last.arm_circumference != null && first.arm_circumference != null) { totalMeasured++; if (last.arm_circumference >= first.arm_circumference) positiveChanges++; }
+      if (last.chest != null && first.chest != null) { totalMeasured++; if (last.chest >= first.chest) positiveChanges++; }
+      if (totalMeasured > 0) bodyProgress = Math.round((positiveChanges / totalMeasured) * 100);
+    }
+
+    // Muscle balance
+    const groupCounts = Object.values(muscleData);
+    let muscleBalance = 50;
+    if (groupCounts.length >= 2) {
+      const max = Math.max(...groupCounts);
+      const min = Math.min(...groupCounts);
+      if (max > 0) muscleBalance = Math.round((min / max) * 100);
+    } else if (groupCounts.length === 1) {
+      muscleBalance = 30;
+    }
+
+    return { trainingConsistency, strengthProgress, bodyProgress, muscleBalance };
+  }, [workouts, workoutExercises, entries, muscleData]);
 
   if (loading) {
     return (
@@ -98,26 +230,22 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-7 animate-fade-in">
-      {/* Hero section */}
+    <div className="space-y-5 animate-fade-in">
+      {/* Hero */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-extrabold tracking-tight">
             {t.dashboard.hey}, {profile?.full_name || t.dashboard.there} 💪
           </h1>
-          <p className="text-muted-foreground mt-1">{t.dashboard.trackTransformation}</p>
+          <p className="text-muted-foreground mt-1 text-sm">{t.dashboard.trackTransformation}</p>
         </div>
         {canLogEntry ? (
           <Link to="/add-entry">
-            <Button size="lg">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              {t.dashboard.newEntry}
-            </Button>
+            <Button size="sm"><PlusCircle className="mr-1.5 h-4 w-4" />{t.dashboard.newEntry}</Button>
           </Link>
         ) : (
-          <Button variant="outline" disabled>
-            <Clock className="mr-2 h-4 w-4" />
-            {daysUntilCheckin}{t.dashboard.daysLeft}
+          <Button variant="outline" size="sm" disabled>
+            <Clock className="mr-1.5 h-4 w-4" />{daysUntilCheckin}{t.dashboard.daysLeft}
           </Button>
         )}
       </div>
@@ -125,14 +253,13 @@ const Dashboard = () => {
       {/* Check-in banner */}
       {!canLogEntry && nextCheckinDate && (
         <Card className="border-primary/20 gradient-glow">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-              <Clock className="h-5 w-5 text-primary" />
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <Clock className="h-4 w-4 text-primary" />
             </div>
             <p className="text-sm">
               {t.dashboard.nextCheckin}{" "}
-              <span className="font-bold text-primary text-glow">{daysUntilCheckin} {daysUntilCheckin !== 1 ? t.dashboard.days : t.dashboard.day}</span>
-              {" "}({format(nextCheckinDate, "MMM d, yyyy")}).
+              <span className="font-bold text-primary">{daysUntilCheckin} {daysUntilCheckin !== 1 ? t.dashboard.days : t.dashboard.day}</span>
             </p>
           </CardContent>
         </Card>
@@ -140,153 +267,73 @@ const Dashboard = () => {
 
       {canLogEntry && entries.length > 0 && (
         <Card className="border-primary/20 gradient-glow">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-              <PlusCircle className="h-5 w-5 text-primary" />
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <PlusCircle className="h-4 w-4 text-primary" />
             </div>
             <p className="text-sm">
               {t.dashboard.checkinReady}{" "}
-              <Link to="/add-entry" className="font-bold text-primary hover:underline underline-offset-2">
-                {t.dashboard.logProgressNow}
-              </Link>.
+              <Link to="/add-entry" className="font-bold text-primary hover:underline">{t.dashboard.logProgressNow}</Link>.
             </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Stat cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        {statCards.map((stat, i) => {
-          const diff = getDiff(stat.value, stat.prevValue);
-          return (
-            <Card key={stat.label} className="animate-fade-in-up" style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'backwards' }}>
-              <CardContent className="flex items-center gap-4 p-5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent">
-                  <stat.icon className="h-5 w-5 text-accent-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{stat.label}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-2xl font-display font-extrabold">
-                      {stat.value != null ? stat.value : "—"}
-                    </span>
-                    {stat.value != null && <span className="text-sm text-muted-foreground">{stat.unit}</span>}
-                    <TrendIcon trend={stat.trend} />
-                  </div>
-                  {diff != null && (
-                    <p className={`text-xs mt-1 font-medium ${diff < 0 ? "text-primary" : diff > 0 ? "text-destructive" : "text-muted-foreground"}`}>
-                      {diff > 0 ? "+" : ""}{diff} {stat.unit} {t.dashboard.vsPrevious}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Fitness Score */}
+      <FitnessScore {...fitnessScores} />
 
-      {/* Nutrition card */}
-      {nutrition ? (
-        <Card className="animate-fade-in-up border-primary/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Flame className="h-5 w-5 text-primary" />
-              {t.dashboard.yourNutrition}
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">{t.dashboard.calculatedTargets}</p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-4 gap-3">
-              {[
-                { label: t.calc.calories, value: nutrition.calories, unit: "kcal", icon: Flame, color: "text-orange-500" },
-                { label: t.calc.protein, value: nutrition.protein, unit: "g", icon: Beef, color: "text-red-500" },
-                { label: t.calc.fat, value: nutrition.fat, unit: "g", icon: Droplets, color: "text-yellow-500" },
-                { label: t.calc.carbs, value: nutrition.carbs, unit: "g", icon: Wheat, color: "text-amber-600" },
-              ].map((m) => (
-                <div key={m.label} className="text-center">
-                  <m.icon className={`h-5 w-5 mx-auto mb-1 ${m.color}`} />
-                  <p className="text-lg font-display font-bold">{m.value}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{m.unit}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{m.label}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="animate-fade-in-up border-dashed">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
-              <Flame className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium">{t.dashboard.setupNutrition}</p>
-            </div>
-            <Link to="/calculator">
-              <Button size="sm" variant="outline">{t.dashboard.goToCalculator}</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      )}
+      {/* Weight Chart */}
+      <WeightChart entries={entries} />
 
+      {/* Body Measurements */}
+      <MeasurementsCard latest={latest} previous={previous} />
 
+      {/* Muscle Heatmap */}
+      <MuscleHeatmap muscleData={muscleData} />
 
+      {/* Workout Activity */}
+      <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />
 
-      {/* Recent entries */}
+      {/* Nutrition Summary */}
+      <NutritionSummary nutrition={nutrition} />
+
+      {/* Smart Insights */}
+      <SmartInsights entries={entries} muscleData={muscleData} strengthTrending={strengthTrending} />
+
+      {/* Recent Entries */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">{t.dashboard.recentEntries}</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">{t.dashboard.recentEntries}</CardTitle>
         </CardHeader>
         <CardContent>
           {entries.length === 0 ? (
-            <div className="py-10 text-center text-muted-foreground">
-              <p>{t.dashboard.noEntries}</p>
+            <div className="py-8 text-center text-muted-foreground">
+              <p className="text-sm">{t.dashboard.noEntries}</p>
               <Link to="/add-entry">
-                <Button className="mt-5" variant="outline">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  {t.dashboard.addFirstEntry}
+                <Button className="mt-4" variant="outline" size="sm">
+                  <PlusCircle className="mr-1.5 h-4 w-4" />{t.dashboard.addFirstEntry}
                 </Button>
               </Link>
             </div>
           ) : (
-            <div className="space-y-3">
-              {entries.slice(0, 5).map((entry, i) => (
-                <div
-                  key={entry.id}
-                  className="flex items-center justify-between rounded-xl border border-border/50 p-4 transition-all duration-200 hover:bg-accent/30 animate-fade-in"
-                  style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'backwards' }}
-                >
+            <div className="space-y-2">
+              {sortedEntriesDesc.slice(0, 5).map((entry, i) => (
+                <div key={entry.id} className="flex items-center justify-between rounded-xl border border-border/50 p-3 transition-all hover:bg-accent/30 animate-fade-in" style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}>
                   <div className="flex-1 min-w-0">
-                    <p className="font-display font-semibold">{format(new Date(entry.entry_date), "MMM d, yyyy")}</p>
-                    <p className="text-sm text-muted-foreground truncate mt-0.5">
-                      {[
-                        entry.weight && `${entry.weight}${t.common.kg}`,
-                        entry.waist && `${t.dashboard.waist}: ${entry.waist}${t.common.cm}`,
-                        entry.body_fat && `BF: ${entry.body_fat}%`,
-                      ].filter(Boolean).join(" · ")}
+                    <p className="font-display font-semibold text-sm">{format(new Date(entry.entry_date), "MMM d, yyyy")}</p>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                      {[entry.weight && `${entry.weight}${t.common.kg}`, entry.waist && `${t.dashboard.waist}: ${entry.waist}${t.common.cm}`, entry.body_fat && `BF: ${entry.body_fat}%`].filter(Boolean).join(" · ")}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0 ml-3">
+                  <div className="flex items-center gap-1 shrink-0 ml-2">
                     {entry.photo_urls && entry.photo_urls.length > 0 && (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-xs text-accent-foreground font-semibold">
-                        📷{entry.photo_urls.length}
-                      </div>
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-[10px] font-semibold">📷{entry.photo_urls.length}</div>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-lg"
-                      onClick={() => navigate("/add-entry", { state: { editEntry: entry } })}
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate("/add-entry", { state: { editEntry: entry } })}>
+                      <Pencil className="h-3 w-3" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-lg text-destructive hover:text-destructive"
-                      onClick={() => setDeleteId(entry.id)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteId(entry.id)}>
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
