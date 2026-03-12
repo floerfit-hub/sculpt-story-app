@@ -40,7 +40,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/landing" replace />;
   return <AppLayout>{children}</AppLayout>;
 };
 
@@ -49,6 +49,13 @@ const AuthRoute = () => {
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return <Auth />;
+};
+
+const LandingRoute = () => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) return <Navigate to="/" replace />;
+  return <Index />;
 };
 
 const App = () => (
