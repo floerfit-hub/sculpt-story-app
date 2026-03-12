@@ -62,6 +62,34 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [showTimer, setShowTimer] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [finalDuration, setFinalDuration] = useState<number>(0);
+
+  // Workout timer
+  const [startTime] = useState<number>(() => {
+    if (isEditing) return Date.now();
+    const saved = sessionStorage.getItem("workout-start-time");
+    if (saved) return Number(saved);
+    const now = Date.now();
+    sessionStorage.setItem("workout-start-time", String(now));
+    return now;
+  });
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (saved) return;
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startTime, saved]);
+
+  const formatTime = (totalSeconds: number) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  };
 
   // Persist exercises to sessionStorage on every change (skip in edit mode)
   useEffect(() => {
