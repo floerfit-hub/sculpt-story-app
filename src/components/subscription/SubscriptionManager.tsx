@@ -4,11 +4,11 @@ import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crown, CreditCard } from "lucide-react";
+import { Crown, CreditCard, Loader2 } from "lucide-react";
 import Paywall from "./Paywall";
 
 const SubscriptionManager = () => {
-  const { isPremium, isTrialing, subscription, trialDaysLeft, cancelSubscription } = usePremium();
+  const { isPremium, isTrialing, subscription, trialDaysLeft, cancelSubscription, cooldown } = usePremium();
   const { t } = useTranslation();
   const [showPaywall, setShowPaywall] = useState(false);
   const [canceling, setCanceling] = useState(false);
@@ -65,12 +65,16 @@ const SubscriptionManager = () => {
               variant="outline"
               className="w-full"
               onClick={handleCancel}
-              disabled={canceling}
+              disabled={canceling || cooldown}
             >
-              {canceling ? t.premium.canceling : t.premium.cancelSubscription}
+              {canceling ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t.premium.canceling}</>
+              ) : (
+                t.premium.cancelSubscription
+              )}
             </Button>
           ) : (
-            <Button className="w-full" onClick={() => setShowPaywall(true)}>
+            <Button className="w-full" onClick={() => setShowPaywall(true)} disabled={cooldown}>
               <Crown className="mr-2 h-4 w-4" />
               {t.premium.upgrade}
             </Button>

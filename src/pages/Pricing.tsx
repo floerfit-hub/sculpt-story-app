@@ -12,7 +12,7 @@ const Pricing = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { profile } = useAuth();
-  const { activateMockPremium } = usePremium();
+  // activateMockPremium and cooldown moved below
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 

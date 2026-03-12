@@ -76,9 +76,10 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
 
       <footer className="pb-20 lg:pb-4 px-5 pt-4">
         <div className="flex justify-center gap-4 text-xs text-muted-foreground">
-          <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-          <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-          <Link to="/refund" className="hover:text-foreground transition-colors">Refund</Link>
+          <Link to="/terms" className="hover:text-foreground transition-colors">Умови</Link>
+          <Link to="/privacy" className="hover:text-foreground transition-colors">Конфіденційність</Link>
+          <Link to="/refund" className="hover:text-foreground transition-colors">Повернення</Link>
+          <Link to="/contact" className="hover:text-foreground transition-colors">Контакти</Link>
         </div>
       </footer>
 
