@@ -353,6 +353,9 @@ export const en = {
     themeDesc: "Choose your preferred theme",
     dark: "Dark",
     light: "Light",
+    support: "Support",
+    supportDesc: "Need help? Contact us",
+    supportEmail: "support@fittrack.app",
   },
 
   // Charts
@@ -430,6 +433,38 @@ export const en = {
     insightStrengthUp: "💪 Strength in your exercises has increased recently.",
     insightCoreNeglect: "⚠️ You haven't trained your core in the last 30 days. Add some core work!",
     insightKeepGoing: "🚀 Keep logging your workouts and progress to unlock personalized insights!",
+  },
+
+  // Pro Benefits
+  proBenefits: {
+    title: "Pro Benefits",
+    muscleAnalytics: "Detailed Muscle Analytics",
+    muscleAnalyticsDesc: "Deep breakdowns of every muscle group with performance trends.",
+    historyFilters: "History Filters",
+    historyFiltersDesc: "Advanced filtering and sorting of your workout history.",
+    noAds: "No Ads",
+    noAdsDesc: "Enjoy a clean, distraction-free experience.",
+    unlimitedHistory: "Unlimited Workout History",
+    unlimitedHistoryDesc: "Access your complete training history with no limits.",
+    customPlans: "Custom Training Plans",
+    customPlansDesc: "AI-powered plans tailored to your goals and progress.",
+    prioritySupport: "Priority Support",
+    prioritySupportDesc: "Get faster response times from our support team.",
+    freeLabel: "Free",
+    proLabel: "Pro",
+  },
+
+  // Welcome Pro
+  welcome: {
+    title: "Welcome to FitTrack Pro Elite! 🎉",
+    subtitle: "Your premium features are now unlocked. Ready for new records?",
+    featureAnalytics: "Advanced Muscle-Group Analytics",
+    featureAnalyticsDesc: "Deep breakdowns of every muscle group with performance trends.",
+    featureHistory: "Unlimited Workout History",
+    featureHistoryDesc: "Access your complete training history with advanced filters.",
+    featurePlans: "Custom Training Plans",
+    featurePlansDesc: "AI-powered plans tailored to your goals and progress.",
+    cta: "Let's Go!",
   },
 
   // Premium / Subscription

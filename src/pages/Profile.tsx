@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation, type Language } from "@/i18n";
@@ -7,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Save, Download, Globe, Moon, Sun } from "lucide-react";
+import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail } from "lucide-react";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 
 const LANGUAGES: { code: Language; label: string }[] = [
@@ -21,8 +23,18 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+const COMPARISON_FEATURES = [
+  { key: "muscleAnalytics" as const, free: false, pro: true },
+  { key: "historyFilters" as const, free: false, pro: true },
+  { key: "noAds" as const, free: false, pro: true },
+  { key: "unlimitedHistory" as const, free: false, pro: true },
+  { key: "customPlans" as const, free: false, pro: true },
+  { key: "prioritySupport" as const, free: false, pro: true },
+];
+
 const Profile = () => {
   const { user, profile, signOut } = useAuth();
+  const { isPremium } = usePremium();
   const { toast } = useToast();
   const { t, lang, setLanguage } = useTranslation();
   const { theme, setTheme } = useTheme();
@@ -101,21 +113,11 @@ const Profile = () => {
         <CardContent>
           <p className="text-sm text-muted-foreground mb-3">{t.profile.themeDesc}</p>
           <div className="flex gap-2">
-            <Button
-              variant={theme === "dark" ? "default" : "outline"}
-              className="flex-1"
-              onClick={() => setTheme("dark")}
-            >
-              <Moon className="mr-2 h-4 w-4" />
-              {t.profile.dark}
+            <Button variant={theme === "dark" ? "default" : "outline"} className="flex-1" onClick={() => setTheme("dark")}>
+              <Moon className="mr-2 h-4 w-4" /> {t.profile.dark}
             </Button>
-            <Button
-              variant={theme === "light" ? "default" : "outline"}
-              className="flex-1"
-              onClick={() => setTheme("light")}
-            >
-              <Sun className="mr-2 h-4 w-4" />
-              {t.profile.light}
+            <Button variant={theme === "light" ? "default" : "outline"} className="flex-1" onClick={() => setTheme("light")}>
+              <Sun className="mr-2 h-4 w-4" /> {t.profile.light}
             </Button>
           </div>
         </CardContent>
@@ -133,12 +135,7 @@ const Profile = () => {
           <p className="text-sm text-muted-foreground mb-3">{t.profile.languageDesc}</p>
           <div className="flex gap-2">
             {LANGUAGES.map((l) => (
-              <Button
-                key={l.code}
-                variant={lang === l.code ? "default" : "outline"}
-                className="flex-1"
-                onClick={() => setLanguage(l.code)}
-              >
+              <Button key={l.code} variant={lang === l.code ? "default" : "outline"} className="flex-1" onClick={() => setLanguage(l.code)}>
                 {l.label}
               </Button>
             ))}
@@ -148,6 +145,60 @@ const Profile = () => {
 
       {/* Subscription */}
       <SubscriptionManager />
+
+      {/* Pro Benefits comparison table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-lg flex items-center gap-2">
+            <Crown className="h-5 w-5 text-primary" />
+            {t.proBenefits.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-xl border border-border overflow-hidden">
+            {/* Header row */}
+            <div className="grid grid-cols-[1fr_60px_60px] bg-muted/50 px-3 py-2 text-xs font-bold text-muted-foreground">
+              <span></span>
+              <span className="text-center">{t.proBenefits.freeLabel}</span>
+              <span className="text-center text-primary">{t.proBenefits.proLabel}</span>
+            </div>
+            {COMPARISON_FEATURES.map(({ key, free, pro }) => (
+              <div key={key} className="grid grid-cols-[1fr_60px_60px] px-3 py-2.5 border-t border-border text-sm">
+                <span className="font-medium">{t.proBenefits[key]}</span>
+                <span className="flex justify-center">
+                  {free ? <Check className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-muted-foreground/40" />}
+                </span>
+                <span className="flex justify-center">
+                  {pro ? <Check className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-muted-foreground/40" />}
+                </span>
+              </div>
+            ))}
+          </div>
+          {isPremium && (
+            <div className="mt-3 text-center">
+              <Badge className="bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border-yellow-500/30 text-yellow-500">
+                <Crown className="mr-1 h-3 w-3" /> Pro версія
+              </Badge>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Support */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-lg flex items-center gap-2">
+            <Mail className="h-5 w-5 text-primary" />
+            {t.profile.support}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-2">{t.profile.supportDesc}</p>
+          <a href={`mailto:${t.profile.supportEmail}`} className="text-primary font-semibold text-sm hover:underline">
+            {t.profile.supportEmail}
+          </a>
+        </CardContent>
+      </Card>
 
       {!isStandalone && (
         <Card

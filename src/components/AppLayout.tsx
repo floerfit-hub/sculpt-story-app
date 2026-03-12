@@ -80,6 +80,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
           <Link to="/privacy" className="hover:text-foreground transition-colors">Конфіденційність</Link>
           <Link to="/refund" className="hover:text-foreground transition-colors">Повернення</Link>
           <Link to="/contact" className="hover:text-foreground transition-colors">Контакти</Link>
+          <a href="mailto:support@fittrack.app" className="hover:text-foreground transition-colors">Підтримка</a>
         </div>
       </footer>
 

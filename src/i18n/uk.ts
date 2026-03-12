@@ -341,6 +341,9 @@ export const uk: Translations = {
     themeDesc: "Оберіть бажану тему",
     dark: "Темна",
     light: "Світла",
+    support: "Підтримка",
+    supportDesc: "Потрібна допомога? Зв'яжіться з нами",
+    supportEmail: "support@fittrack.app",
   },
 
   charts: {
@@ -414,6 +417,36 @@ export const uk: Translations = {
     insightStrengthUp: "💪 Сила у ваших вправах зросла останнім часом.",
     insightCoreNeglect: "⚠️ Ви не тренували кор за останні 30 днів. Додайте вправи на кор!",
     insightKeepGoing: "🚀 Продовжуйте записувати тренування та прогрес для персоналізованих порад!",
+  },
+
+  proBenefits: {
+    title: "Переваги Pro",
+    muscleAnalytics: "Детальна аналітика м'язів",
+    muscleAnalyticsDesc: "Глибокий аналіз кожної групи м'язів з трендами продуктивності.",
+    historyFilters: "Фільтри історії",
+    historyFiltersDesc: "Розширена фільтрація та сортування вашої історії тренувань.",
+    noAds: "Без реклами",
+    noAdsDesc: "Чистий інтерфейс без відволікань.",
+    unlimitedHistory: "Необмежена історія тренувань",
+    unlimitedHistoryDesc: "Доступ до повної історії тренувань без обмежень.",
+    customPlans: "Персональні плани тренувань",
+    customPlansDesc: "AI-плани, адаптовані до ваших цілей та прогресу.",
+    prioritySupport: "Пріоритетна підтримка",
+    prioritySupportDesc: "Швидший час відповіді від нашої команди підтримки.",
+    freeLabel: "Безкоштовний",
+    proLabel: "Pro",
+  },
+
+  welcome: {
+    title: "Вітаємо в еліті FitTrack Pro! 🎉",
+    subtitle: "Ваші преміум-функції активовано. Готові до нових рекордів?",
+    featureAnalytics: "Розширена аналітика груп м'язів",
+    featureAnalyticsDesc: "Глибокий аналіз кожної групи м'язів з трендами продуктивності.",
+    featureHistory: "Необмежена історія тренувань",
+    featureHistoryDesc: "Доступ до повної історії тренувань з розширеними фільтрами.",
+    featurePlans: "Персональні плани тренувань",
+    featurePlansDesc: "AI-плани, адаптовані до ваших цілей та прогресу.",
+    cta: "Погнали до тренувань!",
   },
 
   premium: {
