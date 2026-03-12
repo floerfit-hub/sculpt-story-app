@@ -42,7 +42,10 @@ const Pricing = () => {
     { feature: "Priority support", free: false, pro: true },
   ];
 
+  const { activateMockPremium, cooldown } = usePremium();
+
   const handleBuy = async (plan: "monthly" | "yearly") => {
+    if (cooldown) return;
     setLoading(plan);
     await activateMockPremium(plan);
     toast({
