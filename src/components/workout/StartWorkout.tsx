@@ -198,7 +198,15 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft className="h-5 w-5" /></Button>
           <h2 className="text-xl font-display font-bold">{isEditing ? t.workouts.editWorkout : t.workouts.newWorkout}</h2>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setShowTimer(true)}><Timer className="h-5 w-5" /></Button>
+        <div className="flex items-center gap-2">
+          {!isEditing && (
+            <div className="flex items-center gap-1.5 rounded-xl bg-accent px-3 py-1.5">
+              <Clock className="h-4 w-4 text-primary" />
+              <span className="text-sm font-display font-semibold tabular-nums text-foreground">{formatTime(elapsed)}</span>
+            </div>
+          )}
+          <Button variant="ghost" size="icon" onClick={() => setShowTimer(true)}><Timer className="h-5 w-5" /></Button>
+        </div>
       </div>
 
       {exercises.length === 0 && <div className="py-12 text-center text-muted-foreground"><p className="mb-4">{t.workouts.noExercises}</p></div>}
