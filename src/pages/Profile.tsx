@@ -146,6 +146,9 @@ const Profile = () => {
         </CardContent>
       </Card>
 
+      {/* Subscription */}
+      <SubscriptionManager />
+
       {!isStandalone && (
         <Card
           className="border-primary/30 cursor-pointer transition-all duration-200 hover:border-primary/60 active:scale-[0.98]"

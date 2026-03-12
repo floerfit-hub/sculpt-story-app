@@ -68,6 +68,7 @@ const App = () => (
                 <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </PremiumProvider>
             </AuthProvider>
           </I18nProvider>
         </HashRouter>
