@@ -21,6 +21,9 @@ import Profile from "@/pages/Profile";
 import Workouts from "@/pages/Workouts";
 import AdminPanel from "@/pages/AdminPanel";
 import NotFound from "@/pages/NotFound";
+import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
+import Refund from "@/pages/Refund";
 
 const queryClient = new QueryClient();
 
