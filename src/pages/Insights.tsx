@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingDown, TrendingUp, Minus, Target, Flame, Award, AlertTriangle } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
+import PremiumGate from "@/components/subscription/PremiumGate";
+import type { Tables } from "@/integrations/supabase/types";
 
 type ProgressEntry = Tables<"progress_entries">;
 
