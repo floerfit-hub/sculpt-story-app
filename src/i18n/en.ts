@@ -353,6 +353,9 @@ export const en = {
     themeDesc: "Choose your preferred theme",
     dark: "Dark",
     light: "Light",
+    support: "Support",
+    supportDesc: "Need help? Contact us",
+    supportEmail: "support@fittrack.app",
   },
 
   // Charts

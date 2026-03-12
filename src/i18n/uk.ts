@@ -341,6 +341,9 @@ export const uk: Translations = {
     themeDesc: "Оберіть бажану тему",
     dark: "Темна",
     light: "Світла",
+    support: "Підтримка",
+    supportDesc: "Потрібна допомога? Зв'яжіться з нами",
+    supportEmail: "support@fittrack.app",
   },
 
   charts: {
