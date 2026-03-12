@@ -149,7 +149,7 @@ export const en = {
     repsProgression: "Reps Progression",
     repsLabel: "Repetitions",
     weightLabel: "Working Weight",
-    estimated1RM: "Strength Progress (Est. 1RM)",
+    estimated1RM: "Strength Progress",
     addCustomExercise: "Add Custom Exercise",
     customExerciseName: "Exercise Name",
     selectMuscleGroup: "Select Muscle Group",

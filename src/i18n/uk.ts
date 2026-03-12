@@ -145,7 +145,7 @@ export const uk: Translations = {
     repsProgression: "Прогрес повторів",
     repsLabel: "Повторення",
     weightLabel: "Робоча вага",
-    estimated1RM: "Прогрес сили (Орієнт. 1ПМ)",
+    estimated1RM: "Прогрес сили",
     addCustomExercise: "Додати свою вправу",
     customExerciseName: "Назва вправи",
     selectMuscleGroup: "Оберіть групу м'язів",
