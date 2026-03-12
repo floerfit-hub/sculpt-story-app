@@ -24,6 +24,7 @@ import NotFound from "@/pages/NotFound";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import Refund from "@/pages/Refund";
+import Pricing from "@/pages/Pricing";
 
 const queryClient = new QueryClient();
 
