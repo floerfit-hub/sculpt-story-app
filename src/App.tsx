@@ -21,6 +21,9 @@ import Profile from "@/pages/Profile";
 import Workouts from "@/pages/Workouts";
 import AdminPanel from "@/pages/AdminPanel";
 import NotFound from "@/pages/NotFound";
+import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
+import Refund from "@/pages/Refund";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +70,9 @@ const App = () => (
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/coach" element={<ProtectedRoute><CoachView /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/refund" element={<Refund />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               </PremiumProvider>
