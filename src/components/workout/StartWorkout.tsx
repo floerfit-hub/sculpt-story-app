@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import RestTimer from "./RestTimer";
 import { useToast } from "@/hooks/use-toast";
@@ -62,6 +62,34 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [showTimer, setShowTimer] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [finalDuration, setFinalDuration] = useState<number>(0);
+
+  // Workout timer
+  const [startTime] = useState<number>(() => {
+    if (isEditing) return Date.now();
+    const saved = sessionStorage.getItem("workout-start-time");
+    if (saved) return Number(saved);
+    const now = Date.now();
+    sessionStorage.setItem("workout-start-time", String(now));
+    return now;
+  });
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (saved) return;
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startTime, saved]);
+
+  const formatTime = (totalSeconds: number) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  };
 
   // Persist exercises to sessionStorage on every change (skip in edit mode)
   useEffect(() => {
@@ -74,6 +102,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const clearPersistedData = useCallback(() => {
     sessionStorage.removeItem("workout-in-progress");
     sessionStorage.removeItem("workout-view");
+    sessionStorage.removeItem("workout-start-time");
   }, []);
 
   const addExercise = (name: string, group: string) => {
@@ -121,11 +150,12 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         if (eErr) throw eErr;
 
         clearPersistedData();
+        setFinalDuration(elapsed);
         setSaved(true);
         toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       } else {
-        // Create new workout
-        const { data: workout, error: wErr } = await supabase.from("workouts").insert({ user_id: user.id, finished_at: new Date().toISOString() }).select("id").single();
+        const startedAt = new Date(startTime).toISOString();
+        const { data: workout, error: wErr } = await supabase.from("workouts").insert({ user_id: user.id, started_at: startedAt, finished_at: new Date().toISOString() }).select("id").single();
         if (wErr || !workout) throw wErr;
         const rows = exercises.map((ex, i) => ({
           workout_id: workout.id, exercise_name: ex.name, muscle_group: ex.muscleGroup,
@@ -135,6 +165,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         const { error: eErr } = await supabase.from("workout_exercises").insert(rows);
         if (eErr) throw eErr;
         clearPersistedData();
+        setFinalDuration(elapsed);
         setSaved(true);
         toast({ title: t.workouts.workoutSaved, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       }
@@ -148,6 +179,10 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
       <div className="flex flex-col items-center justify-center py-20 animate-fade-in space-y-4">
         <CheckCircle className="h-16 w-16 text-primary" />
         <h2 className="text-2xl font-display font-bold">{t.workouts.workoutComplete}</h2>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Clock className="h-5 w-5" />
+          <span className="text-lg font-display font-semibold">{formatTime(finalDuration)}</span>
+        </div>
         <p className="text-muted-foreground text-center">{t.workouts.greatSession}</p>
         <Button onClick={onBack} className="mt-4">{t.workouts.backToWorkouts}</Button>
       </div>
@@ -163,7 +198,15 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft className="h-5 w-5" /></Button>
           <h2 className="text-xl font-display font-bold">{isEditing ? t.workouts.editWorkout : t.workouts.newWorkout}</h2>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setShowTimer(true)}><Timer className="h-5 w-5" /></Button>
+        <div className="flex items-center gap-2">
+          {!isEditing && (
+            <div className="flex items-center gap-1.5 rounded-xl bg-accent px-3 py-1.5">
+              <Clock className="h-4 w-4 text-primary" />
+              <span className="text-sm font-display font-semibold tabular-nums text-foreground">{formatTime(elapsed)}</span>
+            </div>
+          )}
+          <Button variant="ghost" size="icon" onClick={() => setShowTimer(true)}><Timer className="h-5 w-5" /></Button>
+        </div>
       </div>
 
       {exercises.length === 0 && <div className="py-12 text-center text-muted-foreground"><p className="mb-4">{t.workouts.noExercises}</p></div>}
