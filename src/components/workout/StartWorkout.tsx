@@ -154,8 +154,8 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         setSaved(true);
         toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       } else {
-        // Create new workout
-        const { data: workout, error: wErr } = await supabase.from("workouts").insert({ user_id: user.id, finished_at: new Date().toISOString() }).select("id").single();
+        const startedAt = new Date(startTime).toISOString();
+        const { data: workout, error: wErr } = await supabase.from("workouts").insert({ user_id: user.id, started_at: startedAt, finished_at: new Date().toISOString() }).select("id").single();
         if (wErr || !workout) throw wErr;
         const rows = exercises.map((ex, i) => ({
           workout_id: workout.id, exercise_name: ex.name, muscle_group: ex.muscleGroup,
