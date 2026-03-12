@@ -1,8 +1,9 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 import { useTranslation } from "@/i18n";
-import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, UserCircle, Shield } from "lucide-react";
+import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, UserCircle, Shield, Crown } from "lucide-react";
 import InstallPrompt from "@/components/InstallPrompt";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
