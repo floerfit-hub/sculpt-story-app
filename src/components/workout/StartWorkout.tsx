@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import RestTimer from "./RestTimer";
 import { useToast } from "@/hooks/use-toast";
