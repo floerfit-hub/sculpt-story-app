@@ -150,6 +150,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         if (eErr) throw eErr;
 
         clearPersistedData();
+        setFinalDuration(elapsed);
         setSaved(true);
         toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       } else {
