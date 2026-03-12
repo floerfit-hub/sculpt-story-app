@@ -401,6 +401,34 @@ export const en = {
     } as Record<string, string>,
   },
 
+  // Fitness Score
+  fitScore: {
+    title: "Fitness Score",
+    training: "Training Consistency",
+    strength: "Strength Progress",
+    body: "Body Measurements",
+    balance: "Muscle Balance",
+    weightProgress: "Body Weight Progress",
+    measurements: "Body Measurements",
+    arm: "Arms",
+    chest: "Chest",
+    waistM: "Waist",
+    glute: "Glutes",
+    thigh: "Thighs",
+    workoutActivity: "Workout Activity",
+    workoutsMonth: "Workouts",
+    setsMonth: "Total Sets",
+    streak: "Streak",
+    streakDays: "days",
+    smartInsights: "Smart Insights",
+    insightUpperHeavy: "💡 You are training your upper body much more than your lower body. Consider adding more leg exercises.",
+    insightLowerHeavy: "💡 You are training your lower body much more than your upper body. Consider adding more upper body exercises.",
+    insightWaistImproving: "📏 Your waist circumference is improving — great progress!",
+    insightStrengthUp: "💪 Strength in your exercises has increased recently.",
+    insightCoreNeglect: "⚠️ You haven't trained your core in the last 30 days. Add some core work!",
+    insightKeepGoing: "🚀 Keep logging your workouts and progress to unlock personalized insights!",
+  },
+
   // Common
   common: {
     error: "Error",
