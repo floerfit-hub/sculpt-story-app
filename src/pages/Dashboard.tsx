@@ -18,6 +18,7 @@ import MuscleHeatmap from "@/components/dashboard/MuscleHeatmap";
 import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
 import NutritionSummary from "@/components/dashboard/NutritionSummary";
 import SmartInsights from "@/components/dashboard/SmartInsights";
+import PremiumGate from "@/components/subscription/PremiumGate";
 
 type ProgressEntry = Tables<"progress_entries">;
 const CHECKIN_INTERVAL = 14;
@@ -279,17 +280,23 @@ const Dashboard = () => {
         </Card>
       )}
 
-      {/* Fitness Score */}
-      <FitnessScore {...fitnessScores} />
+      {/* Fitness Score — Premium */}
+      <PremiumGate feature="Fitness Score Dashboard">
+        <FitnessScore {...fitnessScores} />
+      </PremiumGate>
 
       {/* Weight Chart */}
       <WeightChart entries={entries} />
 
-      {/* Body Measurements */}
-      <MeasurementsCard latest={latest} previous={previous} />
+      {/* Body Measurements — Premium */}
+      <PremiumGate feature="Body Composition Dashboard">
+        <MeasurementsCard latest={latest} previous={previous} />
+      </PremiumGate>
 
-      {/* Muscle Heatmap */}
-      <MuscleHeatmap muscleData={muscleData} />
+      {/* Muscle Heatmap — Premium */}
+      <PremiumGate feature="Muscle Heatmap Analytics">
+        <MuscleHeatmap muscleData={muscleData} />
+      </PremiumGate>
 
       {/* Workout Activity */}
       <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />
@@ -297,8 +304,10 @@ const Dashboard = () => {
       {/* Nutrition Summary */}
       <NutritionSummary nutrition={nutrition} />
 
-      {/* Smart Insights */}
-      <SmartInsights entries={entries} muscleData={muscleData} strengthTrending={strengthTrending} />
+      {/* Smart Insights — Premium */}
+      <PremiumGate feature="AI Training Insights">
+        <SmartInsights entries={entries} muscleData={muscleData} strengthTrending={strengthTrending} />
+      </PremiumGate>
 
       {/* Recent Entries */}
       <Card>

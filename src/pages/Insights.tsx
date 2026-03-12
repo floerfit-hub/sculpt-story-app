@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingDown, TrendingUp, Minus, Target, Flame, Award, AlertTriangle } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
+import PremiumGate from "@/components/subscription/PremiumGate";
 
 type ProgressEntry = Tables<"progress_entries">;
 
@@ -85,6 +86,7 @@ const Insights = () => {
   }
 
   return (
+    <PremiumGate feature="AI Training Insights" blur={false}>
     <div className="space-y-6 animate-fade-in">
       <h1 className="text-2xl font-display font-bold">{t.insights.title}</h1>
 
@@ -112,6 +114,7 @@ const Insights = () => {
         </div>
       )}
     </div>
+    </PremiumGate>
   );
 };
 

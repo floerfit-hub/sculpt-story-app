@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { PremiumProvider } from "@/hooks/usePremium";
 import { I18nProvider } from "@/i18n";
 import { ThemeProvider } from "@/hooks/useTheme";
 import PWAUpdatePrompt from "@/components/PWAUpdatePrompt";
@@ -53,6 +54,7 @@ const App = () => (
         <HashRouter>
           <I18nProvider>
             <AuthProvider>
+              <PremiumProvider>
               <Routes>
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -67,6 +69,7 @@ const App = () => (
                 <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </PremiumProvider>
             </AuthProvider>
           </I18nProvider>
         </HashRouter>

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { User, LogOut, Save, Download, Globe, Moon, Sun } from "lucide-react";
+import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 
 const LANGUAGES: { code: Language; label: string }[] = [
   { code: "en", label: "English" },
@@ -144,6 +145,9 @@ const Profile = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Subscription */}
+      <SubscriptionManager />
 
       {!isStandalone && (
         <Card
