@@ -25,6 +25,7 @@ import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import Refund from "@/pages/Refund";
 import Pricing from "@/pages/Pricing";
+import WelcomePro from "@/pages/WelcomePro";
 
 const queryClient = new QueryClient();
 
