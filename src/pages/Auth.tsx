@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n";
 import { Dumbbell } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
