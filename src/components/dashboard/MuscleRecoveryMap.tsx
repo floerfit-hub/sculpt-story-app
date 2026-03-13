@@ -5,9 +5,7 @@ import { Activity, RotateCcw } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   MUSCLE_CARD_LAYOUT,
-  REGION_ORDER,
-  REGION_I18N_KEY,
-  type BodyRegion,
+  type MuscleCardConfig,
   getIntensityCap,
   type MorningCheckin,
 } from "@/lib/muscleScience";
@@ -57,17 +55,7 @@ const MuscleRecoveryMap = ({
     [highlightedMuscles]
   );
 
-  const groupedByRegion = useMemo(() => {
-    const groups: Record<BodyRegion, typeof MUSCLE_CARD_LAYOUT> = {
-      chest: [], back: [], shoulders: [], arms: [], legs: [], core: [],
-    };
-    MUSCLE_CARD_LAYOUT.forEach((card) => {
-      groups[card.region].push(card);
-    });
-    return groups;
-  }, []);
-
-  const renderCard = (muscle: (typeof MUSCLE_CARD_LAYOUT)[number]) => {
+  const renderCard = (muscle: MuscleCardConfig) => {
     const row = recoveryByGroup[muscle.id];
     const recovery = getRealtimeRecoveryPercent(row);
     const hoursUntilFull = getHoursUntilFullRecovery(row);
@@ -99,7 +87,7 @@ const MuscleRecoveryMap = ({
               setSelectedMuscle(next);
               if (next) onMuscleSelect?.(muscle.id);
             }}
-            className={`rounded-xl border p-2.5 text-left transition-all w-full ${
+            className={`rounded-xl border p-3 text-left transition-all w-full ${
               isPeak
                 ? "border-primary/40 bg-primary/5 ring-1 ring-primary/20"
                 : highlighted
@@ -107,15 +95,18 @@ const MuscleRecoveryMap = ({
                 : "border-border/50 hover:bg-accent/30"
             }`}
           >
-            <div className="flex items-start justify-between gap-1">
-              <p className="text-[11px] font-semibold leading-tight truncate">{muscleName}</p>
-              <span className="text-[11px] font-bold shrink-0" style={{ color }}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{muscle.emoji}</span>
+                <p className="text-xs font-semibold leading-tight">{muscleName}</p>
+              </div>
+              <span className="text-sm font-bold shrink-0" style={{ color }}>
                 {Math.round(recovery)}%
               </span>
             </div>
 
             {/* Progress bar */}
-            <div className="mt-1.5 h-1.5 w-full rounded-full bg-muted">
+            <div className="mt-2 h-2 w-full rounded-full bg-muted">
               <div
                 className="h-full rounded-full transition-all"
                 style={{ width: `${Math.min(100, Math.round(recovery))}%`, backgroundColor: color }}
@@ -124,12 +115,12 @@ const MuscleRecoveryMap = ({
 
             {/* Sets info */}
             {(directSets > 0 || synergistSets > 0) && (
-              <div className="mt-1.5 flex items-center gap-1.5 text-[9px] text-muted-foreground">
+              <div className="mt-2 flex items-center gap-2 text-[10px] text-muted-foreground">
                 {directSets > 0 && (
                   <span className="font-semibold text-foreground">{directSets} sets</span>
                 )}
                 {synergistSets > 0 && (
-                  <span className="flex items-center gap-0.5 border-l border-dashed border-border pl-1.5 opacity-70">
+                  <span className="flex items-center gap-0.5 border-l border-dashed border-border pl-2 opacity-70">
                     <RotateCcw className="h-2.5 w-2.5" />
                     +{Math.round(synergistSets * 10) / 10}
                   </span>
@@ -138,7 +129,7 @@ const MuscleRecoveryMap = ({
             )}
 
             {/* Time until recovery */}
-            <p className="mt-1 text-[9px] text-muted-foreground truncate">
+            <p className="mt-1.5 text-[10px] text-muted-foreground truncate">
               {hoursUntilFull > 0
                 ? `⏱ ${formatTimeUntilFull(hoursUntilFull, t)}`
                 : isPeak
@@ -149,7 +140,10 @@ const MuscleRecoveryMap = ({
         </PopoverTrigger>
         <PopoverContent side="top" className="w-60 p-3">
           <div className="space-y-2">
-            <p className="font-display font-bold text-sm">{muscleName}</p>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{muscle.emoji}</span>
+              <p className="font-display font-bold text-sm">{muscleName}</p>
+            </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
               <span className="text-sm font-semibold" style={{ color }}>
@@ -184,26 +178,13 @@ const MuscleRecoveryMap = ({
         </CardTitle>
         <p className="text-[10px] text-muted-foreground">{t.recovery.subtitle}</p>
       </CardHeader>
-      <CardContent className="pb-4 space-y-3">
-        {REGION_ORDER.map((region) => {
-          const cards = groupedByRegion[region];
-          if (cards.length === 0) return null;
-          const regionLabel = (t.recovery as any)[REGION_I18N_KEY[region]] ?? region;
-
-          return (
-            <div key={region}>
-              <p className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">
-                {regionLabel}
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {cards.map(renderCard)}
-              </div>
-            </div>
-          );
-        })}
+      <CardContent className="pb-4">
+        <div className="grid grid-cols-2 gap-2">
+          {MUSCLE_CARD_LAYOUT.map(renderCard)}
+        </div>
 
         {/* Legend */}
-        <div className="flex gap-3 pt-1 flex-wrap">
+        <div className="flex gap-3 pt-3 flex-wrap justify-center">
           {[
             { color: "hsl(var(--destructive))", label: "0-40%" },
             { color: "hsl(var(--warning))", label: "41-75%" },

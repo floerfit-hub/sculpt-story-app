@@ -1,46 +1,34 @@
 /**
  * Muscle Science Engine
- * 17-segment muscle tracking with synergist system, recovery timing, and intensity calibration.
+ * 8 unified muscle groups with synergist system, recovery timing, and intensity calibration.
  */
 
-// ─── 17 MUSCLE SEGMENTS ───
-export const MUSCLE_SEGMENTS = [
+// ─── 8 UNIFIED MUSCLE GROUPS ───
+export const MUSCLE_GROUPS_8 = [
   "Chest",
-  "Upper back",
-  "Lats",
-  "Lower back",
-  "Anterior delt",
-  "Lateral delt",
-  "Posterior delt",
-  "Biceps",
-  "Triceps",
-  "Quadriceps",
-  "Glutes",
-  "Hamstrings",
+  "Back",
+  "Shoulders",
+  "Arms",
+  "Legs & Glutes",
+  "Abs",
+  "Lower Back",
   "Calves",
-  "Core",
 ] as const;
 
-export type MuscleSegment = (typeof MUSCLE_SEGMENTS)[number];
+export type MuscleGroup8 = (typeof MUSCLE_GROUPS_8)[number];
 
 // ─── MUSCLE SIZE CATEGORIES ───
 export type MuscleSize = "large" | "medium" | "small";
 
-export const MUSCLE_SIZE: Record<MuscleSegment, MuscleSize> = {
+export const MUSCLE_SIZE: Record<MuscleGroup8, MuscleSize> = {
   Chest: "large",
-  "Upper back": "large",
-  Lats: "large",
-  "Lower back": "medium",
-  "Anterior delt": "medium",
-  "Lateral delt": "medium",
-  "Posterior delt": "medium",
-  Biceps: "small",
-  Triceps: "small",
-  Quadriceps: "large",
-  Glutes: "large",
-  Hamstrings: "large",
+  Back: "large",
+  Shoulders: "medium",
+  Arms: "small",
+  "Legs & Glutes": "large",
+  Abs: "medium",
+  "Lower Back": "medium",
   Calves: "small",
-  Core: "medium",
 };
 
 // Base recovery hours by muscle size
@@ -52,79 +40,66 @@ export const BASE_RECOVERY_HOURS: Record<MuscleSize, { min: number; max: number 
 
 // ─── SYNERGIST MAP ───
 export interface SynergistPattern {
-  primary: MuscleSegment[];
-  synergists: Partial<Record<MuscleSegment, number>>;
+  primary: MuscleGroup8[];
+  synergists: Partial<Record<MuscleGroup8, number>>;
 }
 
 export const SYNERGIST_MAP: Record<string, SynergistPattern> = {
   Chest: {
     primary: ["Chest"],
-    synergists: { Triceps: 0.4, "Anterior delt": 0.35 },
+    synergists: { Arms: 0.4, Shoulders: 0.35 },
   },
-  "Back (Lats + Upper)": {
-    primary: ["Lats", "Upper back"],
-    synergists: { Biceps: 0.45, "Posterior delt": 0.4, "Lower back": 0.25 },
+  Back: {
+    primary: ["Back"],
+    synergists: { Arms: 0.45, Shoulders: 0.2, "Lower Back": 0.25 },
   },
   "Shoulders (Overhead press)": {
-    primary: ["Lateral delt", "Anterior delt"],
-    synergists: { Triceps: 0.35, "Upper back": 0.2 },
+    primary: ["Shoulders"],
+    synergists: { Arms: 0.35, Back: 0.15 },
   },
   "Lateral raises": {
-    primary: ["Lateral delt"],
-    synergists: { "Anterior delt": 0.15, "Posterior delt": 0.15 },
+    primary: ["Shoulders"],
+    synergists: {},
   },
   "Rear delt / Face pulls": {
-    primary: ["Posterior delt"],
-    synergists: { "Upper back": 0.3, Biceps: 0.2 },
+    primary: ["Shoulders"],
+    synergists: { Back: 0.2, Arms: 0.15 },
   },
   "Biceps curl": {
-    primary: ["Biceps"],
-    synergists: { "Anterior delt": 0.1, "Lower back": 0.05 },
+    primary: ["Arms"],
+    synergists: { Shoulders: 0.1 },
   },
   "Triceps isolation": {
-    primary: ["Triceps"],
-    synergists: { "Lateral delt": 0.1 },
+    primary: ["Arms"],
+    synergists: { Shoulders: 0.1 },
   },
   "Squats / Leg press": {
-    primary: ["Quadriceps", "Glutes"],
-    synergists: { Hamstrings: 0.3, Calves: 0.2, "Lower back": 0.25, Core: 0.2 },
+    primary: ["Legs & Glutes"],
+    synergists: { Calves: 0.2, "Lower Back": 0.25, Abs: 0.2 },
   },
   "Romanian deadlift / Hip hinge": {
-    primary: ["Hamstrings", "Glutes"],
-    synergists: { "Lower back": 0.4, Calves: 0.15 },
+    primary: ["Legs & Glutes"],
+    synergists: { "Lower Back": 0.4, Calves: 0.15 },
   },
   "Glute bridge / Hip thrust": {
-    primary: ["Glutes"],
-    synergists: { Hamstrings: 0.5, "Lower back": 0.2, Core: 0.15 },
+    primary: ["Legs & Glutes"],
+    synergists: { "Lower Back": 0.2, Abs: 0.15 },
   },
   Deadlift: {
-    primary: ["Lower back", "Lats", "Hamstrings", "Glutes"],
-    synergists: {
-      Biceps: 0.3, "Upper back": 0.3, Quadriceps: 0.2,
-      "Posterior delt": 0.2, Core: 0.3, Calves: 0.1,
-    },
+    primary: ["Legs & Glutes", "Back", "Lower Back"],
+    synergists: { Arms: 0.3, Shoulders: 0.2, Abs: 0.3, Calves: 0.1 },
   },
   "Calf raises": {
     primary: ["Calves"],
     synergists: {},
   },
   "Core / Abs": {
-    primary: ["Core"],
-    synergists: { "Lower back": 0.2 },
+    primary: ["Abs"],
+    synergists: { "Lower Back": 0.2 },
   },
 };
 
-// Map old DB muscle_group names to new segments
-export const OLD_GROUP_TO_SEGMENTS: Record<string, MuscleSegment[]> = {
-  Chest: ["Chest"],
-  Back: ["Upper back", "Lats", "Lower back"],
-  Shoulders: ["Anterior delt", "Lateral delt", "Posterior delt"],
-  Arms: ["Biceps", "Triceps"],
-  "Legs & Glutes": ["Quadriceps", "Glutes", "Hamstrings", "Calves"],
-  Core: ["Core"],
-};
-
-// Map exercise names to synergist pattern keys for auto-detection
+// Map exercise names to synergist pattern keys
 export const EXERCISE_TO_PATTERN: Record<string, string> = {
   // Chest
   "Barbell Bench Press": "Chest",
@@ -136,12 +111,12 @@ export const EXERCISE_TO_PATTERN: Record<string, string> = {
   "Push-ups": "Chest",
   "Dips": "Chest",
   // Back
-  "Lat Pulldown": "Back (Lats + Upper)",
-  "Seated Cable Row": "Back (Lats + Upper)",
-  "Dumbbell Row": "Back (Lats + Upper)",
-  "Pull-ups": "Back (Lats + Upper)",
-  "Barbell Row": "Back (Lats + Upper)",
-  Hyperextensions: "Back (Lats + Upper)",
+  "Lat Pulldown": "Back",
+  "Seated Cable Row": "Back",
+  "Dumbbell Row": "Back",
+  "Pull-ups": "Back",
+  "Barbell Row": "Back",
+  Hyperextensions: "Back",
   // Shoulders
   "Seated Dumbbell Press": "Shoulders (Overhead press)",
   "Standing Barbell Press": "Shoulders (Overhead press)",
@@ -160,7 +135,7 @@ export const EXERCISE_TO_PATTERN: Record<string, string> = {
   "Single-arm Triceps Extension": "Triceps isolation",
   "Dumbbell French Press": "Triceps isolation",
   "Bench Dips": "Triceps isolation",
-  // Legs
+  // Legs & Glutes
   "Barbell Squat": "Squats / Leg press",
   "Goblet Squat": "Squats / Leg press",
   "Leg Press": "Squats / Leg press",
@@ -187,12 +162,9 @@ export interface MuscleLoad {
   directSets: number;
   synergistSets: number;
   totalSets: number;
-  avgIntensity: number; // 0-1 relative to 1RM
+  avgIntensity: number;
 }
 
-/**
- * Calculate synergist loads from a set of exercises with their set counts.
- */
 export function calculateSynergistLoads(
   exerciseSets: Array<{ exerciseName: string; sets: number; avgIntensityRatio: number }>
 ): Record<string, MuscleLoad> {
@@ -207,24 +179,18 @@ export function calculateSynergistLoads(
     const pattern = patternKey ? SYNERGIST_MAP[patternKey] : null;
 
     if (pattern) {
-      // Primary muscles get direct load
       for (const primary of pattern.primary) {
         ensure(primary);
         loads[primary].directSets += ex.sets;
         loads[primary].avgIntensity = Math.max(loads[primary].avgIntensity, ex.avgIntensityRatio);
       }
-      // Synergist muscles get partial load
       for (const [synMuscle, coefficient] of Object.entries(pattern.synergists)) {
         ensure(synMuscle);
         loads[synMuscle].synergistSets += ex.sets * (coefficient ?? 0);
       }
-    } else {
-      // Fallback: use old group mapping
-      ensure(ex.exerciseName);
     }
   }
 
-  // Compute totals
   for (const m of Object.keys(loads)) {
     loads[m].totalSets = loads[m].directSets + loads[m].synergistSets;
   }
@@ -234,34 +200,26 @@ export function calculateSynergistLoads(
 
 // ─── RECOVERY TIMING ───
 export function getRecoveryHours(
-  muscle: MuscleSegment,
+  muscle: MuscleGroup8,
   totalSets: number,
-  avgIntensity: number, // 0-1
+  avgIntensity: number,
   synergistSets: number,
   directSets: number
 ): number {
   const size = MUSCLE_SIZE[muscle];
   const base = BASE_RECOVERY_HOURS[size];
 
-  // Interpolate between min and max based on volume
-  const volumeRatio = Math.min(1, totalSets / 20); // 20 sets = max
+  const volumeRatio = Math.min(1, totalSets / 20);
   let hours = base.min + (base.max - base.min) * volumeRatio;
 
-  // High volume modifier (>12 sets): +15%
   if (totalSets > 12) hours *= 1.15;
-
-  // Strength training modifier (>80% 1RM): +20%
   if (avgIntensity > 0.8) hours *= 1.20;
-
-  // Synergist load ≥ 50% of direct → +30% recovery for that synergist
-  if (directSets > 0 && synergistSets >= directSets * 0.5) {
-    hours *= 1.30;
-  }
+  if (directSets > 0 && synergistSets >= directSets * 0.5) hours *= 1.30;
 
   return Math.round(hours * 10) / 10;
 }
 
-// ─── RECOVERY PERCENT (4-tier) ───
+// ─── RECOVERY PERCENT ───
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
 export function getSegmentRecoveryPercent(
@@ -270,16 +228,15 @@ export function getSegmentRecoveryPercent(
 ): number {
   if (hoursSinceTraining <= 0) return 0;
   if (hoursSinceTraining >= recoveryHoursTarget) return 100;
-
   return clamp((hoursSinceTraining / recoveryHoursTarget) * 100, 0, 100);
 }
 
 // ─── RECOVERY COLOR (4-tier) ───
 export function getRecoveryColor4(percent: number): string {
-  if (percent >= 100) return "hsl(82 85% 55%)"; // lime green - peak
-  if (percent >= 76) return "hsl(var(--success))"; // green
-  if (percent >= 41) return "hsl(var(--warning))"; // yellow
-  return "hsl(var(--destructive))"; // red
+  if (percent >= 100) return "hsl(82 85% 55%)";
+  if (percent >= 76) return "hsl(var(--success))";
+  if (percent >= 41) return "hsl(var(--warning))";
+  return "hsl(var(--destructive))";
 }
 
 export function getRecoveryLabel4(percent: number): "peak" | "ready" | "almostReady" | "recovering" {
@@ -292,9 +249,9 @@ export function getRecoveryLabel4(percent: number): "peak" | "ready" | "almostRe
 // ─── INTENSITY CALIBRATION ───
 export interface MorningCheckin {
   sleepHours: number;
-  sorenessScore: number; // 1-5
-  energyScore: number; // 1-5
-  nutritionScore: number; // 1-10
+  sorenessScore: number;
+  energyScore: number;
+  nutritionScore: number;
 }
 
 export function getIntensityCap(
@@ -302,27 +259,22 @@ export function getIntensityCap(
   checkin?: MorningCheckin | null,
   cnsFatigueHigh = false
 ): number {
-  // Base intensity from recovery
   let cap: number;
   if (muscleRecoveryPercent <= 40) cap = 50;
   else if (muscleRecoveryPercent <= 65) cap = 70;
   else if (muscleRecoveryPercent <= 85) cap = 85;
   else cap = 100;
 
-  // Morning check-in modifiers
   if (checkin) {
-    // Sleep modifier
     if (checkin.sleepHours < 6) cap -= 15;
     else if (checkin.sleepHours < 7) cap -= 8;
     else if (checkin.sleepHours > 9) cap += 5;
 
-    // Nutrition modifier
     if (checkin.nutritionScore < 7) {
       cap -= (7 - checkin.nutritionScore) * 3;
     }
   }
 
-  // CNS override
   if (cnsFatigueHigh) cap = Math.min(cap, 70);
 
   return clamp(Math.round(cap), 20, 100);
@@ -334,20 +286,14 @@ export function calculateReadinessScore(
   checkin?: MorningCheckin | null,
   cnsFatigueHigh = false
 ): number {
-  let score = avgRecoveryPercent * 0.5; // 50% weight from recovery
+  let score = avgRecoveryPercent * 0.5;
 
   if (checkin) {
-    // Sleep: 20% weight
     const sleepScore = checkin.sleepHours >= 7 ? 100 : checkin.sleepHours >= 6 ? 70 : 40;
     score += sleepScore * 0.2;
-
-    // Energy: 15% weight
     score += (checkin.energyScore / 5) * 100 * 0.15;
-
-    // Soreness inverse: 15% weight (1=max sore, 5=no sore)
     score += (checkin.sorenessScore / 5) * 100 * 0.15;
   } else {
-    // Without checkin, use recovery only
     score = avgRecoveryPercent;
   }
 
@@ -357,7 +303,6 @@ export function calculateReadinessScore(
 }
 
 // ─── CNS FATIGUE ───
-// Compound exercises that generate CNS fatigue
 export const CNS_EXERCISES = new Set([
   "Barbell Squat", "Romanian Deadlift", "Deadlift",
   "Barbell Bench Press", "Incline Barbell Bench Press",
@@ -381,44 +326,44 @@ export function shouldTriggerDeload(consecutiveHardDays: number): boolean {
   return consecutiveHardDays >= 5;
 }
 
-// ─── DISPLAY LAYOUT ───
-export type BodyRegion = "chest" | "back" | "shoulders" | "arms" | "legs" | "core";
-
+// ─── DISPLAY LAYOUT (8 cards) ───
 export interface MuscleCardConfig {
-  id: MuscleSegment;
+  id: MuscleGroup8;
   i18nKey: string;
-  region: BodyRegion;
+  emoji: string;
 }
 
 export const MUSCLE_CARD_LAYOUT: MuscleCardConfig[] = [
-  { id: "Chest", i18nKey: "chest", region: "chest" },
-
-  { id: "Upper back", i18nKey: "upperBack", region: "back" },
-  { id: "Lats", i18nKey: "lats", region: "back" },
-  { id: "Lower back", i18nKey: "lowerBack", region: "back" },
-
-  { id: "Anterior delt", i18nKey: "anteriorDelt", region: "shoulders" },
-  { id: "Lateral delt", i18nKey: "lateralDelt", region: "shoulders" },
-  { id: "Posterior delt", i18nKey: "posteriorDelt", region: "shoulders" },
-
-  { id: "Biceps", i18nKey: "biceps", region: "arms" },
-  { id: "Triceps", i18nKey: "triceps", region: "arms" },
-
-  { id: "Quadriceps", i18nKey: "quads", region: "legs" },
-  { id: "Glutes", i18nKey: "glutes", region: "legs" },
-  { id: "Hamstrings", i18nKey: "hamstrings", region: "legs" },
-  { id: "Calves", i18nKey: "calves", region: "legs" },
-
-  { id: "Core", i18nKey: "core", region: "core" },
+  { id: "Chest", i18nKey: "chest", emoji: "💪" },
+  { id: "Back", i18nKey: "back", emoji: "🔙" },
+  { id: "Shoulders", i18nKey: "shoulders", emoji: "🏋️" },
+  { id: "Arms", i18nKey: "arms", emoji: "💪" },
+  { id: "Legs & Glutes", i18nKey: "legsGlutes", emoji: "🦵" },
+  { id: "Abs", i18nKey: "abs", emoji: "🧱" },
+  { id: "Lower Back", i18nKey: "lowerBack", emoji: "🔗" },
+  { id: "Calves", i18nKey: "calves", emoji: "🦶" },
 ];
 
-export const REGION_ORDER: BodyRegion[] = ["chest", "back", "shoulders", "arms", "legs", "core"];
-
-export const REGION_I18N_KEY: Record<BodyRegion, string> = {
-  chest: "regionChest",
-  back: "regionBack",
-  shoulders: "regionShoulders",
-  arms: "regionArms",
-  legs: "regionLegs",
-  core: "regionCore",
+// Legacy compat — map old DB muscle_group names to unified groups
+export const OLD_GROUP_TO_UNIFIED: Record<string, MuscleGroup8> = {
+  // Old 17-segment names
+  Chest: "Chest",
+  "Upper back": "Back",
+  Lats: "Back",
+  "Lower back": "Lower Back",
+  "Anterior delt": "Shoulders",
+  "Lateral delt": "Shoulders",
+  "Posterior delt": "Shoulders",
+  Biceps: "Arms",
+  Triceps: "Arms",
+  Quadriceps: "Legs & Glutes",
+  Glutes: "Legs & Glutes",
+  Hamstrings: "Legs & Glutes",
+  Calves: "Calves",
+  Core: "Abs",
+  // Old 6-group names
+  Back: "Back",
+  Shoulders: "Shoulders",
+  Arms: "Arms",
+  "Legs & Glutes": "Legs & Glutes",
 };

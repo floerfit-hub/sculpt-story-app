@@ -5,12 +5,12 @@ import { RecoveryData, getRealtimeRecoveryPercent, getRestMultiplier } from "@/l
 import {
   EXERCISE_TO_PATTERN,
   SYNERGIST_MAP,
-  OLD_GROUP_TO_SEGMENTS,
+  OLD_GROUP_TO_UNIFIED,
   CNS_EXERCISES,
-  type MuscleSegment,
+  type MuscleGroup8,
 } from "@/lib/muscleScience";
 
-const CACHE_KEY_PREFIX = "muscle-recovery-cache-v4";
+const CACHE_KEY_PREFIX = "muscle-recovery-cache-v5";
 const CACHE_DURATION = 6 * 60 * 60 * 1000;
 
 type CachedRecovery = {
@@ -62,7 +62,7 @@ export function useRecovery() {
         }
       } catch { /* ignore */ }
 
-      // 1) Get existing muscle_recovery rows
+      // 1) Get existing muscle_recovery rows and map to unified groups
       const { data: recoveryRows } = await (supabase as any)
         .from("muscle_recovery")
         .select("muscle_group, fatigue_score, recovery_percent, last_trained_at")
@@ -70,29 +70,29 @@ export function useRecovery() {
 
       const mergedMap = new Map<string, RecoveryData>();
 
-      // Expand old grouped muscle_recovery into 17 segments
-      // Only use as fallback — computed workout data will override these
       (recoveryRows as RecoveryData[] | null | undefined)?.forEach((row) => {
         const realtime = getRealtimeRecoveryPercent(row);
-        // If muscle is already fully recovered based on time, skip stale row
         if (realtime >= 100) return;
+
+        // Map old segment names to unified group
+        const unified = OLD_GROUP_TO_UNIFIED[row.muscle_group] ?? row.muscle_group;
         
-        const segments = OLD_GROUP_TO_SEGMENTS[row.muscle_group];
-        if (segments) {
-          segments.forEach((seg) => {
-            if (!mergedMap.has(seg)) {
-              mergedMap.set(seg, {
-                ...row,
-                muscle_group: seg,
-                recovery_percent: getRealtimeRecoveryPercent({ ...row, muscle_group: seg }),
-              });
-            }
-          });
-        } else {
-          mergedMap.set(row.muscle_group, {
+        if (!mergedMap.has(unified)) {
+          mergedMap.set(unified, {
             ...row,
+            muscle_group: unified,
             recovery_percent: realtime,
           });
+        } else {
+          // Take the worst recovery for this unified group
+          const existing = mergedMap.get(unified)!;
+          if (realtime < existing.recovery_percent) {
+            mergedMap.set(unified, {
+              ...row,
+              muscle_group: unified,
+              recovery_percent: realtime,
+            });
+          }
         }
       });
 
@@ -144,7 +144,6 @@ export function useRecovery() {
         const perfMap = new Map<string, number>();
         perf.forEach((p) => perfMap.set(`${p.workout_id}:${p.exercise_id}`, Number(p.estimated_1rm) || 0));
 
-        // Aggregate sets per exercise per workout
         const exerciseAgg: Record<string, { sets: number; intensitySum: number; lastMs: number; exerciseName: string }> = {};
 
         sets.forEach((s) => {
@@ -177,7 +176,7 @@ export function useRecovery() {
           }
         });
 
-        // Now apply synergist map
+        // Apply synergist map — results are already in unified 8-group format
         const muscleLoads: Record<string, {
           directSets: number; synergistSets: number; intensityMax: number; lastMs: number;
         }> = {};
@@ -206,13 +205,11 @@ export function useRecovery() {
           }
         });
 
-        // Convert to RecoveryData — skip negligible synergist-only loads
+        // Convert to RecoveryData
         Object.entries(muscleLoads).forEach(([muscle, load]) => {
           const totalSets = load.directSets + load.synergistSets;
-          // If only synergist load and it's tiny (< 1 effective set), skip entirely
           if (load.directSets === 0 && load.synergistSets < 1) return;
           const fatigueScore = Math.min(100, Math.round(totalSets * load.intensityMax * 12));
-          // If fatigue is negligible, don't create a recovery entry
           if (fatigueScore < 5) return;
           const lastTrainedAt = new Date(load.lastMs || Date.now()).toISOString();
 
