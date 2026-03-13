@@ -13,28 +13,20 @@ interface AIRecoveryRecommendationProps {
 }
 
 const MUSCLE_KEYWORDS: Record<string, string[]> = {
-  chest: ["chest", "груди", "грудні", "pec", "bench"],
-  back: ["back", "спина", "спину", "lat", "row", "pull", "trap", "трапец", "широк", "поперек", "lower back"],
-  shoulders: ["shoulder", "плечі", "плеч", "delt", "overhead", "дельт"],
-  arms: ["arms", "arm", "руки", "bicep", "tricep", "біцепс", "трицепс", "curl", "передпліч", "forearm"],
-  core: ["core", "кор", "abs", "прес", "plank"],
-  "legs & glutes": ["leg", "legs", "ноги", "glute", "сідниці", "squat", "присід", "квадрицепс", "стегно", "quad", "hamstring", "calf", "литк"],
-};
-
-const FOCUS_TO_RECOVERY_GROUP: Record<string, string> = {
-  chest: "Chest",
-  frontDelts: "Shoulders",
-  rearDelts: "Shoulders",
-  traps: "Back",
-  lats: "Back",
-  lowerBack: "Back",
-  biceps: "Arms",
-  forearms: "Arms",
-  abs: "Core",
-  quads: "Legs & Glutes",
-  glutes: "Legs & Glutes",
-  hamstrings: "Legs & Glutes",
-  calves: "Legs & Glutes",
+  Chest: ["chest", "груди", "грудні", "pec", "bench"],
+  "Upper back": ["upper back", "верх спини", "trap", "трапец"],
+  Lats: ["lat", "широк", "pulldown", "row"],
+  "Lower back": ["lower back", "поперек", "hyperext"],
+  "Anterior delt": ["anterior delt", "передн", "front delt", "overhead"],
+  "Lateral delt": ["lateral delt", "середн", "lateral raise", "бічн"],
+  "Posterior delt": ["posterior delt", "задн", "rear delt", "face pull"],
+  Biceps: ["bicep", "біцепс", "curl"],
+  Triceps: ["tricep", "тріцепс", "pushdown", "extension"],
+  Quadriceps: ["quad", "квадр", "squat", "присід", "leg press"],
+  Glutes: ["glute", "сідниц", "hip thrust"],
+  Hamstrings: ["hamstring", "задня поверхня", "leg curl"],
+  Calves: ["calf", "calves", "литк", "calf raise"],
+  Core: ["core", "кор", "abs", "прес", "plank"],
 };
 
 const extractSuggestedMuscles = (text: string): string[] => {
