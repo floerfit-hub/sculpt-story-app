@@ -71,10 +71,14 @@ export function useRecovery() {
       const mergedMap = new Map<string, RecoveryData>();
 
       // Expand old grouped muscle_recovery into 17 segments
+      // Only use as fallback — computed workout data will override these
       (recoveryRows as RecoveryData[] | null | undefined)?.forEach((row) => {
+        const realtime = getRealtimeRecoveryPercent(row);
+        // If muscle is already fully recovered based on time, skip stale row
+        if (realtime >= 100) return;
+        
         const segments = OLD_GROUP_TO_SEGMENTS[row.muscle_group];
         if (segments) {
-          // Distribute to each segment
           segments.forEach((seg) => {
             if (!mergedMap.has(seg)) {
               mergedMap.set(seg, {
@@ -85,10 +89,9 @@ export function useRecovery() {
             }
           });
         } else {
-          // Already a segment name
           mergedMap.set(row.muscle_group, {
             ...row,
-            recovery_percent: getRealtimeRecoveryPercent(row),
+            recovery_percent: realtime,
           });
         }
       });
