@@ -11,6 +11,7 @@ import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info } from "
 import ExerciseLibrary from "./ExerciseLibrary";
 import RestTimer from "./RestTimer";
 import { useToast } from "@/hooks/use-toast";
+import confetti from "canvas-confetti";
 
 interface SetData { weight: number | ""; reps: number | ""; rest_time: number | null }
 interface WorkoutExercise { name: string; muscleGroup: string; sets: SetData[]; notes: string }
