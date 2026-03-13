@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { usePremium } from "@/hooks/usePremium";
 import { supabase } from "@/integrations/supabase/client";
@@ -279,15 +279,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Morning Check-in */}
-      <MorningCheckinCard onCheckin={setMorningCheckin} existingCheckin={morningCheckin} />
-
-      {/* Daily Readiness Score */}
-      <ReadinessScore recoveryData={recoveryData} checkin={morningCheckin} cnsFatigueHigh={cnsFatigueHigh} />
-
-      {/* CNS Fatigue Bar */}
-      <CNSFatigueBar lastHeavyCompoundAt={lastHeavyCompoundAt} />
-
       {!canLogEntry && nextCheckinDate && (
         <Card className="border-primary/20 gradient-glow">
           <CardContent className="flex items-center gap-4 p-4">
@@ -328,24 +319,6 @@ const Dashboard = () => {
 
       <PremiumGate feature="Muscle Heatmap Analytics">
         <MuscleHeatmap muscleData={muscleData} />
-      </PremiumGate>
-
-      <PremiumGate feature="Muscle Recovery Map">
-        <MuscleRecoveryMap
-          recoveryData={recoveryData}
-          highlightedMuscles={suggestedMuscles}
-          onMuscleSelect={setFocusedMuscle}
-          checkin={morningCheckin}
-          cnsFatigueHigh={cnsFatigueHigh}
-        />
-      </PremiumGate>
-
-      <PremiumGate feature="AI Recovery Recommendations">
-        <AIRecoveryRecommendation
-          recoveryData={recoveryData}
-          focusedMuscle={focusedMuscle}
-          onSuggestedMuscles={setSuggestedMuscles}
-        />
       </PremiumGate>
 
       <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />
@@ -405,9 +378,9 @@ const Dashboard = () => {
             <AlertDialogDescription>{t.dashboard.deleteConfirm}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">{t.dashboard.cancelDelete}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl">
-              {t.dashboard.confirmDelete}
+            <AlertDialogCancel>{t.workouts.cancel}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t.dashboard.deleteEntry}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
