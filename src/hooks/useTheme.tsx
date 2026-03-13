@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 
-type Theme = "dark" | "light";
+type Theme = "dark" | "light" | "midnight";
 
 interface ThemeContextType {
   theme: Theme;
@@ -13,16 +13,18 @@ const STORAGE_KEY = "fittrack-theme";
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved === "light" ? "light" : "dark";
+    const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
+    if (saved === "light" || saved === "midnight") return saved;
+    return "dark";
   });
 
   useEffect(() => {
     const root = document.documentElement;
+    root.classList.remove("dark", "midnight");
     if (theme === "dark") {
       root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
+    } else if (theme === "midnight") {
+      root.classList.add("dark", "midnight");
     }
   }, [theme]);
 
