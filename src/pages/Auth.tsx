@@ -11,13 +11,24 @@ import { Dumbbell } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 
+const SAVED_CREDS_KEY = "fittrack-saved-creds";
+
+const getSavedCreds = (): { email: string; password: string } | null => {
+  try {
+    const raw = localStorage.getItem(SAVED_CREDS_KEY);
+    if (!raw) return null;
+    return JSON.parse(atob(raw));
+  } catch { return null; }
+};
+
 const Auth = () => {
+  const saved = getSavedCreds();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(saved?.email || "");
+  const [password, setPassword] = useState(saved?.password || "");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(!!saved);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -51,10 +62,12 @@ const Auth = () => {
       if (error) {
         toast({ title: t.common.error, description: error.message, variant: "destructive" });
       } else {
-        if (!rememberMe) {
-          sessionStorage.setItem("forget-on-close", "true");
+        // Save or clear credentials based on "remember me"
+        if (rememberMe) {
+          localStorage.setItem(SAVED_CREDS_KEY, btoa(JSON.stringify({ email, password })));
         } else {
-          sessionStorage.removeItem("forget-on-close");
+          localStorage.removeItem(SAVED_CREDS_KEY);
+          sessionStorage.setItem("forget-on-close", "true");
         }
         navigate("/");
       }
