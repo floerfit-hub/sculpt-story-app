@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { useTranslation } from "@/i18n";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, UserCircle, Shield, Crown } from "lucide-react";
 import InstallPrompt from "@/components/InstallPrompt";
 
@@ -11,6 +12,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
   const { isPremium } = usePremium();
   const location = useLocation();
   const { t } = useTranslation();
+  useSwipeBack();
 
   const navItems = [
     { to: "/", icon: LayoutDashboard, label: t.nav.home },
@@ -80,7 +82,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
           <Link to="/privacy" className="hover:text-foreground transition-colors">Конфіденційність</Link>
           <Link to="/refund" className="hover:text-foreground transition-colors">Повернення</Link>
           <Link to="/contact" className="hover:text-foreground transition-colors">Контакти</Link>
-          <a href="mailto:support@fittrack.app" className="hover:text-foreground transition-colors">Підтримка</a>
+          <a href="mailto:ruslanstrus465@gmail.com" className="hover:text-foreground transition-colors">Підтримка</a>
         </div>
       </footer>
 
