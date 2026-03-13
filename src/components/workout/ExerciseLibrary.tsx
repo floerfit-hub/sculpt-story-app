@@ -188,9 +188,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => setActiveGroup(null)}><ArrowLeft className="h-5 w-5" /></Button>
           <h2 className="text-xl font-display font-bold flex-1">{getGroupLabel(activeGroup)}</h2>
-          <Button variant="outline" size="sm" className="border-dashed" onClick={() => { setShowAddForm(true); setNewGroup(activeGroup); }}>
-            <Plus className="h-4 w-4 mr-1" /> {t.workouts.add}
-          </Button>
         </div>
 
         {/* Inline add custom exercise form */}
@@ -237,6 +234,13 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             </Card>
           ))}
         </div>
+
+        {/* Add exercise button at the bottom */}
+        {!showAddForm && (
+          <Button variant="outline" className="w-full border-dashed" onClick={() => { setShowAddForm(true); setNewGroup(activeGroup); }}>
+            <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
+          </Button>
+        )}
       </div>
     );
   }
