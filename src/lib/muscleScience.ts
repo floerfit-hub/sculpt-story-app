@@ -172,6 +172,7 @@ export const EXERCISE_TO_PATTERN: Record<string, string> = {
   "Hip Thrust": "Glute bridge / Hip thrust",
   "Cable Glute Kickback": "Glute bridge / Hip thrust",
   "Standing Calf Raises": "Calf raises",
+  Deadlift: "Deadlift",
   // Core
   Plank: "Core / Abs",
   Crunches: "Core / Abs",
