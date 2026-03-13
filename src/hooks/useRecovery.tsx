@@ -10,7 +10,7 @@ import {
   type MuscleSegment,
 } from "@/lib/muscleScience";
 
-const CACHE_KEY_PREFIX = "muscle-recovery-cache-v3";
+const CACHE_KEY_PREFIX = "muscle-recovery-cache-v4";
 const CACHE_DURATION = 6 * 60 * 60 * 1000;
 
 type CachedRecovery = {
