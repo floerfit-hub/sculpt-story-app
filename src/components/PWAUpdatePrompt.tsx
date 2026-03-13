@@ -35,7 +35,7 @@ const PWAUpdatePrompt = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in">
-      <div className="rounded-xl border border-border bg-card p-4 shadow-lg">
+      <div className="rounded-xl border border-border bg-card p-6 shadow-2xl mx-4 max-w-sm w-full">
         <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
             <RefreshCw className="h-4 w-4 text-primary" />

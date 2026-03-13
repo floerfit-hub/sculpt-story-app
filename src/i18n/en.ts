@@ -28,6 +28,11 @@ export const en = {
     checkEmail: "Check your email",
     confirmationSent: "We sent you a confirmation link.",
     rememberMe: "Remember me",
+    acceptTerms: "I agree to the",
+    termsLink: "Terms of Service",
+    andPrivacy: "and",
+    privacyLink: "Privacy Policy",
+    mustAcceptTerms: "You must accept the terms to continue",
   },
 
   // Dashboard
