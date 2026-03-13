@@ -83,6 +83,10 @@ const Auth = () => {
               <Label htmlFor="password" className="text-sm font-medium">{t.auth.password}</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
             </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="remember" checked={rememberMe} onCheckedChange={(v) => setRememberMe(!!v)} />
+              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">{t.auth.rememberMe || "Запам'ятати мене"}</Label>
+            </div>
             <Button type="submit" className="w-full h-12 text-base font-bold" disabled={loading}>
               {loading ? t.auth.loading : isSignUp ? t.auth.signUp : t.auth.logIn}
             </Button>
