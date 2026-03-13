@@ -44,7 +44,7 @@ interface ExerciseInfo {
 const Dashboard = () => {
   const { user, profile } = useAuth();
   const { isPremium } = usePremium();
-  const { t, lang, setLanguage } = useTranslation();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
