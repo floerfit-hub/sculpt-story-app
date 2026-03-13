@@ -203,10 +203,14 @@ export function useRecovery() {
           }
         });
 
-        // Convert to RecoveryData
+        // Convert to RecoveryData — skip negligible synergist-only loads
         Object.entries(muscleLoads).forEach(([muscle, load]) => {
           const totalSets = load.directSets + load.synergistSets;
-          const fatigueScore = Math.min(100, Math.max(20, totalSets * load.intensityMax * 12));
+          // If only synergist load and it's tiny (< 1 effective set), skip entirely
+          if (load.directSets === 0 && load.synergistSets < 1) return;
+          const fatigueScore = Math.min(100, Math.round(totalSets * load.intensityMax * 12));
+          // If fatigue is negligible, don't create a recovery entry
+          if (fatigueScore < 5) return;
           const lastTrainedAt = new Date(load.lastMs || Date.now()).toISOString();
 
           const row: RecoveryData = {
