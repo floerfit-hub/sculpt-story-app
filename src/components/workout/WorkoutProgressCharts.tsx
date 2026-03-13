@@ -25,6 +25,7 @@ interface PerfRow {
 }
 
 const WorkoutProgressCharts = ({ onBack }: { onBack: () => void }) => {
+  useSwipeBackHandler(useCallback(() => { onBack(); return true; }, [onBack]));
   const { user } = useAuth();
   const { t } = useTranslation();
   const [exerciseData, setExerciseData] = useState<Record<string, ChartPoint[]>>({});

@@ -74,6 +74,7 @@ interface WorkoutHistoryProps {
 }
 
 const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
+  useSwipeBackHandler(useCallback(() => { onBack(); return true; }, [onBack]));
   const { user } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
