@@ -17,29 +17,29 @@ const Pricing = () => {
   const [loading, setLoading] = useState<string | null>(null);
 
   const proFeatures = [
-    { icon: BarChart3, label: "Advanced Muscle-Group Analytics", desc: "Detailed heatmaps showing training volume per muscle group over 30 days" },
-    { icon: Target, label: "Unlimited Workout History", desc: "Access your complete workout history with date filters and search" },
-    { icon: Brain, label: "AI Training Insights", desc: "Personalized recommendations, plateau detection, and training optimization" },
-    { icon: Flame, label: "Fitness Score Dashboard", desc: "Comprehensive fitness score based on training, strength, and body metrics" },
-    { icon: Zap, label: "Body Composition Dashboard", desc: "Track body fat, lean mass trends, and detailed measurement analytics" },
-    { icon: Camera, label: "Advanced Progress Photos", desc: "Side-by-side photo comparison with timeline view" },
-    { icon: Shield, label: "Priority Support", desc: "Get faster responses from our support team" },
-    { icon: Dumbbell, label: "Strength Progression Charts", desc: "Visualize your 1RM estimates and weight progression over time" },
+    { icon: BarChart3, label: "Розширена аналітика м'язових груп", desc: "Детальні теплові карти обсягу тренувань по м'язових групах за 30 днів" },
+    { icon: Target, label: "Необмежена історія тренувань", desc: "Доступ до повної історії тренувань з фільтрами за датою та пошуком" },
+    { icon: Brain, label: "AI-інсайти тренувань", desc: "Персоналізовані рекомендації, виявлення плато та оптимізація тренувань" },
+    { icon: Flame, label: "Панель Fitness Score", desc: "Комплексна оцінка фітнесу на основі тренувань, сили та показників тіла" },
+    { icon: Zap, label: "Панель складу тіла", desc: "Відстеження жиру, м'язової маси та детальна аналітика вимірювань" },
+    { icon: Camera, label: "Розширені фото прогресу", desc: "Порівняння фото поруч з переглядом по хронології" },
+    { icon: Shield, label: "Пріоритетна підтримка", desc: "Отримуйте швидші відповіді від нашої команди підтримки" },
+    { icon: Dumbbell, label: "Графіки прогресу сили", desc: "Візуалізуйте оцінки 1ПМ та прогрес ваги з часом" },
   ];
 
   const comparisonRows = [
-    { feature: "Workout logging (40+ exercises)", free: true, pro: true },
-    { feature: "Basic body measurements tracking", free: true, pro: true },
-    { feature: "Progress photo uploads", free: true, pro: true },
-    { feature: "Calorie & macro calculator", free: true, pro: true },
-    { feature: "Bi-weekly progress check-ins", free: true, pro: true },
-    { feature: "Muscle group heatmap analytics", free: false, pro: true },
-    { feature: "AI-powered training insights", free: false, pro: true },
-    { feature: "Fitness Score dashboard", free: false, pro: true },
-    { feature: "Body composition analytics", free: false, pro: true },
-    { feature: "Advanced strength charts", free: false, pro: true },
-    { feature: "Unlimited workout history", free: false, pro: true },
-    { feature: "Priority support", free: false, pro: true },
+    { feature: "Логування тренувань (40+ вправ)", free: true, pro: true },
+    { feature: "Базове відстеження вимірювань тіла", free: true, pro: true },
+    { feature: "Завантаження фото прогресу", free: true, pro: true },
+    { feature: "Калькулятор калорій та макросів", free: true, pro: true },
+    { feature: "Перевірка прогресу кожні два тижні", free: true, pro: true },
+    { feature: "Теплова карта м'язових груп", free: false, pro: true },
+    { feature: "AI-інсайти тренувань", free: false, pro: true },
+    { feature: "Панель Fitness Score", free: false, pro: true },
+    { feature: "Аналітика складу тіла", free: false, pro: true },
+    { feature: "Розширені графіки сили", free: false, pro: true },
+    { feature: "Необмежена історія тренувань", free: false, pro: true },
+    { feature: "Пріоритетна підтримка", free: false, pro: true },
   ];
 
   const { activateMockPremium, cooldown } = usePremium();
@@ -65,8 +65,8 @@ const Pricing = () => {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-display font-extrabold">Upgrade to FitTrack Pro</h1>
-            <p className="text-sm text-muted-foreground mt-1">Unlock the full power of your fitness tracking</p>
+            <h1 className="text-2xl font-display font-extrabold">Оновити до FitTrack Pro</h1>
+            <p className="text-sm text-muted-foreground mt-1">Розблокуйте повну потужність відстеження фітнесу</p>
           </div>
         </div>
 
@@ -75,14 +75,14 @@ const Pricing = () => {
           <CardContent className="p-4 flex gap-3 items-start">
             <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <p className="text-sm text-muted-foreground">
-              Paddle Checkout will be active once account verification is complete. Premium features are enabled for testing.
+              Paddle Checkout буде активний після завершення верифікації акаунта. Преміум-функції увімкнені для тестування.
             </p>
           </CardContent>
         </Card>
 
         {/* Pro Features List */}
         <div>
-          <h2 className="text-lg font-display font-bold mb-4">What's Included in Pro</h2>
+          <h2 className="text-lg font-display font-bold mb-4">Що входить у Pro</h2>
           <div className="space-y-2.5">
             {proFeatures.map(({ icon: Icon, label, desc }) => (
               <div key={label} className="flex items-start gap-3 rounded-xl border border-border/50 p-3.5">
@@ -101,15 +101,15 @@ const Pricing = () => {
 
         {/* Comparison Table */}
         <div>
-          <h2 className="text-lg font-display font-bold mb-4">Free vs Pro Comparison</h2>
+          <h2 className="text-lg font-display font-bold mb-4">Безкоштовний vs Pro</h2>
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-left p-3 font-display font-bold">Feature</th>
-                      <th className="text-center p-3 font-display font-bold w-20">Free</th>
+                      <th className="text-left p-3 font-display font-bold">Функція</th>
+                      <th className="text-center p-3 font-display font-bold w-20">Безкошт.</th>
                       <th className="text-center p-3 font-display font-bold w-20 text-primary">Pro</th>
                     </tr>
                   </thead>
@@ -134,21 +134,21 @@ const Pricing = () => {
 
         {/* Pricing Cards */}
         <div>
-          <h2 className="text-lg font-display font-bold mb-4">Choose Your Plan</h2>
+          <h2 className="text-lg font-display font-bold mb-4">Оберіть свій план</h2>
           <div className="grid grid-cols-2 gap-4">
             <Card>
               <CardContent className="p-5 text-center space-y-3">
                 <p className="font-display font-bold">{t.premium.monthly}</p>
                 <p className="text-3xl font-display font-extrabold">$1</p>
                 <p className="text-xs text-muted-foreground">/ {t.premium.month}</p>
-                <p className="text-[10px] text-muted-foreground">7-day free trial included</p>
+                <p className="text-[10px] text-muted-foreground">Включає 7 днів безкоштовного тріалу</p>
                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={() => handleBuy("monthly")}
                   disabled={loading !== null || cooldown}
                 >
-                  {loading === "monthly" ? t.premium.activating : "Start Free Trial"}
+                  {loading === "monthly" ? t.premium.activating : "Почати тріал"}
                 </Button>
               </CardContent>
             </Card>
@@ -161,13 +161,13 @@ const Pricing = () => {
                 <p className="font-display font-bold">{t.premium.yearly}</p>
                 <p className="text-3xl font-display font-extrabold">$10</p>
                 <p className="text-xs text-muted-foreground">/ {t.premium.year}</p>
-                <p className="text-[10px] text-muted-foreground">7-day free trial · Save 17%</p>
+                <p className="text-[10px] text-muted-foreground">7 днів безкоштовно · Економія 17%</p>
                 <Button
                   className="w-full"
                   onClick={() => handleBuy("yearly")}
                   disabled={loading !== null || cooldown}
                 >
-                  {loading === "yearly" ? t.premium.activating : "Start Free Trial"}
+                  {loading === "yearly" ? t.premium.activating : "Почати тріал"}
                 </Button>
               </CardContent>
             </Card>
@@ -176,13 +176,13 @@ const Pricing = () => {
 
         {/* FAQ / Trust */}
         <div className="space-y-3">
-          <h2 className="text-lg font-display font-bold">Frequently Asked Questions</h2>
+          <h2 className="text-lg font-display font-bold">Часті запитання</h2>
           <div className="space-y-2">
             {[
-              { q: "Can I cancel anytime?", a: "Yes. Cancel from your Profile at any time. You keep access until the end of your billing period." },
-              { q: "Is there a free trial?", a: "Yes! Every Pro subscription starts with a 7-day free trial. You won't be charged during the trial." },
-              { q: "What payment methods are accepted?", a: "We accept credit/debit cards, PayPal, and other methods through our payment provider Paddle." },
-              { q: "Can I get a refund?", a: "Yes. Full refunds are available within 7 days of your first payment (14 days for yearly plans)." },
+              { q: "Чи можу я скасувати в будь-який момент?", a: "Так. Скасуйте з вашого профілю в будь-який час. Доступ зберігається до кінця оплаченого періоду." },
+              { q: "Чи є безкоштовний тріал?", a: "Так! Кожна Pro-підписка починається з 7 днів безкоштовного тріалу. Під час тріалу оплата не стягується." },
+              { q: "Які способи оплати приймаються?", a: "Ми приймаємо кредитні/дебетові картки, PayPal та інші методи через Paddle." },
+              { q: "Чи можу я отримати повернення коштів?", a: "Так. Повне повернення доступне протягом 7 днів після першого платежу (14 днів для річних планів)." },
             ].map(({ q, a }) => (
               <Card key={q}>
                 <CardContent className="p-4">
@@ -196,10 +196,10 @@ const Pricing = () => {
 
         {/* Footer links */}
         <div className="flex justify-center gap-4 text-xs text-muted-foreground pt-4 pb-8">
-          <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-          <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-          <Link to="/refund" className="hover:text-foreground transition-colors">Refund</Link>
-          <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+          <Link to="/terms" className="hover:text-foreground transition-colors">Умови</Link>
+          <Link to="/privacy" className="hover:text-foreground transition-colors">Конфіденційність</Link>
+          <Link to="/refund" className="hover:text-foreground transition-colors">Повернення</Link>
+          <Link to="/contact" className="hover:text-foreground transition-colors">Контакти</Link>
         </div>
       </div>
     </div>
