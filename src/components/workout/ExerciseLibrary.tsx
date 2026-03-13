@@ -199,6 +199,32 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             </Card>
           ))}
         </div>
+
+        {/* Inline add custom exercise form for this group */}
+        {showAddForm && newGroup === activeGroup ? (
+          <Card className="border-primary/20">
+            <CardContent className="p-4 space-y-3">
+              <Input
+                placeholder={t.workouts.customExerciseName}
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                maxLength={100}
+              />
+              <div className="flex gap-2">
+                <Button className="flex-1" onClick={addCustomExercise} disabled={!newName.trim()}>
+                  {t.workouts.add}
+                </Button>
+                <Button variant="outline" onClick={() => { setShowAddForm(false); setNewName(""); setNewGroup(""); }}>
+                  {t.workouts.cancel}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Button variant="outline" className="w-full border-dashed" onClick={() => { setShowAddForm(true); setNewGroup(activeGroup); }}>
+            <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
+          </Button>
+        )}
       </div>
     );
   }
