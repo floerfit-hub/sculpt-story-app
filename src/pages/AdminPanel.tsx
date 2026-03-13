@@ -43,6 +43,7 @@ const AdminPanel = () => {
   const [clients, setClients] = useState<ClientData[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [tab, setTab] = useState<"progress" | "photos" | "workouts">("progress");
   const [roleDialog, setRoleDialog] = useState<{ userId: string; currentRoles: string[] } | null>(null);
   const [newRole, setNewRole] = useState<string>("");
