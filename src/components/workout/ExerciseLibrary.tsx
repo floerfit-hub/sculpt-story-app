@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 interface Props { onBack: () => void; onSelect?: (name: string, group: string) => void; selectable?: boolean }
 
 const MUSCLE_EMOJIS: Record<MuscleGroup, string> = {
-  "Legs & Glutes": "🦵", "Back": "🔙", "Chest": "💪", "Shoulders": "🏋️", "Arms": "💪", "Core": "🧱",
+  "Legs & Glutes": "🦵", "Back": "🔙", "Chest": "💪", "Shoulders": "🏋️", "Arms": "💪", "Abs": "🧱", "Lower Back": "🔗", "Calves": "🦶",
 };
 
 const MUSCLE_GROUP_KEYS: Record<MuscleGroup, string> = {
@@ -22,7 +22,9 @@ const MUSCLE_GROUP_KEYS: Record<MuscleGroup, string> = {
   "Chest": "chest",
   "Shoulders": "shoulders",
   "Arms": "arms",
-  "Core": "core",
+  "Abs": "abs",
+  "Lower Back": "lowerBack",
+  "Calves": "calves",
 };
 
 interface CustomExercise {
