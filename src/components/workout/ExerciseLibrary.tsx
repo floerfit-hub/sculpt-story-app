@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "@/i18n";
 import { useAuth } from "@/hooks/useAuth";
+import { useSwipeBackHandler } from "@/hooks/useSwipeBack";
 import { supabase } from "@/integrations/supabase/client";
 import { MUSCLE_GROUPS, getExercisesByGroup, type MuscleGroup } from "@/data/exerciseLibrary";
 import { Button } from "@/components/ui/button";
