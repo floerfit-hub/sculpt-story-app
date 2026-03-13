@@ -11,6 +11,7 @@ import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info } from "
 import ExerciseLibrary from "./ExerciseLibrary";
 import RestTimer from "./RestTimer";
 import { useToast } from "@/hooks/use-toast";
+import confetti from "canvas-confetti";
 
 interface SetData { weight: number | ""; reps: number | ""; rest_time: number | null }
 interface WorkoutExercise { name: string; muscleGroup: string; sets: SetData[]; notes: string }
@@ -103,6 +104,26 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [saved, setSaved] = useState(false);
   const [finalDuration, setFinalDuration] = useState<number>(0);
   const [showRestTooltip, setShowRestTooltip] = useState(false);
+  const prMapRef = useRef<Map<string, number>>(new Map());
+
+  // Load existing PRs for confetti detection
+  useEffect(() => {
+    if (!user) return;
+    const loadPRs = async () => {
+      const { data: userWorkouts } = await supabase.from("workouts").select("id").eq("user_id", user.id);
+      if (!userWorkouts?.length) return;
+      const wIds = userWorkouts.map(w => w.id);
+      const { data: sets } = await supabase.from("workout_sets").select("exercise_id, weight").in("workout_id", wIds);
+      if (!sets) return;
+      const map = new Map<string, number>();
+      for (const s of sets) {
+        const current = map.get(s.exercise_id) || 0;
+        if (s.weight > current) map.set(s.exercise_id, s.weight);
+      }
+      prMapRef.current = map;
+    };
+    loadPRs();
+  }, [user]);
 
   // Track time of last set completion for auto rest tracking
   const lastSetTimeRef = useRef<number | null>(null);
@@ -197,6 +218,27 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
       c[exIdx] = { ...c[exIdx], sets };
       return c;
     });
+
+    // Check for new PR on weight entry
+    if (field === "weight" && val !== "") {
+      const weight = Number(val);
+      const exName = exercises[exIdx]?.name;
+      const exGroup = exercises[exIdx]?.muscleGroup;
+      if (weight > 0 && exName) {
+        // We need exercise_id - resolve async
+        resolveExerciseIds([{ name: exName, muscleGroup: exGroup }]).then((idMap) => {
+          const exId = idMap.get(`${exName}::${exGroup}`);
+          if (exId) {
+            const currentPR = prMapRef.current.get(exId) || 0;
+            if (weight > currentPR && currentPR > 0) {
+              prMapRef.current.set(exId, weight);
+              confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+              toast({ title: t.pr.newRecord, description: `${t.exerciseNames[exName] || exName}: ${weight} ${t.common.kg}` });
+            }
+          }
+        });
+      }
+    }
 
     // Mark time when a set value is entered (for auto rest tracking)
     if (field === "reps" && val !== "") {

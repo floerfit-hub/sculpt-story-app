@@ -1,13 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { usePremium } from "@/hooks/usePremium";
+import PersonalRecords from "@/components/dashboard/PersonalRecords";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { PlusCircle, Clock, Pencil, Trash2, Crown, Globe } from "lucide-react";
+import { PlusCircle, Clock, Pencil, Trash2, Crown } from "lucide-react";
 import { format, differenceInDays, addDays, startOfMonth, subDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
@@ -43,7 +44,7 @@ interface ExerciseInfo {
 const Dashboard = () => {
   const { user, profile } = useAuth();
   const { isPremium } = usePremium();
-  const { t, lang, setLanguage } = useTranslation();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
@@ -263,10 +264,6 @@ const Dashboard = () => {
           <p className="text-muted-foreground mt-1 text-sm">{t.dashboard.trackTransformation}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setLanguage(lang === "uk" ? "en" : "uk")}>
-            <Globe className="h-3.5 w-3.5" />
-            {lang === "uk" ? "ENG" : "УКР"}
-          </Button>
           {canLogEntry ? (
             <Link to="/add-entry">
               <Button size="sm"><PlusCircle className="mr-1.5 h-4 w-4" />{t.dashboard.newEntry}</Button>
@@ -322,6 +319,8 @@ const Dashboard = () => {
       </PremiumGate>
 
       <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />
+
+      <PersonalRecords />
 
       <NutritionSummary nutrition={nutrition} />
 
