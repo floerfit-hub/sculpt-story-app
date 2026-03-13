@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { PlusCircle, Clock, Pencil, Trash2, Crown } from "lucide-react";
 import { format, differenceInDays, addDays, startOfMonth, subDays } from "date-fns";
+import { uk as ukLocale } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -242,20 +243,6 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      {isPremium && (
-        <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15">
-              <Crown className="h-4.5 w-4.5 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-display font-bold">Дякуємо за Pro підписку! 🏆</p>
-              <p className="text-xs text-muted-foreground">Всі преміум-функції розблоковано.</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-extrabold tracking-tight">
@@ -276,19 +263,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {!canLogEntry && nextCheckinDate && (
-        <Card className="border-primary/20 gradient-glow">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-              <Clock className="h-4 w-4 text-primary" />
-            </div>
-            <p className="text-sm">
-              {t.dashboard.nextCheckin}{" "}
-              <span className="font-bold text-primary">{daysUntilCheckin} {daysUntilCheckin !== 1 ? t.dashboard.days : t.dashboard.day}</span>
-            </p>
-          </CardContent>
-        </Card>
-      )}
 
       {canLogEntry && entries.length > 0 && (
         <Card className="border-primary/20 gradient-glow">
@@ -347,7 +321,7 @@ const Dashboard = () => {
               {sortedEntriesDesc.slice(0, 5).map((entry, i) => (
                 <div key={entry.id} className="flex items-center justify-between rounded-xl border border-border/50 p-3 transition-all hover:bg-accent/30 animate-fade-in" style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}>
                   <div className="flex-1 min-w-0">
-                    <p className="font-display font-semibold text-sm">{format(new Date(entry.entry_date), "MMM d, yyyy")}</p>
+                    <p className="font-display font-semibold text-sm">{format(new Date(entry.entry_date), "d MMM yyyy", { locale: ukLocale })}</p>
                     <p className="text-xs text-muted-foreground truncate mt-0.5">
                       {[entry.weight && `${entry.weight}${t.common.kg}`, entry.waist && `${t.dashboard.waist}: ${entry.waist}${t.common.cm}`, entry.body_fat && `BF: ${entry.body_fat}%`].filter(Boolean).join(" · ")}
                     </p>
