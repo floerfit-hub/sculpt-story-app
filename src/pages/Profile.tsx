@@ -120,9 +120,6 @@ const Profile = () => {
             <Button variant={theme === "light" ? "default" : "outline"} className="flex-1" onClick={() => setTheme("light")}>
               <Sun className="mr-1 h-4 w-4" /> {t.profile.light}
             </Button>
-            <Button variant={theme === "midnight" ? "default" : "outline"} className="flex-1" onClick={() => setTheme("midnight")}>
-              <Stars className="mr-1 h-4 w-4" /> {t.profile.midnight}
-            </Button>
           </div>
         </CardContent>
       </Card>

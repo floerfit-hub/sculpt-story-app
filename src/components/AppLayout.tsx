@@ -11,7 +11,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
   const { isPremium } = usePremium();
   const location = useLocation();
   const { t } = useTranslation();
-  useSwipeBack();
+  
 
   const navItems = [
     { to: "/", icon: LayoutDashboard, label: t.nav.home },
