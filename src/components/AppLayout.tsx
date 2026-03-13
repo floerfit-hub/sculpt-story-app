@@ -23,6 +23,24 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     { to: "/profile", icon: UserCircle, label: t.nav.profile },
   ];
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!touchStart.current) return;
+    const dx = e.changedTouches[0].clientX - touchStart.current.x;
+    const dy = e.changedTouches[0].clientY - touchStart.current.y;
+    touchStart.current = null;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.7) return;
+    const currentIndex = navItems.findIndex((item) => item.to === location.pathname);
+    if (currentIndex === -1) return;
+    const nextIndex = dx < 0 ? currentIndex + 1 : currentIndex - 1;
+    if (nextIndex >= 0 && nextIndex < navItems.length) {
+      navigate(navItems[nextIndex].to);
+    }
+  }, [navItems, location.pathname, navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 glass-strong safe-top">
@@ -47,7 +65,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
         </div>
       </header>
 
-      <main className="px-5 py-6 pb-28 lg:pb-8 max-w-2xl mx-auto">{children}</main>
+      <main className="px-5 py-6 pb-28 lg:pb-8 max-w-2xl mx-auto" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>{children}</main>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong safe-bottom">
         <div className="flex justify-around py-2 max-w-lg mx-auto">
