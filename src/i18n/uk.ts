@@ -213,6 +213,7 @@ export const uk: Translations = {
     "Barbell Row": "Тяга штанги в нахилі",
     "Hyperextensions": "Гіперекстензія",
     "Face Pull": "Фейс пул",
+    "Barbell Bench Press": "Жим штанги лежачи",
     "Incline Barbell Bench Press": "Жим штанги під кутом",
     "Hammer Strength Chest Press": "Жим у хамері",
     "Cable Chest Fly": "Зведення рук у кросовері",
