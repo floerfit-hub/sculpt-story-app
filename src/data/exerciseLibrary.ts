@@ -23,6 +23,7 @@ export const EXERCISES: Exercise[] = [
   { name: "Lying Leg Curl", muscleGroup: "Legs & Glutes" },
   { name: "Leg Extension", muscleGroup: "Legs & Glutes" },
   { name: "Standing Calf Raises", muscleGroup: "Legs & Glutes" },
+  { name: "Deadlift", muscleGroup: "Legs & Glutes" },
   // Back
   { name: "Lat Pulldown", muscleGroup: "Back" },
   { name: "Seated Cable Row", muscleGroup: "Back" },
