@@ -320,6 +320,8 @@ const Dashboard = () => {
 
       <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />
 
+      <PersonalRecords />
+
       <NutritionSummary nutrition={nutrition} />
 
       <PremiumGate feature="AI Training Insights">
