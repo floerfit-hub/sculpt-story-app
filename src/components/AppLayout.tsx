@@ -5,7 +5,7 @@ import { usePremium } from "@/hooks/usePremium";
 import { useTranslation } from "@/i18n";
 import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, UserCircle, Shield, Crown } from "lucide-react";
-import InstallPrompt from "@/components/InstallPrompt";
+
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
   const { profile, isAdmin } = useAuth();
