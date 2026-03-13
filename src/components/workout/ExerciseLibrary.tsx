@@ -42,15 +42,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const [newName, setNewName] = useState("");
   const [newGroup, setNewGroup] = useState<MuscleGroup | "">("");
 
-  // Swipe left exits the current muscle group folder, or goes back to hub
-  useSwipeBackHandler(useCallback(() => {
-    if (activeGroup) {
-      setActiveGroup(null);
-      return true;
-    }
-    onBack();
-    return true;
-  }, [activeGroup, onBack]));
 
   useEffect(() => {
     if (!user) return;

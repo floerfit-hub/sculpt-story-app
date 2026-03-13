@@ -101,12 +101,6 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   });
   const [showLibrary, setShowLibrary] = useState(false);
 
-  // Swipe left = back arrow
-  useSwipeBackHandler(useCallback(() => {
-    if (showLibrary) return false; // Let ExerciseLibrary handle its own swipe
-    onBack();
-    return true;
-  }, [showLibrary, onBack]));
   const [showTimer, setShowTimer] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
