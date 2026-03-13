@@ -321,7 +321,7 @@ const Dashboard = () => {
               {sortedEntriesDesc.slice(0, 5).map((entry, i) => (
                 <div key={entry.id} className="flex items-center justify-between rounded-xl border border-border/50 p-3 transition-all hover:bg-accent/30 animate-fade-in" style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}>
                   <div className="flex-1 min-w-0">
-                    <p className="font-display font-semibold text-sm">{format(new Date(entry.entry_date), "MMM d, yyyy")}</p>
+                    <p className="font-display font-semibold text-sm">{format(new Date(entry.entry_date), "d MMM yyyy", { locale: ukLocale })}</p>
                     <p className="text-xs text-muted-foreground truncate mt-0.5">
                       {[entry.weight && `${entry.weight}${t.common.kg}`, entry.waist && `${t.dashboard.waist}: ${entry.waist}${t.common.cm}`, entry.body_fat && `BF: ${entry.body_fat}%`].filter(Boolean).join(" · ")}
                     </p>

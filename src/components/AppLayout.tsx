@@ -77,7 +77,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       </nav>
 
 
-      <InstallPrompt />
+      
     </div>
   );
 };
