@@ -489,7 +489,7 @@ export const uk: Translations = {
 
   recovery: {
     title: "Відновлення м'язів",
-    subtitle: "17 сегментів з системою синергістів",
+    subtitle: "8 груп з системою синергістів",
     recoveryLabel: "Відновлення",
     ready: "Готовий до тренування",
     almostReady: "Майже готовий",
