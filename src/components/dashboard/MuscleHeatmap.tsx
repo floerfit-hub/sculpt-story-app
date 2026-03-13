@@ -16,9 +16,7 @@ const MuscleHeatmap = ({ muscleData }: MuscleHeatmapProps) => {
     "Chest": t.muscleGroups.chest,
     "Shoulders": t.muscleGroups.shoulders,
     "Arms": t.muscleGroups.arms,
-    "Abs": t.muscleGroups.abs,
-    "Lower Back": t.muscleGroups.lowerBack,
-    "Calves": t.muscleGroups.calves,
+    "Core": t.muscleGroups.core,
   };
 
   return (

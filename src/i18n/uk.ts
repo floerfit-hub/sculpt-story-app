@@ -169,9 +169,7 @@ export const uk: Translations = {
     shoulders: "Плечі",
     arms: "Руки",
     legsGlutes: "Ноги та сідниці",
-    abs: "Прес",
-    lowerBack: "Поперек",
-    calves: "Литки",
+    core: "Кор",
   },
 
   exerciseLib: {
