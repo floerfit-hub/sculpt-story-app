@@ -65,7 +65,9 @@ const PersonalRecords = () => {
   const [leaderboardExercise, setLeaderboardExercise] = useState("");
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardReps, setLeaderboardReps] = useState<number>(1);
   const [isVisible, setIsVisible] = useState(false);
+  const [togglingVisibility, setTogglingVisibility] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
 
   useEffect(() => {
