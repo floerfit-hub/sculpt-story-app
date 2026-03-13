@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "@/i18n";
 import { useAuth } from "@/hooks/useAuth";
-import { useSwipeBackHandler } from "@/hooks/useSwipeBack";
+
 import { supabase } from "@/integrations/supabase/client";
 import { MUSCLE_GROUPS, getExercisesByGroup, type MuscleGroup } from "@/data/exerciseLibrary";
 import { Button } from "@/components/ui/button";
@@ -42,15 +42,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const [newName, setNewName] = useState("");
   const [newGroup, setNewGroup] = useState<MuscleGroup | "">("");
 
-  // Swipe left exits the current muscle group folder, or goes back to hub
-  useSwipeBackHandler(useCallback(() => {
-    if (activeGroup) {
-      setActiveGroup(null);
-      return true;
-    }
-    onBack();
-    return true;
-  }, [activeGroup, onBack]));
 
   useEffect(() => {
     if (!user) return;

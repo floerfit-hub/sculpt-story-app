@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { useSwipeBackHandler } from "@/hooks/useSwipeBack";
+import { useEffect, useState } from "react";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,7 +74,7 @@ interface WorkoutHistoryProps {
 }
 
 const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
-  useSwipeBackHandler(useCallback(() => { onBack(); return true; }, [onBack]));
+  
   const { user } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();

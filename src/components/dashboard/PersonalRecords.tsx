@@ -65,6 +65,7 @@ const PersonalRecords = () => {
   const [leaderboardExercise, setLeaderboardExercise] = useState("");
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardReps, setLeaderboardReps] = useState<number>(1);
   const [isVisible, setIsVisible] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
 
@@ -147,11 +148,12 @@ const PersonalRecords = () => {
     setLoading(false);
   };
 
-  const fetchLeaderboard = useCallback(async (exerciseName: string) => {
+  const fetchLeaderboard = useCallback(async (exerciseName: string, minReps: number) => {
     setLeaderboardLoading(true);
     const { data, error } = await supabase.rpc("get_exercise_leaderboard", {
       _exercise_name: exerciseName,
-    });
+      _min_reps: minReps,
+    } as any);
     if (!error && data) setLeaderboard(data as LeaderboardEntry[]);
     else setLeaderboard([]);
     setLeaderboardLoading(false);
@@ -159,9 +161,9 @@ const PersonalRecords = () => {
 
   useEffect(() => {
     if (tab === "leaderboard" && leaderboardExercise) {
-      fetchLeaderboard(leaderboardExercise);
+      fetchLeaderboard(leaderboardExercise, leaderboardReps);
     }
-  }, [tab, leaderboardExercise, fetchLeaderboard]);
+  }, [tab, leaderboardExercise, leaderboardReps, fetchLeaderboard]);
 
   // Auto-select first exercise when switching to leaderboard
   useEffect(() => {
@@ -485,6 +487,21 @@ const PersonalRecords = () => {
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Rep filter buttons */}
+              <div className="flex gap-1">
+                {[1, 5, 10].map((reps) => (
+                  <Button
+                    key={reps}
+                    variant={leaderboardReps === reps ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1 h-7 text-xs"
+                    onClick={() => setLeaderboardReps(reps)}
+                  >
+                    {reps} повт
+                  </Button>
+                ))}
+              </div>
 
               {/* Leaderboard list */}
               {leaderboardLoading ? (

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Stars } from "lucide-react";
+import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail } from "lucide-react";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 
 const LANGUAGES: { code: Language; label: string }[] = [
@@ -107,7 +107,7 @@ const Profile = () => {
       <Card>
         <CardHeader>
           <CardTitle className="font-display text-lg flex items-center gap-2">
-            {theme === "midnight" ? <Stars className="h-5 w-5 text-primary" /> : theme === "dark" ? <Moon className="h-5 w-5 text-primary" /> : <Sun className="h-5 w-5 text-primary" />}
+            {theme === "dark" ? <Moon className="h-5 w-5 text-primary" /> : <Sun className="h-5 w-5 text-primary" />}
             {t.profile.theme}
           </CardTitle>
         </CardHeader>
@@ -119,9 +119,6 @@ const Profile = () => {
             </Button>
             <Button variant={theme === "light" ? "default" : "outline"} className="flex-1" onClick={() => setTheme("light")}>
               <Sun className="mr-1 h-4 w-4" /> {t.profile.light}
-            </Button>
-            <Button variant={theme === "midnight" ? "default" : "outline"} className="flex-1" onClick={() => setTheme("midnight")}>
-              <Stars className="mr-1 h-4 w-4" /> {t.profile.midnight}
             </Button>
           </div>
         </CardContent>
