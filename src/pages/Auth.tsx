@@ -62,10 +62,12 @@ const Auth = () => {
       if (error) {
         toast({ title: t.common.error, description: error.message, variant: "destructive" });
       } else {
-        if (!rememberMe) {
-          sessionStorage.setItem("forget-on-close", "true");
+        // Save or clear credentials based on "remember me"
+        if (rememberMe) {
+          localStorage.setItem(SAVED_CREDS_KEY, btoa(JSON.stringify({ email, password })));
         } else {
-          sessionStorage.removeItem("forget-on-close");
+          localStorage.removeItem(SAVED_CREDS_KEY);
+          sessionStorage.setItem("forget-on-close", "true");
         }
         navigate("/");
       }
