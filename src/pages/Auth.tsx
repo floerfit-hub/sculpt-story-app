@@ -44,6 +44,11 @@ const Auth = () => {
       if (error) {
         toast({ title: t.common.error, description: error.message, variant: "destructive" });
       } else {
+        if (!rememberMe) {
+          sessionStorage.setItem("forget-on-close", "true");
+        } else {
+          sessionStorage.removeItem("forget-on-close");
+        }
         navigate("/");
       }
     }
