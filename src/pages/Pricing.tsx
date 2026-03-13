@@ -82,7 +82,7 @@ const Pricing = () => {
 
         {/* Pro Features List */}
         <div>
-          <h2 className="text-lg font-display font-bold mb-4">What's Included in Pro</h2>
+          <h2 className="text-lg font-display font-bold mb-4">Що входить у Pro</h2>
           <div className="space-y-2.5">
             {proFeatures.map(({ icon: Icon, label, desc }) => (
               <div key={label} className="flex items-start gap-3 rounded-xl border border-border/50 p-3.5">
