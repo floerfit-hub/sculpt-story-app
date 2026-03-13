@@ -10,7 +10,7 @@ import {
   type MuscleSegment,
 } from "@/lib/muscleScience";
 
-const CACHE_KEY_PREFIX = "muscle-recovery-cache-v3";
+const CACHE_KEY_PREFIX = "muscle-recovery-cache-v4";
 const CACHE_DURATION = 6 * 60 * 60 * 1000;
 
 type CachedRecovery = {
@@ -71,10 +71,14 @@ export function useRecovery() {
       const mergedMap = new Map<string, RecoveryData>();
 
       // Expand old grouped muscle_recovery into 17 segments
+      // Only use as fallback — computed workout data will override these
       (recoveryRows as RecoveryData[] | null | undefined)?.forEach((row) => {
+        const realtime = getRealtimeRecoveryPercent(row);
+        // If muscle is already fully recovered based on time, skip stale row
+        if (realtime >= 100) return;
+        
         const segments = OLD_GROUP_TO_SEGMENTS[row.muscle_group];
         if (segments) {
-          // Distribute to each segment
           segments.forEach((seg) => {
             if (!mergedMap.has(seg)) {
               mergedMap.set(seg, {
@@ -85,10 +89,9 @@ export function useRecovery() {
             }
           });
         } else {
-          // Already a segment name
           mergedMap.set(row.muscle_group, {
             ...row,
-            recovery_percent: getRealtimeRecoveryPercent(row),
+            recovery_percent: realtime,
           });
         }
       });
@@ -203,10 +206,14 @@ export function useRecovery() {
           }
         });
 
-        // Convert to RecoveryData
+        // Convert to RecoveryData — skip negligible synergist-only loads
         Object.entries(muscleLoads).forEach(([muscle, load]) => {
           const totalSets = load.directSets + load.synergistSets;
-          const fatigueScore = Math.min(100, Math.max(20, totalSets * load.intensityMax * 12));
+          // If only synergist load and it's tiny (< 1 effective set), skip entirely
+          if (load.directSets === 0 && load.synergistSets < 1) return;
+          const fatigueScore = Math.min(100, Math.round(totalSets * load.intensityMax * 12));
+          // If fatigue is negligible, don't create a recovery entry
+          if (fatigueScore < 5) return;
           const lastTrainedAt = new Date(load.lastMs || Date.now()).toISOString();
 
           const row: RecoveryData = {
