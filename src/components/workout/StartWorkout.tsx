@@ -191,7 +191,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   }, []);
 
   const addExercise = (name: string, group: string) => {
-    setExercises((prev) => [...prev, { name, muscleGroup: group, sets: [{ weight: "", reps: "", rest_time: null }], notes: "" }]);
+    setExercises((prev) => [{ name, muscleGroup: group, sets: [{ weight: "", reps: "", rest_time: null }], notes: "" }, ...prev]);
     setShowLibrary(false);
   };
 

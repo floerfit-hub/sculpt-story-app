@@ -19,7 +19,7 @@ const Contact = () => (
           <div>
             <p className="font-display font-bold text-sm">Email Support</p>
             <p className="text-sm text-muted-foreground mt-1">For general inquiries, billing questions, or technical support:</p>
-            <a href="mailto:support@fittrack.app" className="text-primary font-semibold text-sm hover:underline mt-1 inline-block">support@fittrack.app</a>
+            <a href="mailto:ruslanstrus465@gmail.com" className="text-primary font-semibold text-sm hover:underline mt-1 inline-block">ruslanstrus465@gmail.com</a>
           </div>
         </CardContent>
       </Card>
@@ -32,7 +32,7 @@ const Contact = () => (
           <div>
             <p className="font-display font-bold text-sm">Feedback & Feature Requests</p>
             <p className="text-sm text-muted-foreground mt-1">We're always improving. Share your ideas and suggestions:</p>
-            <a href="mailto:feedback@fittrack.app" className="text-primary font-semibold text-sm hover:underline mt-1 inline-block">feedback@fittrack.app</a>
+            <a href="mailto:ruslanstrus465@gmail.com" className="text-primary font-semibold text-sm hover:underline mt-1 inline-block">ruslanstrus465@gmail.com</a>
           </div>
         </CardContent>
       </Card>

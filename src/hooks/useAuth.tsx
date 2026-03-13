@@ -66,7 +66,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!session) setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Handle "forget me" on tab/window close
+    const handleBeforeUnload = () => {
+      if (sessionStorage.getItem("forget-on-close") === "true") {
+        supabase.auth.signOut();
+        localStorage.removeItem("sb-iuvwjsiwbpxbwenamzrj-auth-token");
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, []);
 
   const signOut = async () => {

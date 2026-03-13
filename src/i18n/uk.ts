@@ -27,6 +27,7 @@ export const uk: Translations = {
     dontHaveAccount: "Немає акаунту? Зареєструватися",
     checkEmail: "Перевірте пошту",
     confirmationSent: "Ми відправили вам посилання для підтвердження.",
+    rememberMe: "Запам'ятати мене",
   },
 
   dashboard: {
@@ -392,6 +393,7 @@ export const uk: Translations = {
       photos: "Фото",
       workouts: "Тренування",
     } as Record<string, string>,
+    searchUsers: "Пошук за ім'ям...",
   },
 
   fitScore: {

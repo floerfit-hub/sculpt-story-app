@@ -27,6 +27,7 @@ export const en = {
     dontHaveAccount: "Don't have an account? Sign up",
     checkEmail: "Check your email",
     confirmationSent: "We sent you a confirmation link.",
+    rememberMe: "Remember me",
   },
 
   // Dashboard
@@ -407,6 +408,7 @@ export const en = {
       photos: "Photos",
       workouts: "Workouts",
     } as Record<string, string>,
+    searchUsers: "Search by name...",
   },
 
   // Fitness Score

@@ -16,9 +16,10 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
+import { Input } from "@/components/ui/input";
 import {
   Shield, Users, ChevronDown, ChevronUp, Trash2, UserCog,
-  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download,
+  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download, Search,
 } from "lucide-react";
 import { toCsv, downloadCsv, buildFilename } from "@/lib/csvExport";
 import { exportClientPdf } from "@/lib/pdfExport";
@@ -43,6 +44,7 @@ const AdminPanel = () => {
   const [clients, setClients] = useState<ClientData[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [tab, setTab] = useState<"progress" | "photos" | "workouts">("progress");
   const [roleDialog, setRoleDialog] = useState<{ userId: string; currentRoles: string[] } | null>(null);
   const [newRole, setNewRole] = useState<string>("");
@@ -201,7 +203,18 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      {clients.map((client) => {
+      {/* Search bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder={t.admin.searchUsers || "Пошук за ім'ям..."}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {clients.filter((c) => !searchQuery || (c.profile.full_name || "").toLowerCase().includes(searchQuery.toLowerCase())).map((client) => {
         const isExpanded = expanded === client.profile.id;
         const latestEntry = client.entries[0];
         const roleNames = client.roles.map((r) => r.role);

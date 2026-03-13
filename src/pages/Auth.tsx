@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n";
 import { Dumbbell } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -15,6 +16,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -42,6 +44,11 @@ const Auth = () => {
       if (error) {
         toast({ title: t.common.error, description: error.message, variant: "destructive" });
       } else {
+        if (!rememberMe) {
+          sessionStorage.setItem("forget-on-close", "true");
+        } else {
+          sessionStorage.removeItem("forget-on-close");
+        }
         navigate("/");
       }
     }
@@ -80,6 +87,10 @@ const Auth = () => {
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium">{t.auth.password}</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="remember" checked={rememberMe} onCheckedChange={(v) => setRememberMe(!!v)} />
+              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">{t.auth.rememberMe || "Запам'ятати мене"}</Label>
             </div>
             <Button type="submit" className="w-full h-12 text-base font-bold" disabled={loading}>
               {loading ? t.auth.loading : isSignUp ? t.auth.signUp : t.auth.logIn}
