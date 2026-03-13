@@ -17,29 +17,29 @@ const Pricing = () => {
   const [loading, setLoading] = useState<string | null>(null);
 
   const proFeatures = [
-    { icon: BarChart3, label: "Advanced Muscle-Group Analytics", desc: "Detailed heatmaps showing training volume per muscle group over 30 days" },
-    { icon: Target, label: "Unlimited Workout History", desc: "Access your complete workout history with date filters and search" },
-    { icon: Brain, label: "AI Training Insights", desc: "Personalized recommendations, plateau detection, and training optimization" },
-    { icon: Flame, label: "Fitness Score Dashboard", desc: "Comprehensive fitness score based on training, strength, and body metrics" },
-    { icon: Zap, label: "Body Composition Dashboard", desc: "Track body fat, lean mass trends, and detailed measurement analytics" },
-    { icon: Camera, label: "Advanced Progress Photos", desc: "Side-by-side photo comparison with timeline view" },
-    { icon: Shield, label: "Priority Support", desc: "Get faster responses from our support team" },
-    { icon: Dumbbell, label: "Strength Progression Charts", desc: "Visualize your 1RM estimates and weight progression over time" },
+    { icon: BarChart3, label: "Розширена аналітика м'язових груп", desc: "Детальні теплові карти обсягу тренувань по м'язових групах за 30 днів" },
+    { icon: Target, label: "Необмежена історія тренувань", desc: "Доступ до повної історії тренувань з фільтрами за датою та пошуком" },
+    { icon: Brain, label: "AI-інсайти тренувань", desc: "Персоналізовані рекомендації, виявлення плато та оптимізація тренувань" },
+    { icon: Flame, label: "Панель Fitness Score", desc: "Комплексна оцінка фітнесу на основі тренувань, сили та показників тіла" },
+    { icon: Zap, label: "Панель складу тіла", desc: "Відстеження жиру, м'язової маси та детальна аналітика вимірювань" },
+    { icon: Camera, label: "Розширені фото прогресу", desc: "Порівняння фото поруч з переглядом по хронології" },
+    { icon: Shield, label: "Пріоритетна підтримка", desc: "Отримуйте швидші відповіді від нашої команди підтримки" },
+    { icon: Dumbbell, label: "Графіки прогресу сили", desc: "Візуалізуйте оцінки 1ПМ та прогрес ваги з часом" },
   ];
 
   const comparisonRows = [
-    { feature: "Workout logging (40+ exercises)", free: true, pro: true },
-    { feature: "Basic body measurements tracking", free: true, pro: true },
-    { feature: "Progress photo uploads", free: true, pro: true },
-    { feature: "Calorie & macro calculator", free: true, pro: true },
-    { feature: "Bi-weekly progress check-ins", free: true, pro: true },
-    { feature: "Muscle group heatmap analytics", free: false, pro: true },
-    { feature: "AI-powered training insights", free: false, pro: true },
-    { feature: "Fitness Score dashboard", free: false, pro: true },
-    { feature: "Body composition analytics", free: false, pro: true },
-    { feature: "Advanced strength charts", free: false, pro: true },
-    { feature: "Unlimited workout history", free: false, pro: true },
-    { feature: "Priority support", free: false, pro: true },
+    { feature: "Логування тренувань (40+ вправ)", free: true, pro: true },
+    { feature: "Базове відстеження вимірювань тіла", free: true, pro: true },
+    { feature: "Завантаження фото прогресу", free: true, pro: true },
+    { feature: "Калькулятор калорій та макросів", free: true, pro: true },
+    { feature: "Перевірка прогресу кожні два тижні", free: true, pro: true },
+    { feature: "Теплова карта м'язових груп", free: false, pro: true },
+    { feature: "AI-інсайти тренувань", free: false, pro: true },
+    { feature: "Панель Fitness Score", free: false, pro: true },
+    { feature: "Аналітика складу тіла", free: false, pro: true },
+    { feature: "Розширені графіки сили", free: false, pro: true },
+    { feature: "Необмежена історія тренувань", free: false, pro: true },
+    { feature: "Пріоритетна підтримка", free: false, pro: true },
   ];
 
   const { activateMockPremium, cooldown } = usePremium();
