@@ -14,7 +14,7 @@ const STORAGE_KEY = "fittrack-theme";
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    if (saved === "light" || saved === "midnight") return saved;
+    if (saved === "light") return saved;
     return "dark";
   });
 
