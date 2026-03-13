@@ -502,6 +502,27 @@ export const en = {
     canceling: "Canceling…",
   },
 
+  // Recovery
+  recovery: {
+    title: "Muscle Recovery",
+    subtitle: "Real-time recovery status based on your workouts",
+    recoveryLabel: "Recovery",
+    ready: "Ready to train",
+    almostReady: "Almost ready",
+    recovering: "Recovering",
+    fatigued: "Fatigued",
+    aiRecommendation: "AI Workout Suggestion",
+    analyzing: "Analyzing your recovery...",
+    noRecommendation: "Complete a workout to get AI recommendations.",
+    readyToTrain: "Ready to train",
+    stillRecovering: "Still recovering",
+    allRecovered: "All muscle groups are recovered! Train whatever you like.",
+    restTooltip: "For more accurate intensity tracking, record sets right after completing them.",
+    prepTime: "Preparation Time Before Set",
+    prepTimeDesc: "Time buffer before starting a set",
+    seconds: "sec",
+  },
+
   // Common
   common: {
     error: "Error",
