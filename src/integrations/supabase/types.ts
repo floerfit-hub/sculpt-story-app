@@ -435,15 +435,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_exercise_leaderboard: {
-        Args: { _exercise_name: string }
-        Returns: {
-          achieved_at: string
-          is_current_user: boolean
-          max_weight: number
-          user_name: string
-        }[]
-      }
+      get_exercise_leaderboard:
+        | {
+            Args: { _exercise_name: string }
+            Returns: {
+              achieved_at: string
+              is_current_user: boolean
+              max_weight: number
+              user_name: string
+            }[]
+          }
+        | {
+            Args: { _exercise_name: string; _min_reps?: number }
+            Returns: {
+              achieved_at: string
+              is_current_user: boolean
+              max_weight: number
+              user_name: string
+            }[]
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
