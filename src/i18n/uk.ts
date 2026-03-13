@@ -206,6 +206,7 @@ export const uk: Translations = {
     "Lying Leg Curl": "Згинання ніг лежачи",
     "Leg Extension": "Розгинання ніг",
     "Standing Calf Raises": "Підйоми на носки стоячи",
+    "Deadlift": "Станова тяга",
     "Lat Pulldown": "Тяга верхнього блока до грудей",
     "Seated Cable Row": "Тяга горизонтального блока",
     "Dumbbell Row": "Тяга гантелі в нахилі",
