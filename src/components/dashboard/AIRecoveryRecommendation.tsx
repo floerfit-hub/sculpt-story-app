@@ -81,7 +81,7 @@ const AIRecoveryRecommendation = ({ recoveryData, focusedMuscle, onSuggestedMusc
       console.error("AI recommendation error:", error);
 
       if (focusedMuscle) {
-        const targetGroup = FOCUS_TO_RECOVERY_GROUP[focusedMuscle] || focusedMuscle;
+        const targetGroup = focusedMuscle;
         const target = recoveryData.find((row) => row.muscle_group.toLowerCase() === targetGroup.toLowerCase());
         const targetRecovery = getRealtimeRecoveryPercent(target);
 
