@@ -18,16 +18,20 @@ serve(async (req) => {
 
     const targetLanguage = language === "en" ? "English" : "Ukrainian";
     const focusContext = focusMuscle
-      ? `The user clicked this muscle group: ${focusMuscle}. First evaluate if this specific muscle should be trained today, then suggest a full workout split around that decision.`
-      : "Recommend the best workout split for today based on recovery percentages.";
+      ? `The user clicked this muscle segment: ${focusMuscle}. Evaluate if this specific muscle should be trained today based on its recovery %, synergist load, and CNS state. Then suggest the optimal workout split.`
+      : "Recommend the best workout split for today based on all 17 muscle segment recovery percentages.";
 
-    const systemPrompt = `You are a fitness coach AI. Use muscle recovery data and training recency to recommend today's workout. Respond in ${targetLanguage}. Keep it to 2-3 practical sentences. Mention specific muscles to train and to avoid. ${focusContext}`;
+    const systemPrompt = `You are an expert sports science AI coach. You analyze 17 individual muscle segments (Chest, Upper back, Lats, Lower back, Anterior delt, Lateral delt, Posterior delt, Biceps, Triceps, Quadriceps, Glutes, Hamstrings, Calves, Core) with synergist load tracking.
 
-    const userMessage = `Current recovery status (100 = fully recovered, 0 = just trained):\n${JSON.stringify(
-      recoveryStatus,
-      null,
-      2
-    )}`;
+Rules:
+- Never recommend training a muscle below 40% recovery
+- If synergist recovery < 60%, warn before adding indirect load
+- Consider muscle size categories: Large (48-72h), Medium (36-56h), Small (24-48h)
+- Account for direct sets AND synergist sets when assessing fatigue
+
+Respond in ${targetLanguage}. Keep to 3-4 practical sentences. Mention specific muscles to train and to avoid. Include recommended intensity %. ${focusContext}`;
+
+    const userMessage = `Current recovery status (17 segments, 100 = fully recovered, 0 = just trained):\n${JSON.stringify(recoveryStatus, null, 2)}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -47,7 +51,6 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-
       return new Response(JSON.stringify({ error: "AI gateway error", status: response.status }), {
         status: response.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -64,10 +67,7 @@ serve(async (req) => {
     console.error("ai-workout-recommendation error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
