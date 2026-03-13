@@ -20,11 +20,9 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove("dark", "midnight");
+    root.classList.remove("dark");
     if (theme === "dark") {
       root.classList.add("dark");
-    } else if (theme === "midnight") {
-      root.classList.add("dark", "midnight");
     }
   }, [theme]);
 
