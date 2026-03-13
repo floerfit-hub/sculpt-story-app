@@ -1,6 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
+// Components can listen for this event and call preventDefault() to handle swipe themselves
+export const SWIPE_BACK_EVENT = "swipe-back";
+
 export const useSwipeBack = () => {
   const navigate = useNavigate();
   const touchStartX = useRef<number | null>(null);
@@ -21,7 +24,12 @@ export const useSwipeBack = () => {
 
       // Swipe left (finger moves right-to-left), at least 80px horizontal, not too vertical
       if (dx < -80 && dy < 100) {
-        navigate(-1);
+        // Dispatch custom event — if a component handles it, skip navigate
+        const event = new CustomEvent(SWIPE_BACK_EVENT, { cancelable: true });
+        const handled = !document.dispatchEvent(event);
+        if (!handled) {
+          navigate(-1);
+        }
       }
 
       touchStartX.current = null;
@@ -36,4 +44,21 @@ export const useSwipeBack = () => {
       document.removeEventListener("touchend", handleTouchEnd);
     };
   }, [navigate]);
+};
+
+/** Hook for components to intercept swipe-back and handle it themselves */
+export const useSwipeBackHandler = (handler: () => boolean) => {
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
+
+  useEffect(() => {
+    const listener = (e: Event) => {
+      // If handler returns true, it handled the swipe — prevent default navigate(-1)
+      if (handlerRef.current()) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener(SWIPE_BACK_EVENT, listener);
+    return () => document.removeEventListener(SWIPE_BACK_EVENT, listener);
+  }, []);
 };
