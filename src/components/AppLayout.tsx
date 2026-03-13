@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { ReactNode, useRef, useCallback } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { useTranslation } from "@/i18n";
@@ -10,8 +10,9 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
   const { profile, isAdmin } = useAuth();
   const { isPremium } = usePremium();
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useTranslation();
-  
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   const navItems = [
     { to: "/", icon: LayoutDashboard, label: t.nav.home },
