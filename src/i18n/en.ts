@@ -408,6 +408,7 @@ export const en = {
       photos: "Photos",
       workouts: "Workouts",
     } as Record<string, string>,
+    searchUsers: "Search by name...",
   },
 
   // Fitness Score

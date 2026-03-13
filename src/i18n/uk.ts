@@ -393,6 +393,7 @@ export const uk: Translations = {
       photos: "Фото",
       workouts: "Тренування",
     } as Record<string, string>,
+    searchUsers: "Пошук за ім'ям...",
   },
 
   fitScore: {
