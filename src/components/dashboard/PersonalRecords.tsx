@@ -488,6 +488,21 @@ const PersonalRecords = () => {
                 </SelectContent>
               </Select>
 
+              {/* Rep filter buttons */}
+              <div className="flex gap-1">
+                {[1, 5, 10].map((reps) => (
+                  <Button
+                    key={reps}
+                    variant={leaderboardReps === reps ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1 h-7 text-xs"
+                    onClick={() => setLeaderboardReps(reps)}
+                  >
+                    {reps} повт
+                  </Button>
+                ))}
+              </div>
+
               {/* Leaderboard list */}
               {leaderboardLoading ? (
                 <div className="flex items-center justify-center py-4">
