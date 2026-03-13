@@ -23,6 +23,7 @@ export const EXERCISES: Exercise[] = [
   { name: "Lying Leg Curl", muscleGroup: "Legs & Glutes" },
   { name: "Leg Extension", muscleGroup: "Legs & Glutes" },
   { name: "Standing Calf Raises", muscleGroup: "Legs & Glutes" },
+  { name: "Deadlift", muscleGroup: "Legs & Glutes" },
   // Back
   { name: "Lat Pulldown", muscleGroup: "Back" },
   { name: "Seated Cable Row", muscleGroup: "Back" },
@@ -32,6 +33,7 @@ export const EXERCISES: Exercise[] = [
   { name: "Hyperextensions", muscleGroup: "Back" },
   { name: "Face Pull", muscleGroup: "Back" },
   // Chest
+  { name: "Barbell Bench Press", muscleGroup: "Chest" },
   { name: "Incline Barbell Bench Press", muscleGroup: "Chest" },
   { name: "Hammer Strength Chest Press", muscleGroup: "Chest" },
   { name: "Cable Chest Fly", muscleGroup: "Chest" },

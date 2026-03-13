@@ -127,6 +127,7 @@ export const OLD_GROUP_TO_SEGMENTS: Record<string, MuscleSegment[]> = {
 // Map exercise names to synergist pattern keys for auto-detection
 export const EXERCISE_TO_PATTERN: Record<string, string> = {
   // Chest
+  "Barbell Bench Press": "Chest",
   "Incline Barbell Bench Press": "Chest",
   "Hammer Strength Chest Press": "Chest",
   "Cable Chest Fly": "Chest",
@@ -172,6 +173,7 @@ export const EXERCISE_TO_PATTERN: Record<string, string> = {
   "Hip Thrust": "Glute bridge / Hip thrust",
   "Cable Glute Kickback": "Glute bridge / Hip thrust",
   "Standing Calf Raises": "Calf raises",
+  Deadlift: "Deadlift",
   // Core
   Plank: "Core / Abs",
   Crunches: "Core / Abs",
@@ -357,7 +359,8 @@ export function calculateReadinessScore(
 // ─── CNS FATIGUE ───
 // Compound exercises that generate CNS fatigue
 export const CNS_EXERCISES = new Set([
-  "Barbell Squat", "Romanian Deadlift", "Incline Barbell Bench Press",
+  "Barbell Squat", "Romanian Deadlift", "Deadlift",
+  "Barbell Bench Press", "Incline Barbell Bench Press",
   "Standing Barbell Press", "Barbell Row",
 ]);
 

@@ -78,9 +78,10 @@ export const getRealtimeRecoveryPercent = (data: RecoveryData | undefined, nowMs
 
   if (safeHours >= targetHours) return 100;
 
-  // Exponential recovery curve
-  const progress = safeHours / targetHours;
-  return clamp(Math.round(progress * 100), 0, 100);
+  // Exponential recovery curve: faster initial recovery, slows near 100%
+  const ratio = safeHours / targetHours;
+  const expRecovery = 1 - Math.exp(-3 * ratio); // ~95% at ratio=1
+  return clamp(Math.round(expRecovery * 100), 0, 100);
 };
 
 export const getHoursUntilFullRecovery = (data: RecoveryData | undefined, nowMs = Date.now()): number => {
