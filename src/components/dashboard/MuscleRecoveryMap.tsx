@@ -1,11 +1,18 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "@/i18n";
-import { Activity } from "lucide-react";
+import { Activity, RotateCcw } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  DETAILED_MUSCLE_LAYOUT,
-  RecoveryData,
+  MUSCLE_CARD_LAYOUT,
+  REGION_ORDER,
+  REGION_I18N_KEY,
+  type BodyRegion,
+  getIntensityCap,
+  type MorningCheckin,
+} from "@/lib/muscleScience";
+import {
+  type RecoveryData,
   getHoursUntilFullRecovery,
   getRecoveryColor,
   getRecoveryLabelKey,
@@ -16,20 +23,23 @@ interface MuscleRecoveryMapProps {
   recoveryData: RecoveryData[];
   highlightedMuscles?: string[];
   onMuscleSelect?: (muscleId: string) => void;
-  debugLastChestTrainedAt?: string | null;
+  checkin?: MorningCheckin | null;
+  cnsFatigueHigh?: boolean;
 }
 
 const formatTimeUntilFull = (hours: number, t: any) => {
   if (hours <= 0) return t.recovery.readyNow;
+  if (hours < 1) return `${Math.ceil(hours * 60)} хв`;
   if (hours < 24) return `${Math.ceil(hours)} ${t.recovery.hours}`;
-  return `${Math.ceil(hours / 24)} ${t.recovery.days}`;
+  return `${Math.round(hours / 24 * 10) / 10} ${t.recovery.days}`;
 };
 
 const MuscleRecoveryMap = ({
   recoveryData,
   highlightedMuscles = [],
   onMuscleSelect,
-  debugLastChestTrainedAt,
+  checkin,
+  cnsFatigueHigh = false,
 }: MuscleRecoveryMapProps) => {
   const { t } = useTranslation();
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
@@ -47,26 +57,33 @@ const MuscleRecoveryMap = ({
     [highlightedMuscles]
   );
 
-  const upperBodyCards = useMemo(
-    () => DETAILED_MUSCLE_LAYOUT.filter((item) => item.category === "upper"),
-    []
-  );
-  const lowerBodyCards = useMemo(
-    () => DETAILED_MUSCLE_LAYOUT.filter((item) => item.category === "lower"),
-    []
-  );
+  const groupedByRegion = useMemo(() => {
+    const groups: Record<BodyRegion, typeof MUSCLE_CARD_LAYOUT> = {
+      chest: [], back: [], shoulders: [], arms: [], legs: [], core: [],
+    };
+    MUSCLE_CARD_LAYOUT.forEach((card) => {
+      groups[card.region].push(card);
+    });
+    return groups;
+  }, []);
 
-  const renderCard = (muscle: (typeof DETAILED_MUSCLE_LAYOUT)[number]) => {
-    const row = recoveryByGroup[muscle.sourceGroup];
+  const renderCard = (muscle: (typeof MUSCLE_CARD_LAYOUT)[number]) => {
+    const row = recoveryByGroup[muscle.id];
     const recovery = getRealtimeRecoveryPercent(row);
     const hoursUntilFull = getHoursUntilFullRecovery(row);
     const color = getRecoveryColor(recovery);
+    const labelKey = getRecoveryLabelKey(recovery);
+    const directSets = row?.direct_sets ?? 0;
+    const synergistSets = row?.synergist_sets ?? 0;
+    const intensity = getIntensityCap(recovery, checkin, cnsFatigueHigh);
 
+    const isPeak = recovery >= 100;
     const highlighted =
       highlightSet.size > 0 &&
       (highlightSet.has(muscle.id.toLowerCase()) ||
-        highlightSet.has(muscle.sourceGroup.toLowerCase()) ||
         highlightSet.has(muscle.i18nKey.toLowerCase()));
+
+    const muscleName = (t.muscleGroups as any)[muscle.i18nKey] || muscle.id;
 
     return (
       <Popover
@@ -82,44 +99,76 @@ const MuscleRecoveryMap = ({
               setSelectedMuscle(next);
               if (next) onMuscleSelect?.(muscle.id);
             }}
-            className={`rounded-xl border p-3 text-left transition-all w-full ${
-              highlighted
+            className={`rounded-xl border p-2.5 text-left transition-all w-full ${
+              isPeak
+                ? "border-primary/40 bg-primary/5 ring-1 ring-primary/20"
+                : highlighted
                 ? "border-primary/50 bg-primary/5 ring-1 ring-primary/30"
                 : "border-border/50 hover:bg-accent/30"
             }`}
           >
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-xs font-semibold leading-tight">{(t.muscleGroups as any)[muscle.i18nKey] || muscle.id}</p>
-              <span className="text-xs font-bold" style={{ color }}>
+            <div className="flex items-start justify-between gap-1">
+              <p className="text-[11px] font-semibold leading-tight truncate">{muscleName}</p>
+              <span className="text-[11px] font-bold shrink-0" style={{ color }}>
                 {Math.round(recovery)}%
               </span>
             </div>
 
-            <div className="mt-2 h-2 w-full rounded-full bg-muted">
+            {/* Progress bar */}
+            <div className="mt-1.5 h-1.5 w-full rounded-full bg-muted">
               <div
                 className="h-full rounded-full transition-all"
-                style={{ width: `${Math.round(recovery)}%`, backgroundColor: color }}
+                style={{ width: `${Math.min(100, Math.round(recovery))}%`, backgroundColor: color }}
               />
             </div>
 
-            <p className="mt-2 text-[10px] text-muted-foreground">
-              {t.recovery.timeUntilFull} {formatTimeUntilFull(hoursUntilFull, t)}
+            {/* Sets info */}
+            {(directSets > 0 || synergistSets > 0) && (
+              <div className="mt-1.5 flex items-center gap-1.5 text-[9px] text-muted-foreground">
+                {directSets > 0 && (
+                  <span className="font-semibold text-foreground">{directSets} sets</span>
+                )}
+                {synergistSets > 0 && (
+                  <span className="flex items-center gap-0.5 border-l border-dashed border-border pl-1.5 opacity-70">
+                    <RotateCcw className="h-2.5 w-2.5" />
+                    +{Math.round(synergistSets * 10) / 10}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Time until recovery */}
+            <p className="mt-1 text-[9px] text-muted-foreground truncate">
+              {hoursUntilFull > 0
+                ? `⏱ ${formatTimeUntilFull(hoursUntilFull, t)}`
+                : isPeak
+                ? `⚡ ${(t.recovery as any).peak ?? "Peak readiness"}`
+                : `✅ ${t.recovery.readyNow}`}
             </p>
           </button>
         </PopoverTrigger>
-        <PopoverContent side="top" className="w-56 p-3">
+        <PopoverContent side="top" className="w-60 p-3">
           <div className="space-y-2">
-            <p className="font-display font-bold text-sm">{(t.muscleGroups as any)[muscle.i18nKey] || muscle.id}</p>
+            <p className="font-display font-bold text-sm">{muscleName}</p>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
               <span className="text-sm font-semibold" style={{ color }}>
-                {t.recovery.recoveryLabel}: {Math.round(recovery)}%
+                {(t.recovery as any)[labelKey] ?? labelKey} · {Math.round(recovery)}%
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">{(t.recovery as any)[getRecoveryLabelKey(recovery)]}</p>
+            {hoursUntilFull > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {t.recovery.timeUntilFull} {formatTimeUntilFull(hoursUntilFull, t)}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
-              {t.recovery.restTimeRecommended}: <span className="font-semibold text-foreground">{formatTimeUntilFull(hoursUntilFull, t)}</span>
+              {(t.recovery as any).recommendedIntensity ?? "Max intensity"}: <span className="font-bold text-foreground">{intensity}%</span>
             </p>
+            {directSets > 0 && (
+              <p className="text-[10px] text-muted-foreground">
+                {(t.recovery as any).directSets ?? "Direct"}: {directSets} · {(t.recovery as any).synergistSets ?? "Synergist"}: {Math.round(synergistSets * 10) / 10}
+              </p>
+            )}
           </div>
         </PopoverContent>
       </Popover>
@@ -135,30 +184,31 @@ const MuscleRecoveryMap = ({
         </CardTitle>
         <p className="text-[10px] text-muted-foreground">{t.recovery.subtitle}</p>
       </CardHeader>
-      <CardContent className="pb-4 space-y-4">
-        <div>
-          <p className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-2">
-            {t.recovery.upperBody}
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {upperBodyCards.map(renderCard)}
-          </div>
-        </div>
+      <CardContent className="pb-4 space-y-3">
+        {REGION_ORDER.map((region) => {
+          const cards = groupedByRegion[region];
+          if (cards.length === 0) return null;
+          const regionLabel = (t.recovery as any)[REGION_I18N_KEY[region]] ?? region;
 
-        <div>
-          <p className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-2">
-            {t.recovery.lowerBody}
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {lowerBodyCards.map(renderCard)}
-          </div>
-        </div>
+          return (
+            <div key={region}>
+              <p className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">
+                {regionLabel}
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {cards.map(renderCard)}
+              </div>
+            </div>
+          );
+        })}
 
+        {/* Legend */}
         <div className="flex gap-3 pt-1 flex-wrap">
           {[
-            { color: "hsl(var(--destructive))", label: "0-30%" },
-            { color: "hsl(var(--warning))", label: "31-70%" },
-            { color: "hsl(var(--success))", label: "71-100%" },
+            { color: "hsl(var(--destructive))", label: "0-40%" },
+            { color: "hsl(var(--warning))", label: "41-75%" },
+            { color: "hsl(var(--success))", label: "76-99%" },
+            { color: "hsl(82 85% 55%)", label: "100% ⚡" },
           ].map(({ color, label }) => (
             <div key={label} className="flex items-center gap-1">
               <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
@@ -166,10 +216,6 @@ const MuscleRecoveryMap = ({
             </div>
           ))}
         </div>
-
-        <p className="text-[10px] text-muted-foreground">
-          {t.recovery.debugChestDate}: {debugLastChestTrainedAt ? new Date(debugLastChestTrainedAt).toLocaleString() : "—"}
-        </p>
       </CardContent>
     </Card>
   );
