@@ -46,10 +46,11 @@ interface ExerciseInfo {
 const Dashboard = () => {
   const { user, profile } = useAuth();
   const { isPremium } = usePremium();
-  const { t } = useTranslation();
+  const { t, lang, setLanguage } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { recoveryData } = useRecovery();
+  const [suggestedMuscles, setSuggestedMuscles] = useState<string[]>([]);
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
