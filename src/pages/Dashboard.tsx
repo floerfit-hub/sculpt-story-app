@@ -356,11 +356,20 @@ const Dashboard = () => {
       </PremiumGate>
 
       <PremiumGate feature="Muscle Recovery Map">
-        <MuscleRecoveryMap recoveryData={recoveryData} highlightedMuscles={suggestedMuscles} />
+        <MuscleRecoveryMap
+          recoveryData={recoveryData}
+          highlightedMuscles={suggestedMuscles}
+          onMuscleSelect={setFocusedMuscle}
+          debugLastChestTrainedAt={debugLastChestTrainedAt}
+        />
       </PremiumGate>
 
       <PremiumGate feature="AI Recovery Recommendations">
-        <AIRecoveryRecommendation recoveryData={recoveryData} onSuggestedMuscles={setSuggestedMuscles} />
+        <AIRecoveryRecommendation
+          recoveryData={recoveryData}
+          focusedMuscle={focusedMuscle}
+          onSuggestedMuscles={setSuggestedMuscles}
+        />
       </PremiumGate>
 
       <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />

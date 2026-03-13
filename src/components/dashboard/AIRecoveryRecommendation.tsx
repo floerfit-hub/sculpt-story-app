@@ -1,19 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Brain, RefreshCw, Loader2 } from "lucide-react";
-
-interface RecoveryData {
-  muscle_group: string;
-  fatigue_score: number;
-  recovery_percent: number;
-  last_trained_at: string;
-}
+import { RecoveryData, getRealtimeRecoveryPercent } from "@/lib/recovery";
 
 interface AIRecoveryRecommendationProps {
   recoveryData: RecoveryData[];
+  focusedMuscle?: string | null;
   onSuggestedMuscles?: (muscles: string[]) => void;
 }
 
@@ -26,97 +21,132 @@ const MUSCLE_KEYWORDS: Record<string, string[]> = {
   "legs & glutes": ["leg", "legs", "ноги", "glute", "сідниці", "squat", "присід", "квадрицепс", "стегно", "quad", "hamstring", "calf", "литк"],
 };
 
+const FOCUS_TO_RECOVERY_GROUP: Record<string, string> = {
+  chest: "Chest",
+  frontDelts: "Shoulders",
+  rearDelts: "Shoulders",
+  traps: "Back",
+  lats: "Back",
+  lowerBack: "Back",
+  biceps: "Arms",
+  forearms: "Arms",
+  abs: "Core",
+  quads: "Legs & Glutes",
+  glutes: "Legs & Glutes",
+  hamstrings: "Legs & Glutes",
+  calves: "Legs & Glutes",
+};
+
 const extractSuggestedMuscles = (text: string): string[] => {
   const lower = text.toLowerCase();
   const found: string[] = [];
   for (const [group, keywords] of Object.entries(MUSCLE_KEYWORDS)) {
-    if (keywords.some((kw) => lower.includes(kw))) {
-      found.push(group);
-    }
+    if (keywords.some((kw) => lower.includes(kw))) found.push(group);
   }
   return found;
 };
 
-const AIRecoveryRecommendation = ({ recoveryData, onSuggestedMuscles }: AIRecoveryRecommendationProps) => {
+const AIRecoveryRecommendation = ({ recoveryData, focusedMuscle, onSuggestedMuscles }: AIRecoveryRecommendationProps) => {
   const { t, lang } = useTranslation();
   const [recommendation, setRecommendation] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
 
-  const daysSince = (dateStr: string) => {
-    return Math.max(0, (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
-  };
-
-  const getRealtimeRecovery = (data: RecoveryData): number => {
-    const days = daysSince(data.last_trained_at);
-    const fatigueRemaining = data.fatigue_score * Math.exp(-0.9 * days);
-    return Math.min(100, Math.max(0, 100 - fatigueRemaining));
-  };
+  const focusedMuscleLabel = useMemo(
+    () => (focusedMuscle ? (t.muscleGroups as any)[focusedMuscle] || focusedMuscle : null),
+    [focusedMuscle, t]
+  );
 
   const fetchRecommendation = useCallback(async () => {
     if (recoveryData.length === 0) return;
     setLoading(true);
+
     try {
-      const recoveryStatus = recoveryData.map((r) => ({
-        muscle_group: r.muscle_group,
-        recovery_percent: Math.round(getRealtimeRecovery(r)),
-        days_since_training: Math.round(daysSince(r.last_trained_at) * 10) / 10,
-      }));
+      const recoveryStatus = recoveryData.map((row) => {
+        const recovery = getRealtimeRecoveryPercent(row);
+        const daysSince = Math.max(0, (Date.now() - new Date(row.last_trained_at).getTime()) / (1000 * 60 * 60 * 24));
+        return {
+          muscle_group: row.muscle_group,
+          recovery_percent: Math.round(recovery),
+          days_since_training: Math.round(daysSince * 10) / 10,
+          fatigue_score: Math.round(row.fatigue_score),
+        };
+      });
 
       const { data, error } = await supabase.functions.invoke("ai-workout-recommendation", {
-        body: { recoveryStatus, language: lang },
+        body: {
+          recoveryStatus,
+          language: lang,
+          focusMuscle: focusedMuscle ?? null,
+        },
       });
 
       if (error) throw error;
+
       const text = data?.recommendation || t.recovery.noRecommendation;
       setRecommendation(text);
       onSuggestedMuscles?.(extractSuggestedMuscles(text));
-    } catch (e) {
-      console.error("AI recommendation error:", e);
-      const sorted = recoveryData
-        .map((r) => ({ ...r, realRecovery: getRealtimeRecovery(r) }))
-        .sort((a, b) => b.realRecovery - a.realRecovery);
+    } catch (error) {
+      console.error("AI recommendation error:", error);
 
-      const ready = sorted.filter((r) => r.realRecovery >= 70);
-      const fatigued = sorted.filter((r) => r.realRecovery < 50);
+      if (focusedMuscle) {
+        const targetGroup = FOCUS_TO_RECOVERY_GROUP[focusedMuscle] || focusedMuscle;
+        const target = recoveryData.find((row) => row.muscle_group.toLowerCase() === targetGroup.toLowerCase());
+        const targetRecovery = getRealtimeRecoveryPercent(target);
 
-      let msg = "";
-      if (ready.length > 0) {
-        msg += `✅ ${t.recovery.readyToTrain}: ${ready.map((r) => r.muscle_group).join(", ")}. `;
+        if (targetRecovery <= 30) {
+          setRecommendation(`⚠️ ${focusedMuscleLabel}: ${t.recovery.fatigued}. ${t.recovery.timeUntilFull} ${Math.ceil((72 * (100 - targetRecovery)) / 100)} ${t.recovery.hours}.`);
+        } else if (targetRecovery <= 70) {
+          setRecommendation(`🟡 ${focusedMuscleLabel}: ${t.recovery.recovering}. ${t.recovery.timeUntilFull} ${Math.ceil((48 * (100 - targetRecovery)) / 100)} ${t.recovery.hours}.`);
+        } else {
+          setRecommendation(`✅ ${focusedMuscleLabel}: ${t.recovery.ready}. ${t.recovery.aiRecommendation}`);
+        }
+      } else {
+        const sorted = recoveryData
+          .map((row) => ({ ...row, recovery: getRealtimeRecoveryPercent(row) }))
+          .sort((a, b) => b.recovery - a.recovery);
+
+        const ready = sorted.filter((row) => row.recovery >= 71).map((row) => row.muscle_group);
+        const fatigued = sorted.filter((row) => row.recovery <= 30).map((row) => row.muscle_group);
+
+        let fallback = "";
+        if (ready.length > 0) fallback += `✅ ${t.recovery.readyToTrain}: ${ready.join(", ")}. `;
+        if (fatigued.length > 0) fallback += `⚠️ ${t.recovery.stillRecovering}: ${fatigued.join(", ")}.`;
+        if (!fallback) fallback = t.recovery.noRecommendation;
+        setRecommendation(fallback);
       }
-      if (fatigued.length > 0) {
-        msg += `⚠️ ${t.recovery.stillRecovering}: ${fatigued.map((r) => r.muscle_group).join(", ")}.`;
-      }
-      if (!msg) msg = t.recovery.allRecovered;
-      setRecommendation(msg);
-      onSuggestedMuscles?.(extractSuggestedMuscles(msg));
     } finally {
       setLoading(false);
-      setHasLoaded(true);
     }
-  }, [recoveryData, lang, t, onSuggestedMuscles]);
+  }, [focusedMuscle, focusedMuscleLabel, lang, onSuggestedMuscles, recoveryData, t]);
 
   useEffect(() => {
-    if (recoveryData.length > 0 && !hasLoaded) {
-      fetchRecommendation();
-    }
-  }, [recoveryData.length, hasLoaded, fetchRecommendation]);
+    if (recoveryData.length > 0) fetchRecommendation();
+  }, [recoveryData.length, focusedMuscle, fetchRecommendation]);
 
   if (recoveryData.length === 0) return null;
 
   return (
     <Card className="border-primary/20">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Brain className="h-4 w-4 text-primary" />
-            {t.recovery.aiRecommendation}
-          </CardTitle>
+        <div className="flex items-center justify-between gap-2">
+          <div className="space-y-1">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Brain className="h-4 w-4 text-primary" />
+              {t.recovery.aiRecommendation}
+            </CardTitle>
+            {focusedMuscleLabel && (
+              <p className="text-[10px] text-muted-foreground">
+                {t.recovery.focusedMuscle}: <span className="font-semibold text-foreground">{focusedMuscleLabel}</span>
+              </p>
+            )}
+          </div>
+
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={fetchRecommendation} disabled={loading}>
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
           </Button>
         </div>
       </CardHeader>
+
       <CardContent className="pb-4">
         {loading && !recommendation ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

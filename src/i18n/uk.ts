@@ -520,6 +520,12 @@ export const uk: Translations = {
     languageToggle: "Мова",
     frontView: "Спереду",
     backView: "Ззаду",
+    upperBody: "Верх тіла",
+    lowerBody: "Низ тіла",
+    timeUntilFull: "Залишилось",
+    readyNow: "Готово",
+    focusedMuscle: "Фокус",
+    debugChestDate: "Debug · Останнє тренування грудей",
   },
 
   common: {
