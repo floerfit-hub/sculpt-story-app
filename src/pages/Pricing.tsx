@@ -161,7 +161,7 @@ const Pricing = () => {
                 <p className="font-display font-bold">{t.premium.yearly}</p>
                 <p className="text-3xl font-display font-extrabold">$10</p>
                 <p className="text-xs text-muted-foreground">/ {t.premium.year}</p>
-                <p className="text-[10px] text-muted-foreground">7-day free trial · Save 17%</p>
+                <p className="text-[10px] text-muted-foreground">7 днів безкоштовно · Економія 17%</p>
                 <Button
                   className="w-full"
                   onClick={() => handleBuy("yearly")}
