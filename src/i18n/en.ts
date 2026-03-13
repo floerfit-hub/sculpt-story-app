@@ -584,6 +584,8 @@ export const en = {
     recordAdded: "Record added! 🏆",
     noRecords: "No personal records yet. Complete a workout!",
     progressView: "Progress View",
+    searchExercise: "Search exercise...",
+    noExercisesFound: "Nothing found",
     needMoreData: "Log the exercise across 2+ workouts to see the chart.",
     moreRecords: "more records",
     newRecord: "New Record! 🏆",

@@ -563,6 +563,8 @@ export const uk: Translations = {
     recordAdded: "Рекорд додано! 🏆",
     noRecords: "Рекордів ще немає. Завершіть тренування!",
     progressView: "Перегляд прогресу",
+    searchExercise: "Пошук вправи...",
+    noExercisesFound: "Нічого не знайдено",
     needMoreData: "Запишіть вправу 2+ разів, щоб побачити графік.",
     moreRecords: "ще рекордів",
     newRecord: "Новий рекорд! 🏆",
