@@ -502,12 +502,13 @@ export const uk: Translations = {
 
   recovery: {
     title: "Відновлення м'язів",
-    subtitle: "Статус відновлення на основі ваших тренувань",
+    subtitle: "17 сегментів з системою синергістів",
     recoveryLabel: "Відновлення",
     ready: "Готовий до тренування",
     almostReady: "Майже готовий",
-    recovering: "Відновлення",
+    recovering: "Відновлюється",
     fatigued: "Критична втома",
+    peak: "Пік готовності",
     aiRecommendation: "Порада від ШІ",
     analyzing: "Аналізую ваше відновлення...",
     noRecommendation: "Завершіть тренування, щоб отримати рекомендації від ШІ.",
@@ -531,6 +532,38 @@ export const uk: Translations = {
     readyNow: "Готово",
     focusedMuscle: "Фокус",
     debugChestDate: "Debug · Останнє тренування грудей",
+    // Регіони
+    regionChest: "ГРУДИ",
+    regionBack: "СПИНА",
+    regionShoulders: "ДЕЛЬТИ",
+    regionArms: "РУКИ",
+    regionLegs: "НОГИ",
+    regionCore: "КОР",
+    // Ранковий чек-ін
+    morningCheckin: "Ранковий чек-ін",
+    sleepHours: "Сон (години)",
+    energy: "Енергія",
+    soreness: "Болючість",
+    high: "сильна",
+    none: "немає",
+    nutritionScore: "Харчування",
+    submitCheckin: "Зберегти",
+    checkinDone: "Ранковий чек-ін виконано ✓",
+    edit: "Змінити",
+    // Готовність
+    dailyReadiness: "Готовність на сьогодні",
+    recommendedIntensity: "Рекомендована інтенсивність",
+    avgRecovery: "Середнє відновлення",
+    // ЦНС
+    cnsRecovery: "Відновлення ЦНС",
+    cnsHigh: "ВИСОКА ВТОМА",
+    cnsMedium: "СЕРЕДНЯ",
+    cnsLow: "НОРМА",
+    // Синергісти
+    directSets: "Прямих",
+    synergistSets: "Синергіст",
+    // Сон
+    sleep: "Сон",
   },
 
   common: {
