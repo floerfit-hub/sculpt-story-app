@@ -219,6 +219,27 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
       return c;
     });
 
+    // Check for new PR on weight entry
+    if (field === "weight" && val !== "") {
+      const weight = Number(val);
+      const exName = exercises[exIdx]?.name;
+      const exGroup = exercises[exIdx]?.muscleGroup;
+      if (weight > 0 && exName) {
+        // We need exercise_id - resolve async
+        resolveExerciseIds([{ name: exName, muscleGroup: exGroup }]).then((idMap) => {
+          const exId = idMap.get(`${exName}::${exGroup}`);
+          if (exId) {
+            const currentPR = prMapRef.current.get(exId) || 0;
+            if (weight > currentPR && currentPR > 0) {
+              prMapRef.current.set(exId, weight);
+              confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+              toast({ title: t.pr.newRecord, description: `${t.exerciseNames[exName] || exName}: ${weight} ${t.common.kg}` });
+            }
+          }
+        });
+      }
+    }
+
     // Mark time when a set value is entered (for auto rest tracking)
     if (field === "reps" && val !== "") {
       lastSetTimeRef.current = Date.now();
