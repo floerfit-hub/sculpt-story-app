@@ -95,10 +95,23 @@ const Auth = () => {
               <Label htmlFor="password" className="text-sm font-medium">{t.auth.password}</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox id="remember" checked={rememberMe} onCheckedChange={(v) => setRememberMe(!!v)} />
-              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">{t.auth.rememberMe || "Запам'ятати мене"}</Label>
-            </div>
+            {isSignUp && (
+              <div className="flex items-start gap-2">
+                <Checkbox id="terms" checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(!!v)} className="mt-0.5" />
+                <Label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer leading-snug">
+                  {t.auth.acceptTerms}{" "}
+                  <Link to="/terms" className="text-primary hover:underline">{t.auth.termsLink}</Link>{" "}
+                  {t.auth.andPrivacy}{" "}
+                  <Link to="/privacy" className="text-primary hover:underline">{t.auth.privacyLink}</Link>
+                </Label>
+              </div>
+            )}
+            {!isSignUp && (
+              <div className="flex items-center gap-2">
+                <Checkbox id="remember" checked={rememberMe} onCheckedChange={(v) => setRememberMe(!!v)} />
+                <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">{t.auth.rememberMe}</Label>
+              </div>
+            )}
             <Button type="submit" className="w-full h-12 text-base font-bold" disabled={loading}>
               {loading ? t.auth.loading : isSignUp ? t.auth.signUp : t.auth.logIn}
             </Button>
