@@ -14,7 +14,7 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const lang = language === "uk" ? "Ukrainian" : "English";
-    const systemPrompt = `You are a fitness coach AI. Based on the user's muscle recovery data, give a brief, actionable workout recommendation for today. Respond in ${lang}. Keep it to 2-3 sentences. Be specific about which muscle groups to train and which to avoid.`;
+    const systemPrompt = `You are a fitness coach AI. Based on the user's muscle recovery data, give a brief, actionable workout recommendation for today. Respond in ${lang}. Keep it to 2-3 sentences. Be specific about which muscle groups to train and which to avoid. Always mention the muscle group names explicitly (e.g., Chest, Back, Legs).`;
 
     const userMessage = `Here is my current muscle recovery status:\n${JSON.stringify(recoveryStatus, null, 2)}\n\nRecovery percent means how recovered each muscle group is (100% = fully recovered, 0% = just trained). What should I train today?`;
 
