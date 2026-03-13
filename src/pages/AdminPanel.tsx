@@ -16,9 +16,10 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
+import { Input } from "@/components/ui/input";
 import {
   Shield, Users, ChevronDown, ChevronUp, Trash2, UserCog,
-  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download,
+  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download, Search,
 } from "lucide-react";
 import { toCsv, downloadCsv, buildFilename } from "@/lib/csvExport";
 import { exportClientPdf } from "@/lib/pdfExport";
