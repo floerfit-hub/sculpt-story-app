@@ -342,6 +342,14 @@ const Dashboard = () => {
         <MuscleHeatmap muscleData={muscleData} />
       </PremiumGate>
 
+      <PremiumGate feature="Muscle Recovery Map">
+        <MuscleRecoveryMap recoveryData={recoveryData} />
+      </PremiumGate>
+
+      <PremiumGate feature="AI Recovery Recommendations">
+        <AIRecoveryRecommendation recoveryData={recoveryData} />
+      </PremiumGate>
+
       <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />
 
       <NutritionSummary nutrition={nutrition} />
