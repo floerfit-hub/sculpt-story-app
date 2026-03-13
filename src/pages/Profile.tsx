@@ -67,7 +67,7 @@ const Profile = () => {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({ full_name: name }).eq("user_id", user.id);
+    const { error } = await supabase.from("profiles").update({ full_name: name, prep_buffer_seconds: prepBuffer } as any).eq("user_id", user.id);
     setSaving(false);
     if (error) {
       toast({ title: t.common.error, description: error.message, variant: "destructive" });
