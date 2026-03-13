@@ -507,7 +507,7 @@ export const en = {
   // Recovery
   recovery: {
     title: "Muscle Recovery",
-    subtitle: "8-group recovery with synergist tracking",
+    subtitle: "6-group recovery with synergist tracking",
     recoveryLabel: "Recovery",
     ready: "Ready to train",
     almostReady: "Almost ready",
