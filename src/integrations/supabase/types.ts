@@ -156,6 +156,7 @@ export type Database = {
           full_name: string | null
           id: string
           language: string | null
+          leaderboard_visible: boolean
           prep_buffer_seconds: number | null
           theme: string | null
           updated_at: string
@@ -167,6 +168,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           language?: string | null
+          leaderboard_visible?: boolean
           prep_buffer_seconds?: number | null
           theme?: string | null
           updated_at?: string
@@ -178,6 +180,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           language?: string | null
+          leaderboard_visible?: boolean
           prep_buffer_seconds?: number | null
           theme?: string | null
           updated_at?: string
@@ -432,6 +435,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_exercise_leaderboard: {
+        Args: { _exercise_name: string }
+        Returns: {
+          achieved_at: string
+          is_current_user: boolean
+          max_weight: number
+          user_name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

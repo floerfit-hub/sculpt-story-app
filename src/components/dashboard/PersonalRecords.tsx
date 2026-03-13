@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,15 +6,16 @@ import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Plus, TrendingUp, ArrowLeft, Search } from "lucide-react";
+import { Trophy, Plus, TrendingUp, ArrowLeft, Search, Users, Medal, Eye, EyeOff } from "lucide-react";
 import { format } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import PremiumGate from "@/components/subscription/PremiumGate";
-import { MUSCLE_GROUPS, type MuscleGroup } from "@/data/exerciseLibrary";
+import { MUSCLE_GROUPS } from "@/data/exerciseLibrary";
 
 interface PRRecord {
   exerciseName: string;
@@ -29,8 +30,17 @@ interface HistoryPoint {
   weight: number;
 }
 
+interface LeaderboardEntry {
+  user_name: string;
+  max_weight: number;
+  achieved_at: string;
+  is_current_user: boolean;
+}
+
+type Tab = "my" | "leaderboard";
+
 const PersonalRecords = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { isPremium } = usePremium();
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -41,6 +51,7 @@ const PersonalRecords = () => {
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [tab, setTab] = useState<Tab>("my");
 
   // Manual entry state
   const [manualExercise, setManualExercise] = useState("");
@@ -50,11 +61,44 @@ const PersonalRecords = () => {
   const [savingManual, setSavingManual] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Leaderboard state
+  const [leaderboardExercise, setLeaderboardExercise] = useState("");
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [togglingVisibility, setTogglingVisibility] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     fetchRecords();
     fetchExercises();
+    fetchVisibility();
   }, [user]);
+
+  const fetchVisibility = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select("leaderboard_visible")
+      .eq("user_id", user.id)
+      .single();
+    if (data) setIsVisible((data as any).leaderboard_visible ?? false);
+  };
+
+  const toggleVisibility = async () => {
+    if (!user) return;
+    setTogglingVisibility(true);
+    const newVal = !isVisible;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ leaderboard_visible: newVal } as any)
+      .eq("user_id", user.id);
+    if (!error) {
+      setIsVisible(newVal);
+      toast({ title: newVal ? t.pr.leaderboardVisible : t.pr.leaderboardHidden });
+    }
+    setTogglingVisibility(false);
+  };
 
   const fetchExercises = async () => {
     const { data } = await supabase.from("exercises").select("id, name, muscle_group");
@@ -102,6 +146,29 @@ const PersonalRecords = () => {
     setRecords(Array.from(prMap.values()).sort((a, b) => b.maxWeight - a.maxWeight));
     setLoading(false);
   };
+
+  const fetchLeaderboard = useCallback(async (exerciseName: string) => {
+    setLeaderboardLoading(true);
+    const { data, error } = await supabase.rpc("get_exercise_leaderboard", {
+      _exercise_name: exerciseName,
+    });
+    if (!error && data) setLeaderboard(data as LeaderboardEntry[]);
+    else setLeaderboard([]);
+    setLeaderboardLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (tab === "leaderboard" && leaderboardExercise) {
+      fetchLeaderboard(leaderboardExercise);
+    }
+  }, [tab, leaderboardExercise, fetchLeaderboard]);
+
+  // Auto-select first exercise when switching to leaderboard
+  useEffect(() => {
+    if (tab === "leaderboard" && !leaderboardExercise && records.length > 0) {
+      setLeaderboardExercise(records[0].exerciseName);
+    }
+  }, [tab, records, leaderboardExercise]);
 
   const fetchHistory = async (exerciseId: string) => {
     if (!user) return;
@@ -154,7 +221,6 @@ const PersonalRecords = () => {
     return Math.round(((last - first) / first) * 100);
   }, [history]);
 
-  // Group exercises by muscle group and filter by search
   const groupedExercises = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     const groups: Record<string, typeof exercises> = {};
@@ -172,6 +238,16 @@ const PersonalRecords = () => {
 
     return groups;
   }, [exercises, searchQuery, t]);
+
+  // Group exercises for leaderboard selector
+  const exercisesByGroup = useMemo(() => {
+    const groups: Record<string, typeof exercises> = {};
+    for (const mg of MUSCLE_GROUPS) {
+      const filtered = exercises.filter((ex) => ex.muscle_group === mg);
+      if (filtered.length > 0) groups[mg] = filtered;
+    }
+    return groups;
+  }, [exercises]);
 
   const handleManualSave = async () => {
     if (!user || !manualExercise || !manualWeight) return;
@@ -230,6 +306,7 @@ const PersonalRecords = () => {
     return t.muscleGroups?.[key[mg] || mg] || mg;
   };
 
+  // Detail view for a PR
   if (selectedPR) {
     return (
       <Card className="animate-fade-in">
@@ -294,49 +371,157 @@ const PersonalRecords = () => {
               <Trophy className="h-4 w-4 text-yellow-500" />
               {t.pr.title}
             </CardTitle>
-            <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowAddModal(true)}>
-              <Plus className="h-3 w-3" />
-              {t.pr.addManual}
+            {tab === "my" && (
+              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowAddModal(true)}>
+                <Plus className="h-3 w-3" />
+                {t.pr.addManual}
+              </Button>
+            )}
+          </div>
+          {/* Tab switcher */}
+          <div className="flex gap-1 mt-2">
+            <Button
+              variant={tab === "my" ? "default" : "outline"}
+              size="sm"
+              className="flex-1 h-7 text-xs gap-1"
+              onClick={() => setTab("my")}
+            >
+              <Trophy className="h-3 w-3" />
+              {t.pr.myRecords}
+            </Button>
+            <Button
+              variant={tab === "leaderboard" ? "default" : "outline"}
+              size="sm"
+              className="flex-1 h-7 text-xs gap-1"
+              onClick={() => setTab("leaderboard")}
+            >
+              <Users className="h-3 w-3" />
+              {t.pr.leaderboard}
             </Button>
           </div>
         </CardHeader>
+
         <CardContent className="pt-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-4">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            </div>
-          ) : records.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-3">{t.pr.noRecords}</p>
-          ) : (
-            <div className="grid grid-cols-2 gap-1.5">
-              {records.slice(0, 6).map((pr) => (
-                <div
-                  key={pr.exerciseId}
-                  onClick={() => handleCardClick(pr)}
-                  className="group relative rounded-lg border border-border/50 px-2.5 py-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-accent/30 active:scale-[0.98]"
-                >
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <Trophy className="h-3 w-3 text-yellow-500/70 shrink-0" />
-                    <p className="font-display font-semibold text-[11px] leading-tight line-clamp-1 flex-1">
-                      {t.exerciseNames[pr.exerciseName] || pr.exerciseName}
-                    </p>
-                  </div>
-                  <div className="flex items-baseline justify-between">
-                    <p className="text-base font-display font-bold text-primary tabular-nums">
-                      {pr.maxWeight} <span className="text-[10px] font-normal text-muted-foreground">{t.common.kg}</span>
-                    </p>
-                    <p className="text-[9px] text-muted-foreground">
-                      {format(new Date(pr.date), "dd.MM.yy")}
-                    </p>
-                  </div>
+          {tab === "my" ? (
+            /* My Records Tab */
+            <>
+              {loading ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 </div>
-              ))}
+              ) : records.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-3">{t.pr.noRecords}</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-1.5">
+                  {records.slice(0, 6).map((pr) => (
+                    <div
+                      key={pr.exerciseId}
+                      onClick={() => handleCardClick(pr)}
+                      className="group relative rounded-lg border border-border/50 px-2.5 py-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-accent/30 active:scale-[0.98]"
+                    >
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <Trophy className="h-3 w-3 text-yellow-500/70 shrink-0" />
+                        <p className="font-display font-semibold text-[11px] leading-tight line-clamp-1 flex-1">
+                          {t.exerciseNames[pr.exerciseName] || pr.exerciseName}
+                        </p>
+                      </div>
+                      <div className="flex items-baseline justify-between">
+                        <p className="text-base font-display font-bold text-primary tabular-nums">
+                          {pr.maxWeight} <span className="text-[10px] font-normal text-muted-foreground">{t.common.kg}</span>
+                        </p>
+                        <p className="text-[9px] text-muted-foreground">
+                          {format(new Date(pr.date), "dd.MM.yy")}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {records.length > 6 && (
+                <p className="text-[10px] text-muted-foreground text-center mt-1.5">
+                  +{records.length - 6} {t.pr.moreRecords}
+                </p>
+              )}
+            </>
+          ) : (
+            /* Leaderboard Tab */
+            <div className="space-y-3">
+              {/* Visibility toggle */}
+              <button
+                onClick={toggleVisibility}
+                disabled={togglingVisibility}
+                className="flex items-center gap-2 w-full rounded-lg border border-border/50 px-3 py-2 text-xs transition-colors hover:bg-accent/30"
+              >
+                {isVisible ? (
+                  <Eye className="h-3.5 w-3.5 text-primary shrink-0" />
+                ) : (
+                  <EyeOff className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                )}
+                <span className="flex-1 text-left">
+                  {isVisible ? t.pr.youAreVisible : t.pr.youAreHidden}
+                </span>
+                <Badge variant="outline" className="text-[10px] h-5">
+                  {isVisible ? t.pr.visible : t.pr.hidden}
+                </Badge>
+              </button>
+
+              {/* Exercise selector */}
+              <Select value={leaderboardExercise} onValueChange={(v) => setLeaderboardExercise(v)}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder={t.pr.selectExercise} />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(exercisesByGroup).map(([group, exs]) => (
+                    <div key={group}>
+                      <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        {muscleGroupLabel(group)}
+                      </div>
+                      {exs.map((ex) => (
+                        <SelectItem key={ex.name} value={ex.name} className="text-xs">
+                          {t.exerciseNames[ex.name] || ex.name}
+                        </SelectItem>
+                      ))}
+                    </div>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Leaderboard list */}
+              {leaderboardLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              ) : leaderboard.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-3">{t.pr.noLeaderboardData}</p>
+              ) : (
+                <div className="space-y-1">
+                  {leaderboard.map((entry, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs transition-colors ${
+                        entry.is_current_user ? "bg-primary/10 border border-primary/30" : "border border-border/30"
+                      }`}
+                    >
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-display font-bold text-[11px]"
+                        style={{
+                          background: i === 0 ? "hsl(var(--primary) / 0.15)" : i === 1 ? "hsl(var(--muted))" : i === 2 ? "hsl(var(--accent))" : "transparent",
+                          color: i === 0 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                        }}
+                      >
+                        {i === 0 ? <Medal className="h-3.5 w-3.5" /> : `#${i + 1}`}
+                      </div>
+                      <span className={`flex-1 font-medium truncate ${entry.is_current_user ? "text-primary" : ""}`}>
+                        {entry.user_name}
+                        {entry.is_current_user && <span className="text-[10px] text-muted-foreground ml-1">({t.pr.you})</span>}
+                      </span>
+                      <span className="font-display font-bold text-sm tabular-nums">
+                        {entry.max_weight} <span className="text-[10px] font-normal text-muted-foreground">{t.common.kg}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-          {records.length > 6 && (
-            <p className="text-[10px] text-muted-foreground text-center mt-1.5">
-              +{records.length - 6} {t.pr.moreRecords}
-            </p>
           )}
         </CardContent>
       </Card>
@@ -354,21 +539,20 @@ const PersonalRecords = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
-            {/* Exercise search & selection */}
             <div className="space-y-1.5">
               <Label className="text-xs">{t.pr.exercise}</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
                   className="pl-9 h-9 text-sm"
-                  placeholder={t.pr.searchExercise || "Пошук вправи..."}
+                  placeholder={t.pr.searchExercise}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <div className="max-h-40 overflow-y-auto rounded-lg border border-border/50 divide-y divide-border/30">
                 {Object.entries(groupedExercises).length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-3">{t.pr.noExercisesFound || "Нічого не знайдено"}</p>
+                  <p className="text-xs text-muted-foreground text-center py-3">{t.pr.noExercisesFound}</p>
                 ) : (
                   Object.entries(groupedExercises).map(([group, exs]) => (
                     <div key={group}>
@@ -393,7 +577,6 @@ const PersonalRecords = () => {
               </div>
             </div>
 
-            {/* Weight & Date */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label className="text-xs">{t.pr.maxWeight} ({t.common.kg})</Label>
