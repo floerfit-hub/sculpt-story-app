@@ -47,6 +47,12 @@ const Dashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [nutrition, setNutrition] = useState<{ calories: number; protein: number; fat: number; carbs: number } | null>(null);
+  const [workouts, setWorkouts] = useState<Tables<"workouts">[]>([]);
+  const [perfData, setPerfData] = useState<PerfData[]>([]);
+  const [exerciseMap, setExerciseMap] = useState<Map<string, ExerciseInfo>>(new Map());
 
   useEffect(() => {
     try {
