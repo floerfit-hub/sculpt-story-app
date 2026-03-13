@@ -169,9 +169,7 @@ export const uk: Translations = {
     shoulders: "Плечі",
     arms: "Руки",
     legsGlutes: "Ноги та сідниці",
-    abs: "Прес",
-    lowerBack: "Поперек",
-    calves: "Литки",
+    core: "Кор",
   },
 
   exerciseLib: {
@@ -489,7 +487,7 @@ export const uk: Translations = {
 
   recovery: {
     title: "Відновлення м'язів",
-    subtitle: "8 груп з системою синергістів",
+    subtitle: "6 груп з системою синергістів",
     recoveryLabel: "Відновлення",
     ready: "Готовий до тренування",
     almostReady: "Майже готовий",

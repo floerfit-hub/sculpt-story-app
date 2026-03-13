@@ -1,37 +1,31 @@
 /**
  * Muscle Science Engine
- * 8 unified muscle groups with synergist system, recovery timing, and intensity calibration.
+ * 6 unified muscle groups matching exercise library, with synergist system.
  */
 
-// ─── 8 UNIFIED MUSCLE GROUPS ───
-export const MUSCLE_GROUPS_8 = [
+export const MUSCLE_GROUPS_6 = [
   "Chest",
   "Back",
   "Shoulders",
   "Arms",
   "Legs & Glutes",
-  "Abs",
-  "Lower Back",
-  "Calves",
+  "Core",
 ] as const;
 
-export type MuscleGroup8 = (typeof MUSCLE_GROUPS_8)[number];
+export type MuscleGroup6 = (typeof MUSCLE_GROUPS_6)[number];
 
 // ─── MUSCLE SIZE CATEGORIES ───
 export type MuscleSize = "large" | "medium" | "small";
 
-export const MUSCLE_SIZE: Record<MuscleGroup8, MuscleSize> = {
+export const MUSCLE_SIZE: Record<MuscleGroup6, MuscleSize> = {
   Chest: "large",
   Back: "large",
   Shoulders: "medium",
   Arms: "small",
   "Legs & Glutes": "large",
-  Abs: "medium",
-  "Lower Back": "medium",
-  Calves: "small",
+  Core: "medium",
 };
 
-// Base recovery hours by muscle size
 export const BASE_RECOVERY_HOURS: Record<MuscleSize, { min: number; max: number }> = {
   large: { min: 48, max: 72 },
   medium: { min: 36, max: 56 },
@@ -40,8 +34,8 @@ export const BASE_RECOVERY_HOURS: Record<MuscleSize, { min: number; max: number 
 
 // ─── SYNERGIST MAP ───
 export interface SynergistPattern {
-  primary: MuscleGroup8[];
-  synergists: Partial<Record<MuscleGroup8, number>>;
+  primary: MuscleGroup6[];
+  synergists: Partial<Record<MuscleGroup6, number>>;
 }
 
 export const SYNERGIST_MAP: Record<string, SynergistPattern> = {
@@ -51,7 +45,7 @@ export const SYNERGIST_MAP: Record<string, SynergistPattern> = {
   },
   Back: {
     primary: ["Back"],
-    synergists: { Arms: 0.45, Shoulders: 0.2, "Lower Back": 0.25 },
+    synergists: { Arms: 0.45, Shoulders: 0.2 },
   },
   "Shoulders (Overhead press)": {
     primary: ["Shoulders"],
@@ -75,33 +69,32 @@ export const SYNERGIST_MAP: Record<string, SynergistPattern> = {
   },
   "Squats / Leg press": {
     primary: ["Legs & Glutes"],
-    synergists: { Calves: 0.2, "Lower Back": 0.25, Abs: 0.2 },
+    synergists: { Core: 0.2 },
   },
   "Romanian deadlift / Hip hinge": {
     primary: ["Legs & Glutes"],
-    synergists: { "Lower Back": 0.4, Calves: 0.15 },
+    synergists: { Back: 0.2 },
   },
   "Glute bridge / Hip thrust": {
     primary: ["Legs & Glutes"],
-    synergists: { "Lower Back": 0.2, Abs: 0.15 },
+    synergists: { Core: 0.15 },
   },
   Deadlift: {
-    primary: ["Legs & Glutes", "Back", "Lower Back"],
-    synergists: { Arms: 0.3, Shoulders: 0.2, Abs: 0.3, Calves: 0.1 },
+    primary: ["Legs & Glutes", "Back"],
+    synergists: { Arms: 0.3, Shoulders: 0.2, Core: 0.3 },
   },
   "Calf raises": {
-    primary: ["Calves"],
+    primary: ["Legs & Glutes"],
     synergists: {},
   },
   "Core / Abs": {
-    primary: ["Abs"],
-    synergists: { "Lower Back": 0.2 },
+    primary: ["Core"],
+    synergists: { Back: 0.15 },
   },
 };
 
 // Map exercise names to synergist pattern keys
 export const EXERCISE_TO_PATTERN: Record<string, string> = {
-  // Chest
   "Barbell Bench Press": "Chest",
   "Incline Barbell Bench Press": "Chest",
   "Hammer Strength Chest Press": "Chest",
@@ -110,14 +103,12 @@ export const EXERCISE_TO_PATTERN: Record<string, string> = {
   "Machine Chest Fly": "Chest",
   "Push-ups": "Chest",
   "Dips": "Chest",
-  // Back
   "Lat Pulldown": "Back",
   "Seated Cable Row": "Back",
   "Dumbbell Row": "Back",
   "Pull-ups": "Back",
   "Barbell Row": "Back",
   Hyperextensions: "Back",
-  // Shoulders
   "Seated Dumbbell Press": "Shoulders (Overhead press)",
   "Standing Barbell Press": "Shoulders (Overhead press)",
   "Dumbbell Lateral Raise": "Lateral raises",
@@ -125,7 +116,6 @@ export const EXERCISE_TO_PATTERN: Record<string, string> = {
   "Reverse Dumbbell Fly": "Rear delt / Face pulls",
   "Rear Delt Machine Fly": "Rear delt / Face pulls",
   "Face Pull": "Rear delt / Face pulls",
-  // Arms
   "Barbell Biceps Curl": "Biceps curl",
   "Dumbbell Biceps Curl": "Biceps curl",
   "Incline Dumbbell Curl": "Biceps curl",
@@ -135,7 +125,6 @@ export const EXERCISE_TO_PATTERN: Record<string, string> = {
   "Single-arm Triceps Extension": "Triceps isolation",
   "Dumbbell French Press": "Triceps isolation",
   "Bench Dips": "Triceps isolation",
-  // Legs & Glutes
   "Barbell Squat": "Squats / Leg press",
   "Goblet Squat": "Squats / Leg press",
   "Leg Press": "Squats / Leg press",
@@ -149,7 +138,6 @@ export const EXERCISE_TO_PATTERN: Record<string, string> = {
   "Cable Glute Kickback": "Glute bridge / Hip thrust",
   "Standing Calf Raises": "Calf raises",
   Deadlift: "Deadlift",
-  // Core
   Plank: "Core / Abs",
   Crunches: "Core / Abs",
   "Leg Raises": "Core / Abs",
@@ -169,7 +157,6 @@ export function calculateSynergistLoads(
   exerciseSets: Array<{ exerciseName: string; sets: number; avgIntensityRatio: number }>
 ): Record<string, MuscleLoad> {
   const loads: Record<string, MuscleLoad> = {};
-
   const ensure = (m: string) => {
     if (!loads[m]) loads[m] = { directSets: 0, synergistSets: 0, totalSets: 0, avgIntensity: 0 };
   };
@@ -177,7 +164,6 @@ export function calculateSynergistLoads(
   for (const ex of exerciseSets) {
     const patternKey = EXERCISE_TO_PATTERN[ex.exerciseName];
     const pattern = patternKey ? SYNERGIST_MAP[patternKey] : null;
-
     if (pattern) {
       for (const primary of pattern.primary) {
         ensure(primary);
@@ -194,13 +180,12 @@ export function calculateSynergistLoads(
   for (const m of Object.keys(loads)) {
     loads[m].totalSets = loads[m].directSets + loads[m].synergistSets;
   }
-
   return loads;
 }
 
 // ─── RECOVERY TIMING ───
 export function getRecoveryHours(
-  muscle: MuscleGroup8,
+  muscle: MuscleGroup6,
   totalSets: number,
   avgIntensity: number,
   synergistSets: number,
@@ -208,30 +193,22 @@ export function getRecoveryHours(
 ): number {
   const size = MUSCLE_SIZE[muscle];
   const base = BASE_RECOVERY_HOURS[size];
-
   const volumeRatio = Math.min(1, totalSets / 20);
   let hours = base.min + (base.max - base.min) * volumeRatio;
-
   if (totalSets > 12) hours *= 1.15;
   if (avgIntensity > 0.8) hours *= 1.20;
   if (directSets > 0 && synergistSets >= directSets * 0.5) hours *= 1.30;
-
   return Math.round(hours * 10) / 10;
 }
 
-// ─── RECOVERY PERCENT ───
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
-export function getSegmentRecoveryPercent(
-  hoursSinceTraining: number,
-  recoveryHoursTarget: number
-): number {
+export function getSegmentRecoveryPercent(hoursSinceTraining: number, recoveryHoursTarget: number): number {
   if (hoursSinceTraining <= 0) return 0;
   if (hoursSinceTraining >= recoveryHoursTarget) return 100;
   return clamp((hoursSinceTraining / recoveryHoursTarget) * 100, 0, 100);
 }
 
-// ─── RECOVERY COLOR (4-tier) ───
 export function getRecoveryColor4(percent: number): string {
   if (percent >= 100) return "hsl(82 85% 55%)";
   if (percent >= 76) return "hsl(var(--success))";
@@ -269,25 +246,19 @@ export function getIntensityCap(
     if (checkin.sleepHours < 6) cap -= 15;
     else if (checkin.sleepHours < 7) cap -= 8;
     else if (checkin.sleepHours > 9) cap += 5;
-
-    if (checkin.nutritionScore < 7) {
-      cap -= (7 - checkin.nutritionScore) * 3;
-    }
+    if (checkin.nutritionScore < 7) cap -= (7 - checkin.nutritionScore) * 3;
   }
 
   if (cnsFatigueHigh) cap = Math.min(cap, 70);
-
   return clamp(Math.round(cap), 20, 100);
 }
 
-// ─── DAILY READINESS SCORE ───
 export function calculateReadinessScore(
   avgRecoveryPercent: number,
   checkin?: MorningCheckin | null,
   cnsFatigueHigh = false
 ): number {
   let score = avgRecoveryPercent * 0.5;
-
   if (checkin) {
     const sleepScore = checkin.sleepHours >= 7 ? 100 : checkin.sleepHours >= 6 ? 70 : 40;
     score += sleepScore * 0.2;
@@ -296,9 +267,7 @@ export function calculateReadinessScore(
   } else {
     score = avgRecoveryPercent;
   }
-
   if (cnsFatigueHigh) score *= 0.7;
-
   return clamp(Math.round(score), 0, 100);
 }
 
@@ -313,7 +282,6 @@ export function isCNSFatiguing(exerciseName: string, intensityRatio: number): bo
   return CNS_EXERCISES.has(exerciseName) && intensityRatio > 0.85;
 }
 
-// ─── FATIGUE LAYERS ───
 export type FatigueLevel = "LOW" | "MEDIUM" | "HIGH";
 
 export function getAcuteFatigueLevel(todayTotalSets: number): FatigueLevel {
@@ -326,9 +294,9 @@ export function shouldTriggerDeload(consecutiveHardDays: number): boolean {
   return consecutiveHardDays >= 5;
 }
 
-// ─── DISPLAY LAYOUT (8 cards) ───
+// ─── DISPLAY LAYOUT (6 cards) ───
 export interface MuscleCardConfig {
-  id: MuscleGroup8;
+  id: MuscleGroup6;
   i18nKey: string;
   emoji: string;
 }
@@ -339,18 +307,16 @@ export const MUSCLE_CARD_LAYOUT: MuscleCardConfig[] = [
   { id: "Shoulders", i18nKey: "shoulders", emoji: "🏋️" },
   { id: "Arms", i18nKey: "arms", emoji: "💪" },
   { id: "Legs & Glutes", i18nKey: "legsGlutes", emoji: "🦵" },
-  { id: "Abs", i18nKey: "abs", emoji: "🧱" },
-  { id: "Lower Back", i18nKey: "lowerBack", emoji: "🔗" },
-  { id: "Calves", i18nKey: "calves", emoji: "🦶" },
+  { id: "Core", i18nKey: "core", emoji: "🧱" },
 ];
 
-// Legacy compat — map old DB muscle_group names to unified groups
-export const OLD_GROUP_TO_UNIFIED: Record<string, MuscleGroup8> = {
-  // Old 17-segment names
+// Legacy compat
+export const OLD_GROUP_TO_UNIFIED: Record<string, MuscleGroup6> = {
   Chest: "Chest",
   "Upper back": "Back",
   Lats: "Back",
-  "Lower back": "Lower Back",
+  "Lower back": "Back",
+  "Lower Back": "Back",
   "Anterior delt": "Shoulders",
   "Lateral delt": "Shoulders",
   "Posterior delt": "Shoulders",
@@ -359,9 +325,9 @@ export const OLD_GROUP_TO_UNIFIED: Record<string, MuscleGroup8> = {
   Quadriceps: "Legs & Glutes",
   Glutes: "Legs & Glutes",
   Hamstrings: "Legs & Glutes",
-  Calves: "Calves",
-  Core: "Abs",
-  // Old 6-group names
+  Calves: "Legs & Glutes",
+  Core: "Core",
+  Abs: "Core",
   Back: "Back",
   Shoulders: "Shoulders",
   Arms: "Arms",

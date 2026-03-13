@@ -167,16 +167,14 @@ export const en = {
     workoutDeleted: "Workout deleted",
   },
 
-  // Muscle groups (8 unified)
+  // Muscle groups (6 unified)
   muscleGroups: {
     chest: "Chest",
     back: "Back",
     shoulders: "Shoulders",
     arms: "Arms",
     legsGlutes: "Legs & Glutes",
-    abs: "Abs",
-    lowerBack: "Lower Back",
-    calves: "Calves",
+    core: "Core",
   },
 
   // Exercise Library
@@ -509,7 +507,7 @@ export const en = {
   // Recovery
   recovery: {
     title: "Muscle Recovery",
-    subtitle: "8-group recovery with synergist tracking",
+    subtitle: "6-group recovery with synergist tracking",
     recoveryLabel: "Recovery",
     ready: "Ready to train",
     almostReady: "Almost ready",

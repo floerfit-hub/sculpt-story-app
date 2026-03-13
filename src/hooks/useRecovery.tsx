@@ -7,7 +7,7 @@ import {
   SYNERGIST_MAP,
   OLD_GROUP_TO_UNIFIED,
   CNS_EXERCISES,
-  type MuscleGroup8,
+  type MuscleGroup6,
 } from "@/lib/muscleScience";
 
 const CACHE_KEY_PREFIX = "muscle-recovery-cache-v5";

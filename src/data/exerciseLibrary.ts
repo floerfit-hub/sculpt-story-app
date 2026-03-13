@@ -1,4 +1,4 @@
-export type MuscleGroup = "Chest" | "Back" | "Shoulders" | "Arms" | "Legs & Glutes" | "Abs" | "Lower Back" | "Calves";
+export type MuscleGroup = "Chest" | "Back" | "Shoulders" | "Arms" | "Legs & Glutes" | "Core";
 
 export interface Exercise {
   name: string;
@@ -6,7 +6,7 @@ export interface Exercise {
 }
 
 export const MUSCLE_GROUPS: MuscleGroup[] = [
-  "Chest", "Back", "Shoulders", "Arms", "Legs & Glutes", "Abs", "Lower Back", "Calves"
+  "Legs & Glutes", "Back", "Chest", "Shoulders", "Arms", "Core"
 ];
 
 export const EXERCISES: Exercise[] = [
@@ -22,6 +22,7 @@ export const EXERCISES: Exercise[] = [
   { name: "Cable Glute Kickback", muscleGroup: "Legs & Glutes" },
   { name: "Lying Leg Curl", muscleGroup: "Legs & Glutes" },
   { name: "Leg Extension", muscleGroup: "Legs & Glutes" },
+  { name: "Standing Calf Raises", muscleGroup: "Legs & Glutes" },
   { name: "Deadlift", muscleGroup: "Legs & Glutes" },
   // Back
   { name: "Lat Pulldown", muscleGroup: "Back" },
@@ -57,16 +58,12 @@ export const EXERCISES: Exercise[] = [
   { name: "Single-arm Triceps Extension", muscleGroup: "Arms" },
   { name: "Dumbbell French Press", muscleGroup: "Arms" },
   { name: "Bench Dips", muscleGroup: "Arms" },
-  // Abs
-  { name: "Plank", muscleGroup: "Abs" },
-  { name: "Crunches", muscleGroup: "Abs" },
-  { name: "Leg Raises", muscleGroup: "Abs" },
-  { name: "Dead Bug", muscleGroup: "Abs" },
-  { name: "Bicycle Crunch", muscleGroup: "Abs" },
-  // Lower Back
-  // (Hyperextensions listed under Back as primary)
-  // Calves
-  { name: "Standing Calf Raises", muscleGroup: "Calves" },
+  // Core
+  { name: "Plank", muscleGroup: "Core" },
+  { name: "Crunches", muscleGroup: "Core" },
+  { name: "Leg Raises", muscleGroup: "Core" },
+  { name: "Dead Bug", muscleGroup: "Core" },
+  { name: "Bicycle Crunch", muscleGroup: "Core" },
 ];
 
 export function getExercisesByGroup(group: MuscleGroup): Exercise[] {

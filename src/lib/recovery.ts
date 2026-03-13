@@ -1,4 +1,4 @@
-import { MUSCLE_SIZE, BASE_RECOVERY_HOURS, type MuscleGroup8 } from "./muscleScience";
+import { MUSCLE_SIZE, BASE_RECOVERY_HOURS, type MuscleGroup6 } from "./muscleScience";
 
 export interface RecoveryData {
   muscle_group: string;
@@ -22,7 +22,7 @@ export const getRestMultiplier = (restSeconds: number | null | undefined): numbe
 };
 
 export const getTargetRecoveryHours = (fatigueScore: number, muscleGroup?: string): number => {
-  const group = muscleGroup as MuscleGroup8 | undefined;
+  const group = muscleGroup as MuscleGroup6 | undefined;
   const size = group ? MUSCLE_SIZE[group] : undefined;
 
   if (size) {
@@ -44,12 +44,10 @@ export const getRealtimeRecoveryPercent = (data: RecoveryData | undefined, nowMs
 
   const hoursSinceTraining = (nowMs - trainedAtMs) / (1000 * 60 * 60);
   const safeHours = Math.max(0, hoursSinceTraining);
-
   const targetHours = getTargetRecoveryHours(data.fatigue_score, data.muscle_group);
 
   if (safeHours >= targetHours) return 100;
 
-  // Exponential recovery curve
   const ratio = safeHours / targetHours;
   const expRecovery = 1 - Math.exp(-3 * ratio);
   return clamp(Math.round(expRecovery * 100), 0, 100);
@@ -65,7 +63,6 @@ export const getHoursUntilFullRecovery = (data: RecoveryData | undefined, nowMs 
   return Math.max(0, targetHours - elapsedHours);
 };
 
-// 4-tier color system
 export const getRecoveryColor = (recoveryPercent: number): string => {
   if (recoveryPercent >= 100) return "hsl(82 85% 55%)";
   if (recoveryPercent >= 76) return "hsl(var(--success))";
