@@ -175,6 +175,18 @@ export const en = {
     shoulders: "Shoulders",
     arms: "Arms",
     core: "Core",
+    frontDelts: "Front Delts",
+    rearDelts: "Rear Delts",
+    abs: "Abs",
+    quads: "Quads",
+    biceps: "Biceps",
+    forearms: "Forearms",
+    traps: "Traps",
+    lats: "Lats",
+    lowerBack: "Lower Back",
+    glutes: "Glutes",
+    hamstrings: "Hamstrings",
+    calves: "Calves",
   },
 
   // Exercise Library
@@ -526,6 +538,8 @@ export const en = {
     days: "d",
     clickForDetails: "Click for details",
     languageToggle: "Language",
+    frontView: "Front",
+    backView: "Back",
   },
 
   // Common
