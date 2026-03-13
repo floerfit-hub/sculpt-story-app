@@ -105,10 +105,6 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [finalDuration, setFinalDuration] = useState<number>(0);
   const [showRestTooltip, setShowRestTooltip] = useState(false);
   const prMapRef = useRef<Map<string, number>>(new Map());
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [finalDuration, setFinalDuration] = useState<number>(0);
-  const [showRestTooltip, setShowRestTooltip] = useState(false);
 
   // Track time of last set completion for auto rest tracking
   const lastSetTimeRef = useRef<number | null>(null);
