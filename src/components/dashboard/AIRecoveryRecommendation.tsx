@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/i18n";
@@ -14,10 +14,31 @@ interface RecoveryData {
 
 interface AIRecoveryRecommendationProps {
   recoveryData: RecoveryData[];
+  onSuggestedMuscles?: (muscles: string[]) => void;
 }
 
-const AIRecoveryRecommendation = ({ recoveryData }: AIRecoveryRecommendationProps) => {
-  const { t } = useTranslation();
+const MUSCLE_KEYWORDS: Record<string, string[]> = {
+  chest: ["chest", "груди", "грудні", "pec", "bench"],
+  back: ["back", "спина", "спину", "lat", "row", "pull"],
+  shoulders: ["shoulder", "плечі", "плеч", "delt", "overhead"],
+  arms: ["arms", "arm", "руки", "bicep", "tricep", "біцепс", "трицепс", "curl"],
+  core: ["core", "кор", "abs", "прес", "plank"],
+  "legs & glutes": ["leg", "legs", "ноги", "glute", "сідниці", "squat", "присід", "квадрицепс", "стегно"],
+};
+
+const extractSuggestedMuscles = (text: string): string[] => {
+  const lower = text.toLowerCase();
+  const found: string[] = [];
+  for (const [group, keywords] of Object.entries(MUSCLE_KEYWORDS)) {
+    if (keywords.some((kw) => lower.includes(kw))) {
+      found.push(group);
+    }
+  }
+  return found;
+};
+
+const AIRecoveryRecommendation = ({ recoveryData, onSuggestedMuscles }: AIRecoveryRecommendationProps) => {
+  const { t, lang } = useTranslation();
   const [recommendation, setRecommendation] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -32,7 +53,7 @@ const AIRecoveryRecommendation = ({ recoveryData }: AIRecoveryRecommendationProp
     return Math.min(100, Math.max(0, 100 - fatigueRemaining));
   };
 
-  const fetchRecommendation = async () => {
+  const fetchRecommendation = useCallback(async () => {
     if (recoveryData.length === 0) return;
     setLoading(true);
     try {
@@ -43,14 +64,15 @@ const AIRecoveryRecommendation = ({ recoveryData }: AIRecoveryRecommendationProp
       }));
 
       const { data, error } = await supabase.functions.invoke("ai-workout-recommendation", {
-        body: { recoveryStatus, language: t === (await import("@/i18n/uk")).uk ? "uk" : "en" },
+        body: { recoveryStatus, language: lang },
       });
 
       if (error) throw error;
-      setRecommendation(data?.recommendation || t.recovery.noRecommendation);
+      const text = data?.recommendation || t.recovery.noRecommendation;
+      setRecommendation(text);
+      onSuggestedMuscles?.(extractSuggestedMuscles(text));
     } catch (e) {
       console.error("AI recommendation error:", e);
-      // Fallback: rule-based recommendation
       const sorted = recoveryData
         .map((r) => ({ ...r, realRecovery: getRealtimeRecovery(r) }))
         .sort((a, b) => b.realRecovery - a.realRecovery);
@@ -67,17 +89,18 @@ const AIRecoveryRecommendation = ({ recoveryData }: AIRecoveryRecommendationProp
       }
       if (!msg) msg = t.recovery.allRecovered;
       setRecommendation(msg);
+      onSuggestedMuscles?.(extractSuggestedMuscles(msg));
     } finally {
       setLoading(false);
       setHasLoaded(true);
     }
-  };
+  }, [recoveryData, lang, t, onSuggestedMuscles]);
 
   useEffect(() => {
     if (recoveryData.length > 0 && !hasLoaded) {
       fetchRecommendation();
     }
-  }, [recoveryData.length]);
+  }, [recoveryData.length, hasLoaded, fetchRecommendation]);
 
   if (recoveryData.length === 0) return null;
 
