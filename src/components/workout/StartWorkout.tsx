@@ -106,6 +106,25 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [showRestTooltip, setShowRestTooltip] = useState(false);
   const prMapRef = useRef<Map<string, number>>(new Map());
 
+  // Load existing PRs for confetti detection
+  useEffect(() => {
+    if (!user) return;
+    const loadPRs = async () => {
+      const { data: userWorkouts } = await supabase.from("workouts").select("id").eq("user_id", user.id);
+      if (!userWorkouts?.length) return;
+      const wIds = userWorkouts.map(w => w.id);
+      const { data: sets } = await supabase.from("workout_sets").select("exercise_id, weight").in("workout_id", wIds);
+      if (!sets) return;
+      const map = new Map<string, number>();
+      for (const s of sets) {
+        const current = map.get(s.exercise_id) || 0;
+        if (s.weight > current) map.set(s.exercise_id, s.weight);
+      }
+      prMapRef.current = map;
+    };
+    loadPRs();
+  }, [user]);
+
   // Track time of last set completion for auto rest tracking
   const lastSetTimeRef = useRef<number | null>(null);
   const [autoRestSeconds, setAutoRestSeconds] = useState<number | null>(null);
