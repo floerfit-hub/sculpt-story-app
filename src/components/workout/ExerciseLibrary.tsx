@@ -176,8 +176,35 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
       <div className="space-y-4 animate-fade-in">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => setActiveGroup(null)}><ArrowLeft className="h-5 w-5" /></Button>
-          <h2 className="text-xl font-display font-bold">{getGroupLabel(activeGroup)}</h2>
+          <h2 className="text-xl font-display font-bold flex-1">{getGroupLabel(activeGroup)}</h2>
+          <Button variant="outline" size="sm" className="border-dashed" onClick={() => { setShowAddForm(true); setNewGroup(activeGroup); }}>
+            <Plus className="h-4 w-4 mr-1" /> {t.workouts.add}
+          </Button>
         </div>
+
+        {/* Inline add custom exercise form */}
+        {showAddForm && newGroup === activeGroup && (
+          <Card className="border-primary/20">
+            <CardContent className="p-4 space-y-3">
+              <Input
+                placeholder={t.workouts.customExerciseName}
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                maxLength={100}
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <Button className="flex-1" onClick={addCustomExercise} disabled={!newName.trim()}>
+                  {t.workouts.add}
+                </Button>
+                <Button variant="outline" onClick={() => { setShowAddForm(false); setNewName(""); setNewGroup(""); }}>
+                  {t.workouts.cancel}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid gap-2">
           {builtIn.map((ex) => (
             <Card key={ex.name} className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform`} onClick={() => selectable && onSelect?.(ex.name, ex.muscleGroup)}>
@@ -199,32 +226,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             </Card>
           ))}
         </div>
-
-        {/* Inline add custom exercise form for this group */}
-        {showAddForm && newGroup === activeGroup ? (
-          <Card className="border-primary/20">
-            <CardContent className="p-4 space-y-3">
-              <Input
-                placeholder={t.workouts.customExerciseName}
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                maxLength={100}
-              />
-              <div className="flex gap-2">
-                <Button className="flex-1" onClick={addCustomExercise} disabled={!newName.trim()}>
-                  {t.workouts.add}
-                </Button>
-                <Button variant="outline" onClick={() => { setShowAddForm(false); setNewName(""); setNewGroup(""); }}>
-                  {t.workouts.cancel}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Button variant="outline" className="w-full border-dashed" onClick={() => { setShowAddForm(true); setNewGroup(activeGroup); }}>
-            <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
-          </Button>
-        )}
       </div>
     );
   }
