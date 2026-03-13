@@ -176,13 +176,13 @@ const Pricing = () => {
 
         {/* FAQ / Trust */}
         <div className="space-y-3">
-          <h2 className="text-lg font-display font-bold">Frequently Asked Questions</h2>
+          <h2 className="text-lg font-display font-bold">Часті запитання</h2>
           <div className="space-y-2">
             {[
-              { q: "Can I cancel anytime?", a: "Yes. Cancel from your Profile at any time. You keep access until the end of your billing period." },
-              { q: "Is there a free trial?", a: "Yes! Every Pro subscription starts with a 7-day free trial. You won't be charged during the trial." },
-              { q: "What payment methods are accepted?", a: "We accept credit/debit cards, PayPal, and other methods through our payment provider Paddle." },
-              { q: "Can I get a refund?", a: "Yes. Full refunds are available within 7 days of your first payment (14 days for yearly plans)." },
+              { q: "Чи можу я скасувати в будь-який момент?", a: "Так. Скасуйте з вашого профілю в будь-який час. Доступ зберігається до кінця оплаченого періоду." },
+              { q: "Чи є безкоштовний тріал?", a: "Так! Кожна Pro-підписка починається з 7 днів безкоштовного тріалу. Під час тріалу оплата не стягується." },
+              { q: "Які способи оплати приймаються?", a: "Ми приймаємо кредитні/дебетові картки, PayPal та інші методи через Paddle." },
+              { q: "Чи можу я отримати повернення коштів?", a: "Так. Повне повернення доступне протягом 7 днів після першого платежу (14 днів для річних планів)." },
             ].map(({ q, a }) => (
               <Card key={q}>
                 <CardContent className="p-4">
