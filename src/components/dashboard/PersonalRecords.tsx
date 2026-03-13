@@ -149,11 +149,12 @@ const PersonalRecords = () => {
     setLoading(false);
   };
 
-  const fetchLeaderboard = useCallback(async (exerciseName: string) => {
+  const fetchLeaderboard = useCallback(async (exerciseName: string, minReps: number) => {
     setLeaderboardLoading(true);
     const { data, error } = await supabase.rpc("get_exercise_leaderboard", {
       _exercise_name: exerciseName,
-    });
+      _min_reps: minReps,
+    } as any);
     if (!error && data) setLeaderboard(data as LeaderboardEntry[]);
     else setLeaderboard([]);
     setLeaderboardLoading(false);
