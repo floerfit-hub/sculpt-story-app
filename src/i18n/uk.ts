@@ -28,6 +28,11 @@ export const uk: Translations = {
     checkEmail: "Перевірте пошту",
     confirmationSent: "Ми відправили вам посилання для підтвердження.",
     rememberMe: "Запам'ятати мене",
+    acceptTerms: "Я погоджуюсь з",
+    termsLink: "Умовами використання",
+    andPrivacy: "та",
+    privacyLink: "Політикою конфіденційності",
+    mustAcceptTerms: "Потрібно прийняти умови для продовження",
   },
 
   dashboard: {

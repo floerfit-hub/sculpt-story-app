@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/i18n";
 import { Dumbbell } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Link } from "react-router-dom";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -17,6 +18,7 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -24,6 +26,11 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    if (isSignUp && !acceptedTerms) {
+      toast({ title: t.common.error, description: t.auth.mustAcceptTerms, variant: "destructive" });
+      setLoading(false);
+      return;
+    }
 
     if (isSignUp) {
       const { error } = await supabase.auth.signUp({
@@ -88,10 +95,23 @@ const Auth = () => {
               <Label htmlFor="password" className="text-sm font-medium">{t.auth.password}</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox id="remember" checked={rememberMe} onCheckedChange={(v) => setRememberMe(!!v)} />
-              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">{t.auth.rememberMe || "Запам'ятати мене"}</Label>
-            </div>
+            {isSignUp && (
+              <div className="flex items-start gap-2">
+                <Checkbox id="terms" checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(!!v)} className="mt-0.5" />
+                <Label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer leading-snug">
+                  {t.auth.acceptTerms}{" "}
+                  <Link to="/terms" className="text-primary hover:underline">{t.auth.termsLink}</Link>{" "}
+                  {t.auth.andPrivacy}{" "}
+                  <Link to="/privacy" className="text-primary hover:underline">{t.auth.privacyLink}</Link>
+                </Label>
+              </div>
+            )}
+            {!isSignUp && (
+              <div className="flex items-center gap-2">
+                <Checkbox id="remember" checked={rememberMe} onCheckedChange={(v) => setRememberMe(!!v)} />
+                <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">{t.auth.rememberMe}</Label>
+              </div>
+            )}
             <Button type="submit" className="w-full h-12 text-base font-bold" disabled={loading}>
               {loading ? t.auth.loading : isSignUp ? t.auth.signUp : t.auth.logIn}
             </Button>
