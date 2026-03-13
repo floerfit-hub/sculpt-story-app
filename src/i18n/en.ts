@@ -538,6 +538,8 @@ export const en = {
     days: "d",
     clickForDetails: "Click for details",
     languageToggle: "Language",
+    frontView: "Front",
+    backView: "Back",
   },
 
   // Common

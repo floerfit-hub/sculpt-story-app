@@ -518,6 +518,8 @@ export const uk: Translations = {
     days: "д",
     clickForDetails: "Натисніть для деталей",
     languageToggle: "Мова",
+    frontView: "Спереду",
+    backView: "Ззаду",
   },
 
   common: {
