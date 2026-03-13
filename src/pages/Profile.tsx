@@ -107,7 +107,7 @@ const Profile = () => {
       <Card>
         <CardHeader>
           <CardTitle className="font-display text-lg flex items-center gap-2">
-            {theme === "dark" ? <Moon className="h-5 w-5 text-primary" /> : <Sun className="h-5 w-5 text-primary" />}
+            {theme === "midnight" ? <Stars className="h-5 w-5 text-primary" /> : theme === "dark" ? <Moon className="h-5 w-5 text-primary" /> : <Sun className="h-5 w-5 text-primary" />}
             {t.profile.theme}
           </CardTitle>
         </CardHeader>
