@@ -510,8 +510,8 @@ export const en = {
     ready: "Ready to train",
     almostReady: "Almost ready",
     recovering: "Recovering",
-    fatigued: "Fatigued",
-    aiRecommendation: "AI Workout Suggestion",
+    fatigued: "Critical fatigue",
+    aiRecommendation: "AI Recommendation",
     analyzing: "Analyzing your recovery...",
     noRecommendation: "Complete a workout to get AI recommendations.",
     readyToTrain: "Ready to train",
@@ -521,6 +521,11 @@ export const en = {
     prepTime: "Preparation Time Before Set",
     prepTimeDesc: "Time buffer before starting a set",
     seconds: "sec",
+    restTimeRecommended: "Recommended rest",
+    hours: "h",
+    days: "d",
+    clickForDetails: "Click for details",
+    languageToggle: "Language",
   },
 
   // Common
