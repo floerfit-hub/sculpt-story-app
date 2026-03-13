@@ -143,26 +143,6 @@ const Profile = () => {
         </CardContent>
       </Card>
 
-      {/* Prep Buffer */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-lg flex items-center gap-2">
-            <Timer className="h-5 w-5 text-primary" />
-            {t.recovery.prepTime}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">{t.recovery.prepTimeDesc}</p>
-          <div className="flex gap-2">
-            {[5, 10, 15].map((val) => (
-              <Button key={val} variant={prepBuffer === val ? "default" : "outline"} className="flex-1" onClick={() => setPrepBuffer(val)}>
-                {val} {t.recovery.seconds}
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Subscription */}
       <SubscriptionManager />
 

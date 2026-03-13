@@ -6,15 +6,15 @@ import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Plus, TrendingUp, ArrowLeft, Crown } from "lucide-react";
+import { Trophy, Plus, TrendingUp, ArrowLeft, Search } from "lucide-react";
 import { format } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import PremiumGate from "@/components/subscription/PremiumGate";
+import { MUSCLE_GROUPS, type MuscleGroup } from "@/data/exerciseLibrary";
 
 interface PRRecord {
   exerciseName: string;
@@ -46,9 +46,9 @@ const PersonalRecords = () => {
   const [manualExercise, setManualExercise] = useState("");
   const [manualWeight, setManualWeight] = useState("");
   const [manualDate, setManualDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [manualMuscleGroup, setManualMuscleGroup] = useState("");
   const [exercises, setExercises] = useState<{ id: string; name: string; muscle_group: string }[]>([]);
   const [savingManual, setSavingManual] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -65,21 +65,13 @@ const PersonalRecords = () => {
     if (!user) return;
     setLoading(true);
 
-    // Get all workout_sets with exercise info, find max weight per exercise
     const { data: sets } = await supabase
       .from("workout_sets")
-      .select(`
-        weight,
-        created_at,
-        workout_id,
-        exercise_id,
-        exercises!inner(name, muscle_group)
-      `)
+      .select(`weight, created_at, workout_id, exercise_id, exercises!inner(name, muscle_group)`)
       .order("weight", { ascending: false });
 
     if (!sets) { setLoading(false); return; }
 
-    // Filter to only user's workouts
     const { data: userWorkouts } = await supabase
       .from("workouts")
       .select("id, started_at")
@@ -132,7 +124,6 @@ const PersonalRecords = () => {
 
     if (!sets) { setHistoryLoading(false); return; }
 
-    // Group by workout, take max weight per workout
     const workoutMax = new Map<string, { date: string; weight: number }>();
     for (const s of sets) {
       const date = workoutMap.get(s.workout_id);
@@ -163,6 +154,25 @@ const PersonalRecords = () => {
     return Math.round(((last - first) / first) * 100);
   }, [history]);
 
+  // Group exercises by muscle group and filter by search
+  const groupedExercises = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    const groups: Record<string, typeof exercises> = {};
+
+    for (const mg of MUSCLE_GROUPS) {
+      const filtered = exercises.filter(
+        (ex) =>
+          ex.muscle_group === mg &&
+          (q === "" ||
+            (t.exerciseNames[ex.name] || ex.name).toLowerCase().includes(q) ||
+            ex.name.toLowerCase().includes(q))
+      );
+      if (filtered.length > 0) groups[mg] = filtered;
+    }
+
+    return groups;
+  }, [exercises, searchQuery, t]);
+
   const handleManualSave = async () => {
     if (!user || !manualExercise || !manualWeight) return;
     setSavingManual(true);
@@ -171,7 +181,6 @@ const PersonalRecords = () => {
       const selectedEx = exercises.find(e => e.id === manualExercise);
       if (!selectedEx) throw new Error("Exercise not found");
 
-      // Create a workout entry for the manual record
       const { data: workout, error: wErr } = await supabase
         .from("workouts")
         .insert({
@@ -204,6 +213,7 @@ const PersonalRecords = () => {
       setManualExercise("");
       setManualWeight("");
       setManualDate(format(new Date(), "yyyy-MM-dd"));
+      setSearchQuery("");
       fetchRecords();
     } catch (e: any) {
       toast({ title: t.common.error, description: e?.message, variant: "destructive" });
@@ -212,18 +222,18 @@ const PersonalRecords = () => {
     }
   };
 
-  const muscleGroupKey = (mg: string): string => {
-    const map: Record<string, string> = {
+  const muscleGroupLabel = (mg: string): string => {
+    const key: Record<string, string> = {
       "Legs & Glutes": "legsGlutes", Back: "back", Chest: "chest",
       Shoulders: "shoulders", Arms: "arms", Core: "core",
     };
-    return map[mg] || mg;
+    return t.muscleGroups?.[key[mg] || mg] || mg;
   };
 
   if (selectedPR) {
     return (
       <Card className="animate-fade-in">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedPR(null)}>
               <ArrowLeft className="h-4 w-4" />
@@ -248,44 +258,23 @@ const PersonalRecords = () => {
         <CardContent>
           <PremiumGate feature={t.pr.progressView}>
             {historyLoading ? (
-              <div className="flex items-center justify-center py-10">
+              <div className="flex items-center justify-center py-8">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               </div>
             ) : history.length < 2 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">{t.pr.needMoreData}</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t.pr.needMoreData}</p>
             ) : (
-              <div className="h-48">
+              <div className="h-44">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={history}>
-                    <XAxis
-                      dataKey="date"
-                      tickFormatter={(d) => format(new Date(d), "dd.MM")}
-                      tick={{ fontSize: 10 }}
-                      stroke="hsl(var(--muted-foreground))"
-                    />
-                    <YAxis
-                      tick={{ fontSize: 10 }}
-                      stroke="hsl(var(--muted-foreground))"
-                      domain={["dataMin - 5", "dataMax + 5"]}
-                    />
+                    <XAxis dataKey="date" tickFormatter={(d) => format(new Date(d), "dd.MM")} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" domain={["dataMin - 5", "dataMax + 5"]} />
                     <Tooltip
-                      contentStyle={{
-                        background: "hsl(var(--background))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "12px",
-                        fontSize: "12px",
-                      }}
+                      contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }}
                       labelFormatter={(d) => format(new Date(d), "dd MMM yyyy")}
                       formatter={(val: number) => [`${val} ${t.common.kg}`, t.pr.maxWeight]}
                     />
-                    <Line
-                      type="monotone"
-                      dataKey="weight"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={2.5}
-                      dot={{ fill: "hsl(var(--primary))", r: 3 }}
-                      activeDot={{ r: 5 }}
-                    />
+                    <Line type="monotone" dataKey="weight" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ fill: "hsl(var(--primary))", r: 3 }} activeDot={{ r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -299,7 +288,7 @@ const PersonalRecords = () => {
   return (
     <>
       <Card className="animate-fade-in">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="font-display text-sm flex items-center gap-2">
               <Trophy className="h-4 w-4 text-yellow-500" />
@@ -311,96 +300,113 @@ const PersonalRecords = () => {
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {loading ? (
-            <div className="flex items-center justify-center py-6">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <div className="flex items-center justify-center py-4">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </div>
           ) : records.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">{t.pr.noRecords}</p>
+            <p className="text-sm text-muted-foreground text-center py-3">{t.pr.noRecords}</p>
           ) : (
-            <div className="grid grid-cols-2 gap-2">
-              {records.slice(0, 8).map((pr) => (
+            <div className="grid grid-cols-2 gap-1.5">
+              {records.slice(0, 6).map((pr) => (
                 <div
                   key={pr.exerciseId}
                   onClick={() => handleCardClick(pr)}
-                  className="group relative rounded-xl border border-border/50 p-3 cursor-pointer transition-all hover:border-primary/40 hover:bg-accent/30 active:scale-[0.98]"
+                  className="group relative rounded-lg border border-border/50 px-2.5 py-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-accent/30 active:scale-[0.98]"
                 >
-                  <div className="flex items-start justify-between mb-1.5">
-                    <Trophy className="h-3.5 w-3.5 text-yellow-500/70 shrink-0 mt-0.5" />
-                    {isPremium && (
-                      <TrendingUp className="h-3 w-3 text-muted-foreground/40 group-hover:text-primary transition-colors" />
-                    )}
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <Trophy className="h-3 w-3 text-yellow-500/70 shrink-0" />
+                    <p className="font-display font-semibold text-[11px] leading-tight line-clamp-1 flex-1">
+                      {t.exerciseNames[pr.exerciseName] || pr.exerciseName}
+                    </p>
                   </div>
-                  <p className="font-display font-semibold text-xs leading-tight line-clamp-2 mb-1">
-                    {t.exerciseNames[pr.exerciseName] || pr.exerciseName}
-                  </p>
-                  <p className="text-lg font-display font-bold text-primary tabular-nums">
-                    {pr.maxWeight} <span className="text-xs font-normal text-muted-foreground">{t.common.kg}</span>
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {format(new Date(pr.date), "dd.MM.yyyy")}
-                  </p>
+                  <div className="flex items-baseline justify-between">
+                    <p className="text-base font-display font-bold text-primary tabular-nums">
+                      {pr.maxWeight} <span className="text-[10px] font-normal text-muted-foreground">{t.common.kg}</span>
+                    </p>
+                    <p className="text-[9px] text-muted-foreground">
+                      {format(new Date(pr.date), "dd.MM.yy")}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
           )}
-          {records.length > 8 && (
-            <p className="text-xs text-muted-foreground text-center mt-2">
-              +{records.length - 8} {t.pr.moreRecords}
+          {records.length > 6 && (
+            <p className="text-[10px] text-muted-foreground text-center mt-1.5">
+              +{records.length - 6} {t.pr.moreRecords}
             </p>
           )}
         </CardContent>
       </Card>
 
       {/* Manual PR Entry Modal */}
-      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="rounded-2xl">
+      <Dialog open={showAddModal} onOpenChange={(open) => {
+        setShowAddModal(open);
+        if (!open) { setSearchQuery(""); setManualExercise(""); }
+      }}>
+        <DialogContent className="rounded-2xl max-h-[85vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle className="font-display flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" />
+            <DialogTitle className="font-display flex items-center gap-2 text-base">
+              <Trophy className="h-4 w-4 text-yellow-500" />
               {t.pr.addManualTitle}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 mt-2">
-            <div className="space-y-2">
-              <Label>{t.pr.exercise}</Label>
-              <Select value={manualExercise} onValueChange={(v) => {
-                setManualExercise(v);
-                const ex = exercises.find(e => e.id === v);
-                if (ex) setManualMuscleGroup(ex.muscle_group);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t.pr.selectExercise} />
-                </SelectTrigger>
-                <SelectContent>
-                  {exercises.map((ex) => (
-                    <SelectItem key={ex.id} value={ex.id}>
-                      {t.exerciseNames[ex.name] || ex.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
+            {/* Exercise search & selection */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">{t.pr.exercise}</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  className="pl-9 h-9 text-sm"
+                  placeholder={t.pr.searchExercise || "Пошук вправи..."}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="max-h-40 overflow-y-auto rounded-lg border border-border/50 divide-y divide-border/30">
+                {Object.entries(groupedExercises).length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-3">{t.pr.noExercisesFound || "Нічого не знайдено"}</p>
+                ) : (
+                  Object.entries(groupedExercises).map(([group, exs]) => (
+                    <div key={group}>
+                      <div className="px-2.5 py-1 bg-muted/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider sticky top-0">
+                        {muscleGroupLabel(group)}
+                      </div>
+                      {exs.map((ex) => (
+                        <button
+                          key={ex.id}
+                          type="button"
+                          onClick={() => setManualExercise(ex.id)}
+                          className={`w-full text-left px-2.5 py-1.5 text-xs transition-colors hover:bg-accent/40 ${
+                            manualExercise === ex.id ? "bg-primary/10 text-primary font-semibold" : ""
+                          }`}
+                        >
+                          {t.exerciseNames[ex.name] || ex.name}
+                        </button>
+                      ))}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>{t.pr.maxWeight} ({t.common.kg})</Label>
-              <Input
-                type="number"
-                value={manualWeight}
-                onChange={(e) => setManualWeight(e.target.value)}
-                placeholder="100"
-              />
+
+            {/* Weight & Date */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">{t.pr.maxWeight} ({t.common.kg})</Label>
+                <Input type="number" className="h-9 text-sm" value={manualWeight} onChange={(e) => setManualWeight(e.target.value)} placeholder="100" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">{t.pr.date}</Label>
+                <Input type="date" className="h-9 text-sm" value={manualDate} onChange={(e) => setManualDate(e.target.value)} />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>{t.pr.date}</Label>
-              <Input
-                type="date"
-                value={manualDate}
-                onChange={(e) => setManualDate(e.target.value)}
-              />
-            </div>
+
             <Button
-              className="w-full"
+              className="w-full h-9 text-sm"
               onClick={handleManualSave}
               disabled={savingManual || !manualExercise || !manualWeight}
             >
