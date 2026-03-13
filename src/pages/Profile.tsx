@@ -115,10 +115,13 @@ const Profile = () => {
           <p className="text-sm text-muted-foreground mb-3">{t.profile.themeDesc}</p>
           <div className="flex gap-2">
             <Button variant={theme === "dark" ? "default" : "outline"} className="flex-1" onClick={() => setTheme("dark")}>
-              <Moon className="mr-2 h-4 w-4" /> {t.profile.dark}
+              <Moon className="mr-1 h-4 w-4" /> {t.profile.dark}
             </Button>
             <Button variant={theme === "light" ? "default" : "outline"} className="flex-1" onClick={() => setTheme("light")}>
-              <Sun className="mr-2 h-4 w-4" /> {t.profile.light}
+              <Sun className="mr-1 h-4 w-4" /> {t.profile.light}
+            </Button>
+            <Button variant={theme === "midnight" ? "default" : "outline"} className="flex-1" onClick={() => setTheme("midnight")}>
+              <Stars className="mr-1 h-4 w-4" /> {t.profile.midnight}
             </Button>
           </div>
         </CardContent>
