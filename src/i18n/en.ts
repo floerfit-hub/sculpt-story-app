@@ -167,31 +167,16 @@ export const en = {
     workoutDeleted: "Workout deleted",
   },
 
-  // Muscle groups
+  // Muscle groups (8 unified)
   muscleGroups: {
-    legsGlutes: "Legs & Glutes",
-    back: "Back",
     chest: "Chest",
+    back: "Back",
     shoulders: "Shoulders",
     arms: "Arms",
-    core: "Core",
-    frontDelts: "Front Delts",
-    rearDelts: "Rear Delts",
+    legsGlutes: "Legs & Glutes",
     abs: "Abs",
-    quads: "Quadriceps",
-    biceps: "Biceps",
-    forearms: "Forearms",
-    traps: "Traps",
-    lats: "Lats",
     lowerBack: "Lower Back",
-    glutes: "Glutes",
-    hamstrings: "Hamstrings",
     calves: "Calves",
-    upperBack: "Upper Back",
-    anteriorDelt: "Anterior Delt",
-    lateralDelt: "Lateral Delt",
-    posteriorDelt: "Posterior Delt",
-    triceps: "Triceps",
   },
 
   // Exercise Library
