@@ -162,9 +162,9 @@ const PersonalRecords = () => {
 
   useEffect(() => {
     if (tab === "leaderboard" && leaderboardExercise) {
-      fetchLeaderboard(leaderboardExercise);
+      fetchLeaderboard(leaderboardExercise, leaderboardReps);
     }
-  }, [tab, leaderboardExercise, fetchLeaderboard]);
+  }, [tab, leaderboardExercise, leaderboardReps, fetchLeaderboard]);
 
   // Auto-select first exercise when switching to leaderboard
   useEffect(() => {
