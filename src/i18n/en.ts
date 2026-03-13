@@ -213,6 +213,7 @@ export const en = {
     "Lying Leg Curl": "Lying Leg Curl",
     "Leg Extension": "Leg Extension",
     "Standing Calf Raises": "Standing Calf Raises",
+    "Deadlift": "Deadlift",
     "Lat Pulldown": "Lat Pulldown",
     "Seated Cable Row": "Seated Cable Row",
     "Dumbbell Row": "Dumbbell Row",
