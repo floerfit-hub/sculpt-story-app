@@ -569,6 +569,16 @@ export const uk: Translations = {
     moreRecords: "ще рекордів",
     newRecord: "Новий рекорд! 🏆",
     newRecordDesc: "Ви щойно побили свій особистий рекорд!",
+    myRecords: "Мої рекорди",
+    leaderboard: "Лідерборд",
+    leaderboardVisible: "Ваші рекорди видимі в лідерборді",
+    leaderboardHidden: "Ваші рекорди приховані з лідерборду",
+    youAreVisible: "Мої результати видимі для інших",
+    youAreHidden: "Мої результати приховані",
+    visible: "Видимий",
+    hidden: "Прихований",
+    you: "ви",
+    noLeaderboardData: "Поки ніхто не поділився результатами для цієї вправи",
   },
 
   common: {

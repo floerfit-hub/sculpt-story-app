@@ -590,6 +590,16 @@ export const en = {
     moreRecords: "more records",
     newRecord: "New Record! 🏆",
     newRecordDesc: "You just set a new personal record!",
+    myRecords: "My Records",
+    leaderboard: "Leaderboard",
+    leaderboardVisible: "Your records are visible in the leaderboard",
+    leaderboardHidden: "Your records are hidden from the leaderboard",
+    youAreVisible: "My results are visible to others",
+    youAreHidden: "My results are hidden",
+    visible: "Visible",
+    hidden: "Hidden",
+    you: "you",
+    noLeaderboardData: "No one has shared results for this exercise yet",
   },
 
   // Common
