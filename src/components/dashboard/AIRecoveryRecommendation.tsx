@@ -19,11 +19,11 @@ interface AIRecoveryRecommendationProps {
 
 const MUSCLE_KEYWORDS: Record<string, string[]> = {
   chest: ["chest", "груди", "грудні", "pec", "bench"],
-  back: ["back", "спина", "спину", "lat", "row", "pull"],
-  shoulders: ["shoulder", "плечі", "плеч", "delt", "overhead"],
-  arms: ["arms", "arm", "руки", "bicep", "tricep", "біцепс", "трицепс", "curl"],
+  back: ["back", "спина", "спину", "lat", "row", "pull", "trap", "трапец", "широк", "поперек", "lower back"],
+  shoulders: ["shoulder", "плечі", "плеч", "delt", "overhead", "дельт"],
+  arms: ["arms", "arm", "руки", "bicep", "tricep", "біцепс", "трицепс", "curl", "передпліч", "forearm"],
   core: ["core", "кор", "abs", "прес", "plank"],
-  "legs & glutes": ["leg", "legs", "ноги", "glute", "сідниці", "squat", "присід", "квадрицепс", "стегно"],
+  "legs & glutes": ["leg", "legs", "ноги", "glute", "сідниці", "squat", "присід", "квадрицепс", "стегно", "quad", "hamstring", "calf", "литк"],
 };
 
 const extractSuggestedMuscles = (text: string): string[] => {
