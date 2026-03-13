@@ -263,19 +263,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {!canLogEntry && nextCheckinDate && (
-        <Card className="border-primary/20 gradient-glow">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-              <Clock className="h-4 w-4 text-primary" />
-            </div>
-            <p className="text-sm">
-              {t.dashboard.nextCheckin}{" "}
-              <span className="font-bold text-primary">{daysUntilCheckin} {daysUntilCheckin !== 1 ? t.dashboard.days : t.dashboard.day}</span>
-            </p>
-          </CardContent>
-        </Card>
-      )}
 
       {canLogEntry && entries.length > 0 && (
         <Card className="border-primary/20 gradient-glow">
