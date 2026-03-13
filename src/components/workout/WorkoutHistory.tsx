@@ -29,9 +29,43 @@ const MUSCLE_GROUP_UK: Record<string, string> = {
   "Core": "Кор",
 };
 
-interface SetData { weight: number; reps: number }
-interface WorkoutExerciseRow { id: string; exercise_name: string; muscle_group: string; sets: SetData[]; notes: string | null; sort_order: number }
-interface WorkoutRow { id: string; started_at: string; finished_at: string | null; notes: string | null }
+interface WorkoutSetRow {
+  id: string;
+  workout_id: string;
+  exercise_id: string;
+  set_number: number;
+  weight: number;
+  reps: number;
+  sort_order: number;
+  notes: string | null;
+}
+
+interface ExerciseRow {
+  id: string;
+  name: string;
+  muscle_group: string;
+}
+
+interface WorkoutRow {
+  id: string;
+  started_at: string;
+  finished_at: string | null;
+  notes: string | null;
+  duration_seconds: number | null;
+}
+
+interface GroupedExercise {
+  exercise_id: string;
+  exercise_name: string;
+  muscle_group: string;
+  sets: { weight: number; reps: number }[];
+  notes: string | null;
+  sort_order: number;
+}
+
+interface WorkoutWithExercises extends WorkoutRow {
+  exercises: GroupedExercise[];
+}
 
 interface WorkoutHistoryProps {
   onBack: () => void;
@@ -42,17 +76,20 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [workouts, setWorkouts] = useState<(WorkoutRow & { exercises: WorkoutExerciseRow[] })[]>([]);
+  const [workouts, setWorkouts] = useState<WorkoutWithExercises[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const formatDuration = (start: Date, end: Date) => {
-    const totalSeconds = Math.floor((end.getTime() - start.getTime()) / 1000);
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
+  const formatDuration = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
     if (h > 0) return `${h}год ${m}хв`;
     return `${m} хв`;
+  };
+
+  const formatDurationFromDates = (start: Date, end: Date) => {
+    return formatDuration(Math.floor((end.getTime() - start.getTime()) / 1000));
   };
 
   useEffect(() => {
@@ -63,17 +100,68 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
   const loadWorkouts = async () => {
     if (!user) return;
     setLoading(true);
-    const { data: wData } = await supabase.from("workouts").select("*").eq("user_id", user.id).order("started_at", { ascending: false });
+
+    const { data: wData } = await supabase
+      .from("workouts")
+      .select("id, started_at, finished_at, notes, duration_seconds" as any)
+      .eq("user_id", user.id)
+      .order("started_at", { ascending: false });
+
     if (!wData?.length) { setWorkouts([]); setLoading(false); return; }
-    const { data: exData } = await supabase.from("workout_exercises").select("*").in("workout_id", wData.map((w) => w.id)).order("sort_order", { ascending: true });
-    const mapped = wData.map((w) => ({ ...w, exercises: ((exData ?? []).filter((e) => e.workout_id === w.id) as unknown as WorkoutExerciseRow[]) }));
+
+    // Fetch workout_sets for all workouts
+    const { data: setsData } = await (supabase as any)
+      .from("workout_sets")
+      .select("id, workout_id, exercise_id, set_number, weight, reps, sort_order, notes")
+      .in("workout_id", wData.map((w: any) => w.id))
+      .order("sort_order", { ascending: true })
+      .order("set_number", { ascending: true });
+
+    // Get unique exercise IDs and fetch exercise details
+    const exerciseIds = [...new Set((setsData || []).map((s: any) => s.exercise_id))];
+    let exerciseMap = new Map<string, ExerciseRow>();
+
+    if (exerciseIds.length > 0) {
+      const { data: exData } = await (supabase as any)
+        .from("exercises")
+        .select("id, name, muscle_group")
+        .in("id", exerciseIds);
+      exerciseMap = new Map((exData || []).map((e: any) => [e.id, e]));
+    }
+
+    // Group sets by workout and exercise
+    const mapped: WorkoutWithExercises[] = (wData as any[]).map((w) => {
+      const workoutSets = (setsData || []).filter((s: any) => s.workout_id === w.id) as WorkoutSetRow[];
+
+      // Group by exercise_id
+      const exerciseGroups = new Map<string, WorkoutSetRow[]>();
+      workoutSets.forEach(s => {
+        if (!exerciseGroups.has(s.exercise_id)) exerciseGroups.set(s.exercise_id, []);
+        exerciseGroups.get(s.exercise_id)!.push(s);
+      });
+
+      const exercises: GroupedExercise[] = [...exerciseGroups.entries()].map(([exerciseId, sets]) => {
+        const ex = exerciseMap.get(exerciseId);
+        sets.sort((a, b) => a.set_number - b.set_number);
+        return {
+          exercise_id: exerciseId,
+          exercise_name: ex?.name || '',
+          muscle_group: ex?.muscle_group || '',
+          sets: sets.map(s => ({ weight: Number(s.weight), reps: Number(s.reps) })),
+          notes: sets[0]?.notes || null,
+          sort_order: sets[0]?.sort_order || 0,
+        };
+      }).sort((a, b) => a.sort_order - b.sort_order);
+
+      return { ...w, exercises };
+    });
+
     setWorkouts(mapped);
     setLoading(false);
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    // Exercises cascade-delete via foreign key
     const { error } = await supabase.from("workouts").delete().eq("id", deleteId);
     if (!error) {
       setWorkouts((prev) => prev.filter((w) => w.id !== deleteId));
@@ -82,7 +170,7 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
     setDeleteId(null);
   };
 
-  const handleEdit = (w: WorkoutRow & { exercises: WorkoutExerciseRow[] }) => {
+  const handleEdit = (w: WorkoutWithExercises) => {
     if (!onEdit) return;
     onEdit({
       id: w.id,
@@ -105,6 +193,12 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
 
       {workouts.map((w) => {
         const expanded = expandedId === w.id;
+        const duration = w.duration_seconds
+          ? formatDuration(w.duration_seconds)
+          : w.finished_at
+            ? formatDurationFromDates(new Date(w.started_at), new Date(w.finished_at))
+            : null;
+
         return (
           <Card key={w.id} className="cursor-pointer" onClick={() => setExpandedId(expanded ? null : w.id)}>
             <CardContent className="p-4 space-y-3">
@@ -113,12 +207,12 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
                   <p className="font-display font-semibold">{format(new Date(w.started_at), "EEEE, d MMM yyyy", { locale: ukLocale })}</p>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>{w.exercises.length} {t.workouts.exercises}</span>
-                    {w.finished_at && (
+                    {duration && (
                       <>
                         <span>·</span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {formatDuration(new Date(w.started_at), new Date(w.finished_at))}
+                          {duration}
                         </span>
                       </>
                     )}
@@ -128,20 +222,22 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
               </div>
               {expanded && (
                 <div className="space-y-3 pt-2 border-t">
-                  {w.exercises.map((ex) => {
-                    const sets = (Array.isArray(ex.sets) ? ex.sets : []) as SetData[];
-                    return (
-                      <div key={ex.id} className="space-y-1">
-                        <p className="font-medium text-sm">{t.exerciseNames[ex.exercise_name] || ex.exercise_name} <span className="text-muted-foreground text-xs">({MUSCLE_GROUP_UK[ex.muscle_group] || ex.muscle_group})</span></p>
-                        <div className="flex flex-wrap gap-2">
-                          {sets.map((s, i) => (
-                            <span key={i} className="rounded-md bg-accent px-2 py-1 text-xs text-accent-foreground">{s.weight}{t.common.kg} × {s.reps}</span>
-                          ))}
-                        </div>
-                        {ex.notes && <p className="text-xs text-muted-foreground italic">"{ex.notes}"</p>}
+                  {w.exercises.map((ex) => (
+                    <div key={ex.exercise_id} className="space-y-1">
+                      <p className="font-medium text-sm">
+                        {t.exerciseNames[ex.exercise_name] || ex.exercise_name}{" "}
+                        <span className="text-muted-foreground text-xs">({MUSCLE_GROUP_UK[ex.muscle_group] || ex.muscle_group})</span>
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {ex.sets.map((s, i) => (
+                          <span key={i} className="rounded-md bg-accent px-2 py-1 text-xs text-accent-foreground">
+                            {s.weight}{t.common.kg} × {s.reps}
+                          </span>
+                        ))}
                       </div>
-                    );
-                  })}
+                      {ex.notes && <p className="text-xs text-muted-foreground italic">"{ex.notes}"</p>}
+                    </div>
+                  ))}
                   <div className="flex gap-2 pt-2">
                     {onEdit && (
                       <Button

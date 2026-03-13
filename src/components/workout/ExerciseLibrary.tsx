@@ -61,15 +61,26 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
 
   const addCustomExercise = async () => {
     if (!user || !newName.trim() || !newGroup) return;
+
+    // Insert into custom_exercises for user-specific management
     const { data, error } = await supabase
       .from("custom_exercises")
       .insert({ user_id: user.id, exercise_name: newName.trim(), muscle_group: newGroup })
       .select("id, exercise_name, muscle_group")
       .single();
+
     if (error) {
       toast({ title: t.workouts.errorSaving, variant: "destructive" });
       return;
     }
+
+    // Also ensure it exists in the master exercises table for relational lookups
+    await (supabase as any)
+      .from("exercises")
+      .insert({ name: newName.trim(), muscle_group: newGroup })
+      .select("id")
+      .single();
+
     if (data) {
       setCustomExercises((prev) => [...prev, data]);
       toast({ title: t.workouts.customExerciseAdded });
@@ -157,7 +168,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     );
   }
 
-  // Exercise list for a built-in group (+ custom exercises from that group)
+  // Exercise list for a built-in group
   if (activeGroup) {
     const builtIn = getExercisesByGroup(activeGroup);
     const customInGroup = customExercises.filter((e) => e.muscle_group === activeGroup);
@@ -218,7 +229,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             </Card>
           );
         })}
-        {/* Custom exercises section */}
         <Card className="cursor-pointer active:scale-[0.98] transition-transform border-primary/20" onClick={() => setActiveGroup("custom")}>
           <CardContent className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">

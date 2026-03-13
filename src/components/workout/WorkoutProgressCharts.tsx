@@ -5,16 +5,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
-
-interface SetData { weight: number; reps: number }
 
 interface ChartPoint {
   date: string;
   maxWeight: number;
   maxReps: number;
   estimated1RM: number;
+}
+
+interface PerfRow {
+  workout_id: string;
+  exercise_id: string;
+  max_weight: number;
+  total_reps: number;
+  estimated_1rm: number;
 }
 
 const WorkoutProgressCharts = ({ onBack }: { onBack: () => void }) => {
@@ -28,33 +34,58 @@ const WorkoutProgressCharts = ({ onBack }: { onBack: () => void }) => {
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      const { data: workouts } = await supabase.from("workouts").select("id, started_at").eq("user_id", user.id).order("started_at", { ascending: true });
+      // Fetch workouts for date mapping
+      const { data: workouts } = await supabase
+        .from("workouts")
+        .select("id, started_at")
+        .eq("user_id", user.id)
+        .order("started_at", { ascending: true });
+
       if (!workouts?.length) { setLoading(false); return; }
-      const { data: exercises } = await supabase.from("workout_exercises").select("*").in("workout_id", workouts.map((w) => w.id));
-      if (!exercises?.length) { setLoading(false); return; }
 
-      const workoutDates = Object.fromEntries(workouts.map((w) => [w.id, w.started_at]));
+      // Fetch exercise_performance (pre-aggregated data)
+      const { data: perfData } = await (supabase as any)
+        .from("exercise_performance")
+        .select("workout_id, exercise_id, max_weight, total_reps, estimated_1rm")
+        .eq("user_id", user.id);
+
+      if (!perfData?.length) { setLoading(false); return; }
+
+      // Get exercise names
+      const exerciseIds = [...new Set(perfData.map((p: PerfRow) => p.exercise_id))];
+      const { data: exercisesData } = await (supabase as any)
+        .from("exercises")
+        .select("id, name")
+        .in("id", exerciseIds);
+
+      const exerciseNameMap = new Map<string, string>(
+        (exercisesData || []).map((e: any) => [e.id, e.name])
+      );
+
+      const workoutDates = Object.fromEntries(workouts.map(w => [w.id, w.started_at]));
+
+      // Build chart data grouped by exercise name
       const grouped: Record<string, ChartPoint[]> = {};
+      for (const p of perfData as PerfRow[]) {
+        const name = exerciseNameMap.get(p.exercise_id);
+        const date = workoutDates[p.workout_id];
+        if (!name || !date) continue;
 
-      for (const ex of exercises) {
-        const sets = (Array.isArray(ex.sets) ? ex.sets : []) as unknown as SetData[];
-        if (!sets.length) continue;
-        const maxWeight = Math.max(...sets.map((s) => s.weight || 0));
-        const maxReps = Math.max(...sets.map((s) => s.reps || 0));
-        // Estimated 1RM = weight * (1 + reps / 30) using best set (highest 1RM)
-        const estimated1RM = Math.round(
-          Math.max(...sets.map((s) => (s.weight || 0) * (1 + (s.reps || 0) / 30))) * 10
-        ) / 10;
-        const date = workoutDates[ex.workout_id];
-        if (!date) continue;
-        if (!grouped[ex.exercise_name]) grouped[ex.exercise_name] = [];
-        grouped[ex.exercise_name].push({ date: format(new Date(date), "MMM d"), maxWeight, maxReps, estimated1RM });
+        if (!grouped[name]) grouped[name] = [];
+        grouped[name].push({
+          date: format(new Date(date), "MMM d"),
+          maxWeight: Number(p.max_weight),
+          maxReps: Number(p.total_reps),
+          estimated1RM: Number(p.estimated_1rm),
+        });
       }
 
+      // Filter exercises with at least 2 data points
       const filtered: typeof grouped = {};
       for (const [name, points] of Object.entries(grouped)) {
         if (points.length >= 2) filtered[name] = points;
       }
+
       setExerciseData(filtered);
       const first = Object.keys(filtered)[0];
       if (first) setSelectedExercise(first);
@@ -102,7 +133,6 @@ const WorkoutProgressCharts = ({ onBack }: { onBack: () => void }) => {
                 <CardTitle className="font-display text-base">{t.exerciseNames[selectedExercise] || selectedExercise}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {/* Toggle buttons */}
                 <div className="flex flex-wrap gap-2">
                   {lineConfig.map((line) => (
                     <Button
@@ -119,7 +149,6 @@ const WorkoutProgressCharts = ({ onBack }: { onBack: () => void }) => {
                   ))}
                 </div>
 
-                {/* Combined chart */}
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>

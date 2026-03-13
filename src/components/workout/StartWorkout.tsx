@@ -20,7 +20,7 @@ export interface EditWorkoutData {
   finished_at: string | null;
   notes: string | null;
   exercises: {
-    id: string;
+    exercise_id: string;
     exercise_name: string;
     muscle_group: string;
     sets: { weight: number; reps: number }[];
@@ -32,6 +32,37 @@ export interface EditWorkoutData {
 interface StartWorkoutProps {
   onBack: () => void;
   editData?: EditWorkoutData;
+}
+
+// Resolve exercise names to IDs from the exercises table
+async function resolveExerciseIds(
+  exercises: { name: string; muscleGroup: string }[]
+): Promise<Map<string, string>> {
+  const uniqueKeys = [...new Map(exercises.map(e => [`${e.name}::${e.muscleGroup}`, e])).values()];
+  const names = uniqueKeys.map(e => e.name);
+
+  const { data: existing } = await (supabase as any)
+    .from("exercises")
+    .select("id, name, muscle_group")
+    .in("name", names);
+
+  const map = new Map<string, string>();
+  (existing || []).forEach((e: any) => map.set(`${e.name}::${e.muscle_group}`, e.id));
+
+  // Insert any missing exercises
+  for (const ex of uniqueKeys) {
+    const key = `${ex.name}::${ex.muscleGroup}`;
+    if (!map.has(key)) {
+      const { data } = await (supabase as any)
+        .from("exercises")
+        .insert({ name: ex.name, muscle_group: ex.muscleGroup })
+        .select("id")
+        .single();
+      if (data) map.set(key, data.id);
+    }
+  }
+
+  return map;
 }
 
 const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
@@ -51,7 +82,6 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           notes: ex.notes || "",
         }));
     }
-    // Restore from sessionStorage
     const saved = sessionStorage.getItem("workout-in-progress");
     if (saved) {
       try { return JSON.parse(saved); } catch { /* ignore */ }
@@ -64,7 +94,6 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [saved, setSaved] = useState(false);
   const [finalDuration, setFinalDuration] = useState<number>(0);
 
-  // Workout timer — starts only when first exercise is added
   const [startTime, setStartTime] = useState<number | null>(() => {
     if (isEditing) return Date.now();
     const saved = sessionStorage.getItem("workout-start-time");
@@ -72,7 +101,6 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   });
   const [elapsed, setElapsed] = useState(0);
 
-  // Start timer when first exercise is added, reset when all removed
   useEffect(() => {
     if (isEditing) return;
     if (exercises.length > 0 && startTime === null) {
@@ -102,14 +130,12 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     return `${m}:${String(s).padStart(2, "0")}`;
   };
 
-  // Persist exercises to sessionStorage on every change (skip in edit mode)
   useEffect(() => {
     if (!isEditing) {
       sessionStorage.setItem("workout-in-progress", JSON.stringify(exercises));
     }
   }, [exercises, isEditing]);
 
-  // Clear persisted data when workout is saved
   const clearPersistedData = useCallback(() => {
     sessionStorage.removeItem("workout-in-progress");
     sessionStorage.removeItem("workout-view");
@@ -143,38 +169,91 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     if (!user || exercises.length === 0) return;
     setSaving(true);
     try {
+      // Resolve exercise IDs
+      const exerciseIdMap = await resolveExerciseIds(
+        exercises.map(ex => ({ name: ex.name, muscleGroup: ex.muscleGroup }))
+      );
+
       if (isEditing && editData) {
-        // Update existing workout
-        const { error: wErr } = await supabase.from("workouts").update({ notes: null }).eq("id", editData.id);
+        // Delete old workout_sets
+        await (supabase as any).from("workout_sets").delete().eq("workout_id", editData.id);
+
+        // Insert new workout_sets
+        const setsRows: any[] = [];
+        exercises.forEach((ex, exIdx) => {
+          const exerciseId = exerciseIdMap.get(`${ex.name}::${ex.muscleGroup}`);
+          if (!exerciseId) return;
+          ex.sets
+            .filter((s) => s.weight !== "" || s.reps !== "")
+            .forEach((s, setIdx) => {
+              setsRows.push({
+                workout_id: editData.id,
+                exercise_id: exerciseId,
+                set_number: setIdx + 1,
+                weight: Number(s.weight) || 0,
+                reps: Number(s.reps) || 0,
+                sort_order: exIdx,
+                notes: setIdx === 0 ? (ex.notes || null) : null,
+              });
+            });
+        });
+
+        if (setsRows.length > 0) {
+          const { error: sErr } = await (supabase as any).from("workout_sets").insert(setsRows);
+          if (sErr) throw sErr;
+        }
+
+        // Update workout to trigger exercise_performance recomputation
+        const { error: wErr } = await supabase.from("workouts").update({
+          notes: null,
+          finished_at: editData.finished_at || new Date().toISOString(),
+        }).eq("id", editData.id);
         if (wErr) throw wErr;
-
-        // Delete old exercises and insert new ones
-        const { error: delErr } = await supabase.from("workout_exercises").delete().eq("workout_id", editData.id);
-        if (delErr) throw delErr;
-
-        const rows = exercises.map((ex, i) => ({
-          workout_id: editData.id, exercise_name: ex.name, muscle_group: ex.muscleGroup,
-          sets: ex.sets.filter((s) => s.weight !== "" || s.reps !== "").map((s) => ({ weight: Number(s.weight) || 0, reps: Number(s.reps) || 0 })),
-          notes: ex.notes || null, sort_order: i,
-        }));
-        const { error: eErr } = await supabase.from("workout_exercises").insert(rows);
-        if (eErr) throw eErr;
 
         clearPersistedData();
         setFinalDuration(elapsed);
         setSaved(true);
         toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       } else {
+        // Step 1: Insert workout WITHOUT finished_at
         const startedAt = new Date(startTime || Date.now()).toISOString();
-        const { data: workout, error: wErr } = await supabase.from("workouts").insert({ user_id: user.id, started_at: startedAt, finished_at: new Date().toISOString() }).select("id").single();
+        const { data: workout, error: wErr } = await supabase.from("workouts")
+          .insert({ user_id: user.id, started_at: startedAt })
+          .select("id").single();
         if (wErr || !workout) throw wErr;
-        const rows = exercises.map((ex, i) => ({
-          workout_id: workout.id, exercise_name: ex.name, muscle_group: ex.muscleGroup,
-          sets: ex.sets.filter((s) => s.weight !== "" || s.reps !== "").map((s) => ({ weight: Number(s.weight) || 0, reps: Number(s.reps) || 0 })),
-          notes: ex.notes || null, sort_order: i,
-        }));
-        const { error: eErr } = await supabase.from("workout_exercises").insert(rows);
-        if (eErr) throw eErr;
+
+        // Step 2: Insert workout_sets
+        const setsRows: any[] = [];
+        exercises.forEach((ex, exIdx) => {
+          const exerciseId = exerciseIdMap.get(`${ex.name}::${ex.muscleGroup}`);
+          if (!exerciseId) return;
+          ex.sets
+            .filter((s) => s.weight !== "" || s.reps !== "")
+            .forEach((s, setIdx) => {
+              setsRows.push({
+                workout_id: workout.id,
+                exercise_id: exerciseId,
+                set_number: setIdx + 1,
+                weight: Number(s.weight) || 0,
+                reps: Number(s.reps) || 0,
+                sort_order: exIdx,
+                notes: setIdx === 0 ? (ex.notes || null) : null,
+              });
+            });
+        });
+
+        if (setsRows.length > 0) {
+          const { error: sErr } = await (supabase as any).from("workout_sets").insert(setsRows);
+          if (sErr) throw sErr;
+        }
+
+        // Step 3: Set finished_at → triggers exercise_performance computation
+        const { error: uErr } = await supabase.from("workouts").update({
+          finished_at: new Date().toISOString(),
+          duration_seconds: elapsed,
+        } as any).eq("id", workout.id);
+        if (uErr) throw uErr;
+
         clearPersistedData();
         setFinalDuration(elapsed);
         setSaved(true);

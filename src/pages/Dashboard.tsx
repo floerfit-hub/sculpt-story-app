@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { PlusCircle, Clock, Pencil, Trash2, Crown } from "lucide-react";
-import { format, differenceInDays, addDays, startOfMonth, subDays, differenceInCalendarDays } from "date-fns";
+import { format, differenceInDays, addDays, startOfMonth, subDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -24,7 +24,21 @@ import PremiumGate from "@/components/subscription/PremiumGate";
 type ProgressEntry = Tables<"progress_entries">;
 const CHECKIN_INTERVAL = 14;
 
-interface SetData { weight: number; reps: number }
+interface PerfData {
+  workout_id: string;
+  exercise_id: string;
+  total_sets: number;
+  total_reps: number;
+  total_volume: number;
+  max_weight: number;
+  avg_weight: number;
+  estimated_1rm: number;
+}
+
+interface ExerciseInfo {
+  name: string;
+  muscle_group: string;
+}
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
@@ -37,7 +51,8 @@ const Dashboard = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [nutrition, setNutrition] = useState<{ calories: number; protein: number; fat: number; carbs: number } | null>(null);
   const [workouts, setWorkouts] = useState<Tables<"workouts">[]>([]);
-  const [workoutExercises, setWorkoutExercises] = useState<Tables<"workout_exercises">[]>([]);
+  const [perfData, setPerfData] = useState<PerfData[]>([]);
+  const [exerciseMap, setExerciseMap] = useState<Map<string, ExerciseInfo>>(new Map());
 
   useEffect(() => {
     try {
@@ -50,8 +65,6 @@ const Dashboard = () => {
     if (!user) return;
 
     const fetchAll = async () => {
-      const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
-
       const [entriesRes, workoutsRes] = await Promise.all([
         supabase.from("progress_entries").select("*").eq("user_id", user.id).order("entry_date", { ascending: true }),
         supabase.from("workouts").select("*").eq("user_id", user.id).order("started_at", { ascending: true }),
@@ -63,10 +76,24 @@ const Dashboard = () => {
       setWorkouts(allWorkouts);
 
       if (allWorkouts.length > 0) {
-        const { data: exercises } = await supabase
-          .from("workout_exercises").select("*")
-          .in("workout_id", allWorkouts.map((w) => w.id));
-        setWorkoutExercises(exercises ?? []);
+        // Fetch exercise_performance (pre-aggregated)
+        const { data: perf } = await (supabase as any)
+          .from("exercise_performance")
+          .select("workout_id, exercise_id, total_sets, total_reps, total_volume, max_weight, avg_weight, estimated_1rm")
+          .eq("user_id", user.id);
+
+        const perfItems = (perf || []) as PerfData[];
+        setPerfData(perfItems);
+
+        // Get exercise details
+        const exerciseIds = [...new Set(perfItems.map(p => p.exercise_id))];
+        if (exerciseIds.length > 0) {
+          const { data: exercises } = await (supabase as any)
+            .from("exercises")
+            .select("id, name, muscle_group")
+            .in("id", exerciseIds);
+          setExerciseMap(new Map((exercises || []).map((e: any) => [e.id, { name: e.name, muscle_group: e.muscle_group }])));
+        }
       }
 
       setLoading(false);
@@ -104,18 +131,17 @@ const Dashboard = () => {
 
   const totalSetsThisMonth = useMemo(() => {
     const monthWorkoutIds = new Set(workouts.filter((w) => new Date(w.started_at) >= monthStart).map((w) => w.id));
-    return workoutExercises
-      .filter((e) => monthWorkoutIds.has(e.workout_id))
-      .reduce((sum, e) => sum + (Array.isArray(e.sets) ? (e.sets as unknown as SetData[]).length : 0), 0);
-  }, [workouts, workoutExercises, monthStart]);
+    return perfData
+      .filter((p) => monthWorkoutIds.has(p.workout_id))
+      .reduce((sum, p) => sum + Number(p.total_sets), 0);
+  }, [workouts, perfData, monthStart]);
 
-  // Workout streak (consecutive days with workouts, looking back)
+  // Workout streak
   const currentStreak = useMemo(() => {
     if (workouts.length === 0) return 0;
     const workoutDays = new Set(workouts.map((w) => format(new Date(w.started_at), "yyyy-MM-dd")));
     let streak = 0;
     let day = new Date();
-    // Check today first, if no workout today, check yesterday
     if (!workoutDays.has(format(day, "yyyy-MM-dd"))) {
       day = subDays(day, 1);
       if (!workoutDays.has(format(day, "yyyy-MM-dd"))) return 0;
@@ -127,35 +153,38 @@ const Dashboard = () => {
     return streak;
   }, [workouts]);
 
-  // Muscle heatmap data (last 30 days)
+  // Muscle heatmap data (last 30 days) - using exercise_performance
   const muscleData = useMemo(() => {
     const thirtyDaysAgo = subDays(new Date(), 30);
     const recentWorkoutIds = new Set(
       workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).map((w) => w.id)
     );
     const groups: Record<string, number> = {};
-    workoutExercises
-      .filter((e) => recentWorkoutIds.has(e.workout_id))
-      .forEach((e) => {
-        const sets = Array.isArray(e.sets) ? (e.sets as unknown as SetData[]).length : 0;
-        groups[e.muscle_group] = (groups[e.muscle_group] || 0) + sets;
+    perfData
+      .filter((p) => recentWorkoutIds.has(p.workout_id))
+      .forEach((p) => {
+        const ex = exerciseMap.get(p.exercise_id);
+        if (ex) {
+          groups[ex.muscle_group] = (groups[ex.muscle_group] || 0) + Number(p.total_sets);
+        }
       });
     return groups;
-  }, [workouts, workoutExercises]);
+  }, [workouts, perfData, exerciseMap]);
 
-  // Strength trending (any exercise with increasing max weight in last 3+ sessions)
+  // Strength trending
   const strengthTrending = useMemo(() => {
-    const exerciseHistory: Record<string, number[]> = {};
     const sortedWorkouts = [...workouts].sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime());
-    const workoutOrder = Object.fromEntries(sortedWorkouts.map((w, i) => [w.id, i]));
+    const workoutOrder = new Map(sortedWorkouts.map((w, i) => [w.id, i]));
 
-    workoutExercises
-      .sort((a, b) => (workoutOrder[a.workout_id] ?? 0) - (workoutOrder[b.workout_id] ?? 0))
-      .forEach((e) => {
-        const sets = Array.isArray(e.sets) ? (e.sets as unknown as SetData[]) : [];
-        const maxW = Math.max(...sets.map((s) => s.weight || 0), 0);
-        if (!exerciseHistory[e.exercise_name]) exerciseHistory[e.exercise_name] = [];
-        exerciseHistory[e.exercise_name].push(maxW);
+    const exerciseHistory: Record<string, number[]> = {};
+    perfData
+      .sort((a, b) => (workoutOrder.get(a.workout_id) ?? 0) - (workoutOrder.get(b.workout_id) ?? 0))
+      .forEach((p) => {
+        const ex = exerciseMap.get(p.exercise_id);
+        if (ex) {
+          if (!exerciseHistory[ex.name]) exerciseHistory[ex.name] = [];
+          exerciseHistory[ex.name].push(Number(p.max_weight));
+        }
       });
 
     return Object.values(exerciseHistory).some((weights) => {
@@ -163,29 +192,31 @@ const Dashboard = () => {
       const last3 = weights.slice(-3);
       return last3[2] > last3[0];
     });
-  }, [workouts, workoutExercises]);
+  }, [workouts, perfData, exerciseMap]);
 
   // Fitness Score calculation
   const fitnessScores = useMemo(() => {
-    // Training consistency: based on workouts per week in last 30 days
     const thirtyDaysAgo = subDays(new Date(), 30);
     const recentWorkouts = workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).length;
     const workoutsPerWeek = (recentWorkouts / 30) * 7;
     const trainingConsistency = Math.min(100, Math.round((workoutsPerWeek / 4) * 100));
 
-    // Strength progress
-    let strengthProgress = 50; // default
-    const exerciseHistory: Record<string, number[]> = {};
+    // Strength progress using exercise_performance
+    let strengthProgress = 50;
     const sortedW = [...workouts].sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime());
-    const wOrder = Object.fromEntries(sortedW.map((w, i) => [w.id, i]));
-    workoutExercises
-      .sort((a, b) => (wOrder[a.workout_id] ?? 0) - (wOrder[b.workout_id] ?? 0))
-      .forEach((e) => {
-        const sets = Array.isArray(e.sets) ? (e.sets as unknown as SetData[]) : [];
-        const maxW = Math.max(...sets.map((s) => s.weight || 0), 0);
-        if (!exerciseHistory[e.exercise_name]) exerciseHistory[e.exercise_name] = [];
-        exerciseHistory[e.exercise_name].push(maxW);
+    const wOrder = new Map(sortedW.map((w, i) => [w.id, i]));
+
+    const exerciseHistory: Record<string, number[]> = {};
+    perfData
+      .sort((a, b) => (wOrder.get(a.workout_id) ?? 0) - (wOrder.get(b.workout_id) ?? 0))
+      .forEach((p) => {
+        const ex = exerciseMap.get(p.exercise_id);
+        if (ex) {
+          if (!exerciseHistory[ex.name]) exerciseHistory[ex.name] = [];
+          exerciseHistory[ex.name].push(Number(p.max_weight));
+        }
       });
+
     const improvements = Object.values(exerciseHistory).filter((weights) => {
       if (weights.length < 2) return false;
       return weights[weights.length - 1] > weights[0];
@@ -202,7 +233,6 @@ const Dashboard = () => {
       const last = entries[entries.length - 1];
       let positiveChanges = 0;
       let totalMeasured = 0;
-      // For waist/body_fat: decrease = good. For others: depends on goal, use neutral.
       if (last.waist != null && first.waist != null) { totalMeasured++; if (last.waist <= first.waist) positiveChanges++; }
       if (last.body_fat != null && first.body_fat != null) { totalMeasured++; if (last.body_fat <= first.body_fat) positiveChanges++; }
       if (last.arm_circumference != null && first.arm_circumference != null) { totalMeasured++; if (last.arm_circumference >= first.arm_circumference) positiveChanges++; }
@@ -222,7 +252,7 @@ const Dashboard = () => {
     }
 
     return { trainingConsistency, strengthProgress, bodyProgress, muscleBalance };
-  }, [workouts, workoutExercises, entries, muscleData]);
+  }, [workouts, perfData, exerciseMap, entries, muscleData]);
 
   if (loading) {
     return (
@@ -234,7 +264,6 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      {/* Pro Thank You Banner */}
       {isPremium && (
         <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10">
           <CardContent className="flex items-center gap-4 p-4">
@@ -248,7 +277,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       )}
-      {/* Hero */}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-display font-extrabold tracking-tight">
@@ -267,7 +296,6 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Check-in banner */}
       {!canLogEntry && nextCheckinDate && (
         <Card className="border-primary/20 gradient-glow">
           <CardContent className="flex items-center gap-4 p-4">
@@ -296,36 +324,28 @@ const Dashboard = () => {
         </Card>
       )}
 
-      {/* Fitness Score — Premium */}
       <PremiumGate feature="Fitness Score Dashboard">
         <FitnessScore {...fitnessScores} />
       </PremiumGate>
 
-      {/* Weight Chart */}
       <WeightChart entries={entries} />
 
-      {/* Body Measurements — Premium */}
       <PremiumGate feature="Body Composition Dashboard">
         <MeasurementsCard latest={latest} previous={previous} />
       </PremiumGate>
 
-      {/* Muscle Heatmap — Premium */}
       <PremiumGate feature="Muscle Heatmap Analytics">
         <MuscleHeatmap muscleData={muscleData} />
       </PremiumGate>
 
-      {/* Workout Activity */}
       <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />
 
-      {/* Nutrition Summary */}
       <NutritionSummary nutrition={nutrition} />
 
-      {/* Smart Insights — Premium */}
       <PremiumGate feature="AI Training Insights">
         <SmartInsights entries={entries} muscleData={muscleData} strengthTrending={strengthTrending} />
       </PremiumGate>
 
-      {/* Recent Entries */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">{t.dashboard.recentEntries}</CardTitle>
