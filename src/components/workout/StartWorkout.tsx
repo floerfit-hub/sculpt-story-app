@@ -79,7 +79,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const isEditing = !!editData;
-  const prepBuffer = (profile as any)?.prep_buffer_seconds ?? 10;
+  
 
   const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
     if (editData) {
