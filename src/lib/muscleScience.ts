@@ -127,6 +127,7 @@ export const OLD_GROUP_TO_SEGMENTS: Record<string, MuscleSegment[]> = {
 // Map exercise names to synergist pattern keys for auto-detection
 export const EXERCISE_TO_PATTERN: Record<string, string> = {
   // Chest
+  "Barbell Bench Press": "Chest",
   "Incline Barbell Bench Press": "Chest",
   "Hammer Strength Chest Press": "Chest",
   "Cable Chest Fly": "Chest",
