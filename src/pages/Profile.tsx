@@ -39,6 +39,7 @@ const Profile = () => {
   const { t, lang, setLanguage } = useTranslation();
   const { theme, setTheme } = useTheme();
   const [name, setName] = useState(profile?.full_name || "");
+  const [prepBuffer, setPrepBuffer] = useState<number>((profile as any)?.prep_buffer_seconds ?? 10);
   const [saving, setSaving] = useState(false);
   const [isStandalone] = useState(window.matchMedia("(display-mode: standalone)").matches);
   const [isIOS] = useState(/iPad|iPhone|iPod/.test(navigator.userAgent));
