@@ -290,15 +290,26 @@ const Dashboard = () => {
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">{t.dashboard.trackTransformation}</p>
         </div>
-        {canLogEntry ? (
-          <Link to="/add-entry">
-            <Button size="sm"><PlusCircle className="mr-1.5 h-4 w-4" />{t.dashboard.newEntry}</Button>
-          </Link>
-        ) : (
-          <Button variant="outline" size="sm" disabled>
-            <Clock className="mr-1.5 h-4 w-4" />{daysUntilCheckin}{t.dashboard.daysLeft}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 text-xs"
+            onClick={() => setLanguage(lang === "uk" ? "en" : "uk")}
+          >
+            <Globe className="h-3.5 w-3.5" />
+            {lang === "uk" ? "ENG" : "УКР"}
           </Button>
-        )}
+          {canLogEntry ? (
+            <Link to="/add-entry">
+              <Button size="sm"><PlusCircle className="mr-1.5 h-4 w-4" />{t.dashboard.newEntry}</Button>
+            </Link>
+          ) : (
+            <Button variant="outline" size="sm" disabled>
+              <Clock className="mr-1.5 h-4 w-4" />{daysUntilCheckin}{t.dashboard.daysLeft}
+            </Button>
+          )}
+        </div>
       </div>
 
       {!canLogEntry && nextCheckinDate && (
