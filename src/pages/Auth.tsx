@@ -25,6 +25,11 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    if (isSignUp && !acceptedTerms) {
+      toast({ title: t.common.error, description: t.auth.mustAcceptTerms, variant: "destructive" });
+      setLoading(false);
+      return;
+    }
 
     if (isSignUp) {
       const { error } = await supabase.auth.signUp({
