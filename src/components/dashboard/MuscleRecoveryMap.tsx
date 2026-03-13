@@ -1,8 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "@/i18n";
 import { Activity } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface RecoveryData {
   muscle_group: string;
@@ -13,23 +13,29 @@ interface RecoveryData {
 
 interface MuscleRecoveryMapProps {
   recoveryData: RecoveryData[];
+  highlightedMuscles?: string[];
 }
 
 const getRecoveryColor = (recovery: number): string => {
-  if (recovery >= 85) return "hsl(142, 71%, 45%)"; // green
-  if (recovery >= 60) return "hsl(48, 96%, 53%)";  // yellow
-  if (recovery >= 30) return "hsl(25, 95%, 53%)";  // orange
-  return "hsl(0, 84%, 60%)";                        // red
+  if (recovery >= 71) return "hsl(142, 71%, 45%)";  // green
+  if (recovery >= 31) return "hsl(48, 96%, 53%)";   // yellow
+  return "hsl(0, 84%, 60%)";                         // red
 };
 
 const getRecoveryLabel = (recovery: number, t: any): string => {
-  if (recovery >= 85) return t.recovery.ready;
-  if (recovery >= 60) return t.recovery.almostReady;
-  if (recovery >= 30) return t.recovery.recovering;
+  if (recovery >= 71) return t.recovery.ready;
+  if (recovery >= 31) return t.recovery.recovering;
   return t.recovery.fatigued;
 };
 
-// SVG muscle group regions mapped to path data
+const getEstimatedRestTime = (recovery: number): string => {
+  if (recovery >= 90) return "0";
+  if (recovery >= 71) return "~6h";
+  if (recovery >= 50) return "~24h";
+  if (recovery >= 31) return "~48h";
+  return "~72h";
+};
+
 const MUSCLE_PATHS: Record<string, { paths: string[]; label: string; cx: number; cy: number }> = {
   "Chest": {
     paths: [
@@ -86,28 +92,32 @@ const MUSCLE_PATHS: Record<string, { paths: string[]; label: string; cx: number;
   },
 };
 
-const MuscleRecoveryMap = ({ recoveryData }: MuscleRecoveryMapProps) => {
+const MuscleRecoveryMap = ({ recoveryData, highlightedMuscles = [] }: MuscleRecoveryMapProps) => {
   const { t } = useTranslation();
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
 
   const recoveryMap = useMemo(() => {
     const map: Record<string, RecoveryData> = {};
-    recoveryData.forEach((r) => {
-      map[r.muscle_group] = r;
-    });
+    recoveryData.forEach((r) => { map[r.muscle_group] = r; });
     return map;
   }, [recoveryData]);
 
   const daysSince = (dateStr: string) => {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    return Math.max(0, diff / (1000 * 60 * 60 * 24));
+    return Math.max(0, (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
   };
 
-  // Calculate real-time recovery using exponential decay
   const getRealtimeRecovery = (data: RecoveryData | undefined): number => {
-    if (!data) return 100; // never trained = fully recovered
+    if (!data) return 100;
     const days = daysSince(data.last_trained_at);
     const fatigueRemaining = data.fatigue_score * Math.exp(-0.9 * days);
     return Math.min(100, Math.max(0, 100 - fatigueRemaining));
+  };
+
+  const highlightSet = useMemo(() => new Set(highlightedMuscles.map(m => m.toLowerCase())), [highlightedMuscles]);
+
+  const isHighlighted = (group: string, label: string) => {
+    if (highlightSet.size === 0) return false;
+    return highlightSet.has(group.toLowerCase()) || highlightSet.has(label.toLowerCase());
   };
 
   return (
@@ -121,60 +131,74 @@ const MuscleRecoveryMap = ({ recoveryData }: MuscleRecoveryMapProps) => {
       </CardHeader>
       <CardContent className="pb-4">
         <div className="flex flex-col md:flex-row gap-4 items-center">
-          {/* SVG Body */}
-          <TooltipProvider>
-            <svg viewBox="40 40 150 210" className="w-48 h-64 mx-auto">
-              {/* Head */}
-              <circle cx="115" cy="55" r="14" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="1" />
+          <svg viewBox="40 40 150 210" className="w-48 h-64 mx-auto">
+            {/* Head */}
+            <circle cx="115" cy="55" r="14" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="1" />
+            {/* Neck */}
+            <rect x="109" y="69" width="12" height="10" rx="3" fill="hsl(var(--muted))" />
 
-              {/* Neck */}
-              <rect x="109" y="69" width="12" height="10" rx="3" fill="hsl(var(--muted))" />
+            {/* Muscle groups with click popover */}
+            {Object.entries(MUSCLE_PATHS).map(([group, config]) => {
+              const data = recoveryMap[group];
+              const recovery = getRealtimeRecovery(data);
+              const color = getRecoveryColor(recovery);
+              const highlighted = isHighlighted(group, config.label);
 
-              {/* Muscle groups */}
-              {Object.entries(MUSCLE_PATHS).map(([group, config]) => {
-                const data = recoveryMap[group];
-                const recovery = getRealtimeRecovery(data);
-                const color = getRecoveryColor(recovery);
-
-                return (
-                  <Tooltip key={group}>
-                    <TooltipTrigger asChild>
-                      <g className="cursor-pointer transition-opacity hover:opacity-80">
-                        {config.paths.map((d, i) => (
-                          <path
-                            key={i}
-                            d={d}
-                            fill={color}
-                            fillOpacity={0.7}
-                            stroke={color}
-                            strokeWidth="1"
-                            strokeOpacity={0.9}
-                          />
-                        ))}
-                      </g>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-semibold">
+              return (
+                <Popover key={group} open={selectedMuscle === group} onOpenChange={(open) => setSelectedMuscle(open ? group : null)}>
+                  <PopoverTrigger asChild>
+                    <g
+                      className="cursor-pointer transition-all hover:opacity-80"
+                      onClick={() => setSelectedMuscle(selectedMuscle === group ? null : group)}
+                    >
+                      {config.paths.map((d, i) => (
+                        <path
+                          key={i}
+                          d={d}
+                          fill={color}
+                          fillOpacity={highlighted ? 1 : 0.7}
+                          stroke={highlighted ? "hsl(var(--primary))" : color}
+                          strokeWidth={highlighted ? 2.5 : 1}
+                          strokeOpacity={0.9}
+                        />
+                      ))}
+                      {highlighted && (
+                        <circle cx={config.cx} cy={config.cy} r="4" fill="hsl(var(--primary))" fillOpacity={0.6}>
+                          <animate attributeName="r" values="3;6;3" dur="1.5s" repeatCount="indefinite" />
+                          <animate attributeName="fill-opacity" values="0.6;0.2;0.6" dur="1.5s" repeatCount="indefinite" />
+                        </circle>
+                      )}
+                    </g>
+                  </PopoverTrigger>
+                  <PopoverContent side="right" className="w-52 p-3" sideOffset={5}>
+                    <div className="space-y-2">
+                      <p className="font-display font-bold text-sm">
                         {(t.muscleGroups as any)[config.label] || group}
                       </p>
-                      <p className="text-xs">
-                        {t.recovery.recoveryLabel}: {Math.round(recovery)}%
-                      </p>
-                      <p className="text-xs">
-                        {getRecoveryLabel(recovery, t)}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                        <span className="text-sm font-semibold" style={{ color }}>
+                          {t.recovery.recoveryLabel}: {Math.round(recovery)}%
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{getRecoveryLabel(recovery, t)}</p>
+                      <div className="border-t border-border/50 pt-2">
+                        <p className="text-xs text-muted-foreground">
+                          {t.recovery.restTimeRecommended}: <span className="font-semibold text-foreground">{getEstimatedRestTime(recovery)}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              );
+            })}
 
-              {/* Hands/Feet outlines */}
-              <ellipse cx="52" cy="148" rx="5" ry="8" fill="hsl(var(--muted))" />
-              <ellipse cx="178" cy="148" rx="5" ry="8" fill="hsl(var(--muted))" />
-              <ellipse cx="95" cy="235" rx="8" ry="5" fill="hsl(var(--muted))" />
-              <ellipse cx="135" cy="235" rx="8" ry="5" fill="hsl(var(--muted))" />
-            </svg>
-          </TooltipProvider>
+            {/* Hands/Feet outlines */}
+            <ellipse cx="52" cy="148" rx="5" ry="8" fill="hsl(var(--muted))" />
+            <ellipse cx="178" cy="148" rx="5" ry="8" fill="hsl(var(--muted))" />
+            <ellipse cx="95" cy="235" rx="8" ry="5" fill="hsl(var(--muted))" />
+            <ellipse cx="135" cy="235" rx="8" ry="5" fill="hsl(var(--muted))" />
+          </svg>
 
           {/* Legend + list */}
           <div className="flex-1 space-y-2 w-full">
@@ -182,9 +206,16 @@ const MuscleRecoveryMap = ({ recoveryData }: MuscleRecoveryMapProps) => {
               const data = recoveryMap[group];
               const recovery = getRealtimeRecovery(data);
               const color = getRecoveryColor(recovery);
+              const highlighted = isHighlighted(group, config.label);
 
               return (
-                <div key={group} className="flex items-center gap-2 rounded-lg border border-border/50 p-2">
+                <button
+                  key={group}
+                  onClick={() => setSelectedMuscle(selectedMuscle === group ? null : group)}
+                  className={`flex items-center gap-2 rounded-lg border p-2 w-full text-left transition-all ${
+                    highlighted ? "border-primary/50 bg-primary/5 ring-1 ring-primary/30" : "border-border/50 hover:bg-accent/30"
+                  }`}
+                >
                   <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold truncate">
@@ -195,7 +226,7 @@ const MuscleRecoveryMap = ({ recoveryData }: MuscleRecoveryMapProps) => {
                     <p className="text-xs font-bold" style={{ color }}>{Math.round(recovery)}%</p>
                     <p className="text-[9px] text-muted-foreground">{getRecoveryLabel(recovery, t)}</p>
                   </div>
-                </div>
+                </button>
               );
             })}
 
@@ -203,9 +234,8 @@ const MuscleRecoveryMap = ({ recoveryData }: MuscleRecoveryMapProps) => {
             <div className="flex gap-2 pt-2 flex-wrap">
               {[
                 { color: "hsl(0, 84%, 60%)", label: "0-30%" },
-                { color: "hsl(25, 95%, 53%)", label: "30-60%" },
-                { color: "hsl(48, 96%, 53%)", label: "60-85%" },
-                { color: "hsl(142, 71%, 45%)", label: "85-100%" },
+                { color: "hsl(48, 96%, 53%)", label: "31-70%" },
+                { color: "hsl(142, 71%, 45%)", label: "71-100%" },
               ].map(({ color, label }) => (
                 <div key={label} className="flex items-center gap-1">
                   <div className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
