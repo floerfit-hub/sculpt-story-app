@@ -101,15 +101,15 @@ const Pricing = () => {
 
         {/* Comparison Table */}
         <div>
-          <h2 className="text-lg font-display font-bold mb-4">Free vs Pro Comparison</h2>
+          <h2 className="text-lg font-display font-bold mb-4">Безкоштовний vs Pro</h2>
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-left p-3 font-display font-bold">Feature</th>
-                      <th className="text-center p-3 font-display font-bold w-20">Free</th>
+                      <th className="text-left p-3 font-display font-bold">Функція</th>
+                      <th className="text-center p-3 font-display font-bold w-20">Безкошт.</th>
                       <th className="text-center p-3 font-display font-bold w-20 text-primary">Pro</th>
                     </tr>
                   </thead>
