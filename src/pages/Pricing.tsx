@@ -134,7 +134,7 @@ const Pricing = () => {
 
         {/* Pricing Cards */}
         <div>
-          <h2 className="text-lg font-display font-bold mb-4">Choose Your Plan</h2>
+          <h2 className="text-lg font-display font-bold mb-4">Оберіть свій план</h2>
           <div className="grid grid-cols-2 gap-4">
             <Card>
               <CardContent className="p-5 text-center space-y-3">
