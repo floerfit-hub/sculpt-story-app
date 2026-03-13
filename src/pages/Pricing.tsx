@@ -65,8 +65,8 @@ const Pricing = () => {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-display font-extrabold">Upgrade to FitTrack Pro</h1>
-            <p className="text-sm text-muted-foreground mt-1">Unlock the full power of your fitness tracking</p>
+            <h1 className="text-2xl font-display font-extrabold">Оновити до FitTrack Pro</h1>
+            <p className="text-sm text-muted-foreground mt-1">Розблокуйте повну потужність відстеження фітнесу</p>
           </div>
         </div>
 
