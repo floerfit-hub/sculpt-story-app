@@ -551,6 +551,24 @@ export const uk: Translations = {
     sleep: "Сон",
   },
 
+  pr: {
+    title: "Особисті рекорди",
+    addManual: "Додати рекорд",
+    addManualTitle: "Додати рекорд вручну",
+    exercise: "Вправа",
+    selectExercise: "Оберіть вправу",
+    maxWeight: "Макс. вага",
+    date: "Дата досягнення",
+    saveRecord: "Зберегти рекорд",
+    recordAdded: "Рекорд додано! 🏆",
+    noRecords: "Рекордів ще немає. Завершіть тренування!",
+    progressView: "Перегляд прогресу",
+    needMoreData: "Запишіть вправу 2+ разів, щоб побачити графік.",
+    moreRecords: "ще рекордів",
+    newRecord: "Новий рекорд! 🏆",
+    newRecordDesc: "Ви щойно побили свій особистий рекорд!",
+  },
+
   common: {
     error: "Помилка",
     kg: "кг",
