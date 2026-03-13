@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import RestTimer from "./RestTimer";
 import { useToast } from "@/hooks/use-toast";
 
-interface SetData { weight: number | ""; reps: number | "" }
+interface SetData { weight: number | ""; reps: number | ""; rest_time: number | null }
 interface WorkoutExercise { name: string; muscleGroup: string; sets: SetData[]; notes: string }
 
 export interface EditWorkoutData {
@@ -34,7 +35,6 @@ interface StartWorkoutProps {
   editData?: EditWorkoutData;
 }
 
-// Resolve exercise names to IDs from the exercises table
 async function resolveExerciseIds(
   exercises: { name: string; muscleGroup: string }[]
 ): Promise<Map<string, string>> {
@@ -49,7 +49,6 @@ async function resolveExerciseIds(
   const map = new Map<string, string>();
   (existing || []).forEach((e: any) => map.set(`${e.name}::${e.muscle_group}`, e.id));
 
-  // Insert any missing exercises
   for (const ex of uniqueKeys) {
     const key = `${ex.name}::${ex.muscleGroup}`;
     if (!map.has(key)) {
@@ -65,11 +64,21 @@ async function resolveExerciseIds(
   return map;
 }
 
+function getRestMultiplier(restSeconds: number | null): number {
+  if (restSeconds === null) return 1.0;
+  if (restSeconds > 480) return 1.0; // > 8 min = likely recorded late
+  if (restSeconds < 90) return 1.2;
+  if (restSeconds <= 150) return 1.0;
+  if (restSeconds <= 240) return 0.9;
+  return 0.8;
+}
+
 const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
   const isEditing = !!editData;
+  const prepBuffer = (profile as any)?.prep_buffer_seconds ?? 10;
 
   const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
     if (editData) {
@@ -78,7 +87,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         .map((ex) => ({
           name: ex.exercise_name,
           muscleGroup: ex.muscle_group,
-          sets: ex.sets.map((s) => ({ weight: s.weight as number | "", reps: s.reps as number | "" })),
+          sets: ex.sets.map((s) => ({ weight: s.weight as number | "", reps: s.reps as number | "", rest_time: null })),
           notes: ex.notes || "",
         }));
     }
@@ -93,6 +102,12 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [finalDuration, setFinalDuration] = useState<number>(0);
+  const [showRestTooltip, setShowRestTooltip] = useState(false);
+
+  // Track time of last set completion for auto rest tracking
+  const lastSetTimeRef = useRef<number | null>(null);
+  const [autoRestSeconds, setAutoRestSeconds] = useState<number | null>(null);
+  const autoRestIntervalRef = useRef<ReturnType<typeof setInterval>>();
 
   const [startTime, setStartTime] = useState<number | null>(() => {
     if (isEditing) return Date.now();
@@ -122,6 +137,18 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     return () => clearInterval(interval);
   }, [startTime, saved]);
 
+  // Auto rest timer - counts up after each set is recorded
+  useEffect(() => {
+    if (lastSetTimeRef.current === null) return;
+    clearInterval(autoRestIntervalRef.current);
+    autoRestIntervalRef.current = setInterval(() => {
+      if (lastSetTimeRef.current) {
+        setAutoRestSeconds(Math.floor((Date.now() - lastSetTimeRef.current) / 1000));
+      }
+    }, 1000);
+    return () => clearInterval(autoRestIntervalRef.current);
+  }, [lastSetTimeRef.current]);
+
   const formatTime = (totalSeconds: number) => {
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
@@ -143,18 +170,41 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   }, []);
 
   const addExercise = (name: string, group: string) => {
-    setExercises((prev) => [...prev, { name, muscleGroup: group, sets: [{ weight: "", reps: "" }], notes: "" }]);
+    setExercises((prev) => [...prev, { name, muscleGroup: group, sets: [{ weight: "", reps: "", rest_time: null }], notes: "" }]);
     setShowLibrary(false);
   };
 
   const addSet = (idx: number) => {
-    setExercises((prev) => { const c = [...prev]; c[idx] = { ...c[idx], sets: [...c[idx].sets, { weight: "", reps: "" }] }; return c; });
+    // Calculate rest_time from auto timer
+    const restTime = lastSetTimeRef.current
+      ? Math.floor((Date.now() - lastSetTimeRef.current) / 1000) + prepBuffer
+      : null;
+    
+    setExercises((prev) => {
+      const c = [...prev];
+      c[idx] = { ...c[idx], sets: [...c[idx].sets, { weight: "", reps: "", rest_time: restTime }] };
+      return c;
+    });
   };
 
   const removeExercise = (idx: number) => setExercises((prev) => prev.filter((_, i) => i !== idx));
 
   const updateSet = (exIdx: number, setIdx: number, field: "weight" | "reps", val: string) => {
-    setExercises((prev) => { const c = [...prev]; const sets = [...c[exIdx].sets]; sets[setIdx] = { ...sets[setIdx], [field]: val === "" ? "" : Number(val) }; c[exIdx] = { ...c[exIdx], sets }; return c; });
+    setExercises((prev) => {
+      const c = [...prev];
+      const sets = [...c[exIdx].sets];
+      sets[setIdx] = { ...sets[setIdx], [field]: val === "" ? "" : Number(val) };
+      c[exIdx] = { ...c[exIdx], sets };
+      return c;
+    });
+
+    // Mark time when a set value is entered (for auto rest tracking)
+    if (field === "reps" && val !== "") {
+      lastSetTimeRef.current = Date.now();
+      setAutoRestSeconds(0);
+      // Show tooltip on first set
+      if (!showRestTooltip) setShowRestTooltip(true);
+    }
   };
 
   const updateNotes = (idx: number, notes: string) => {
@@ -169,16 +219,13 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     if (!user || exercises.length === 0) return;
     setSaving(true);
     try {
-      // Resolve exercise IDs
       const exerciseIdMap = await resolveExerciseIds(
         exercises.map(ex => ({ name: ex.name, muscleGroup: ex.muscleGroup }))
       );
 
       if (isEditing && editData) {
-        // Delete old workout_sets
         await (supabase as any).from("workout_sets").delete().eq("workout_id", editData.id);
 
-        // Insert new workout_sets
         const setsRows: any[] = [];
         exercises.forEach((ex, exIdx) => {
           const exerciseId = exerciseIdMap.get(`${ex.name}::${ex.muscleGroup}`);
@@ -194,6 +241,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
                 reps: Number(s.reps) || 0,
                 sort_order: exIdx,
                 notes: setIdx === 0 ? (ex.notes || null) : null,
+                rest_time: s.rest_time,
               });
             });
         });
@@ -203,7 +251,6 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           if (sErr) throw sErr;
         }
 
-        // Update workout to trigger exercise_performance recomputation
         const { error: wErr } = await supabase.from("workouts").update({
           notes: null,
           finished_at: editData.finished_at || new Date().toISOString(),
@@ -215,14 +262,12 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         setSaved(true);
         toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       } else {
-        // Step 1: Insert workout WITHOUT finished_at
         const startedAt = new Date(startTime || Date.now()).toISOString();
         const { data: workout, error: wErr } = await supabase.from("workouts")
           .insert({ user_id: user.id, started_at: startedAt })
           .select("id").single();
         if (wErr || !workout) throw wErr;
 
-        // Step 2: Insert workout_sets
         const setsRows: any[] = [];
         exercises.forEach((ex, exIdx) => {
           const exerciseId = exerciseIdMap.get(`${ex.name}::${ex.muscleGroup}`);
@@ -238,6 +283,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
                 reps: Number(s.reps) || 0,
                 sort_order: exIdx,
                 notes: setIdx === 0 ? (ex.notes || null) : null,
+                rest_time: s.rest_time,
               });
             });
         });
@@ -247,7 +293,6 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           if (sErr) throw sErr;
         }
 
-        // Step 3: Set finished_at → triggers exercise_performance computation
         const { error: uErr } = await supabase.from("workouts").update({
           finished_at: new Date().toISOString(),
           duration_seconds: elapsed,
@@ -282,61 +327,89 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   if (showLibrary) return <ExerciseLibrary onBack={() => setShowLibrary(false)} onSelect={addExercise} selectable />;
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft className="h-5 w-5" /></Button>
-          <h2 className="text-xl font-display font-bold">{isEditing ? t.workouts.editWorkout : t.workouts.newWorkout}</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          {!isEditing && (
-            <div className="flex items-center gap-1.5 rounded-xl bg-accent px-3 py-1.5">
-              <Clock className="h-4 w-4 text-primary" />
-              <span className="text-sm font-display font-semibold tabular-nums text-foreground">{formatTime(elapsed)}</span>
-            </div>
-          )}
-          <Button variant="ghost" size="icon" onClick={() => setShowTimer(true)}><Timer className="h-5 w-5" /></Button>
-        </div>
-      </div>
-
-      {exercises.length === 0 && <div className="py-12 text-center text-muted-foreground"><p className="mb-4">{t.workouts.noExercises}</p></div>}
-
-      {exercises.map((ex, exIdx) => (
-        <Card key={exIdx}>
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div><p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p><p className="text-xs text-muted-foreground">{(() => { const keyMap: Record<string, string> = { "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest", "Shoulders": "shoulders", "Arms": "arms", "Core": "core" }; const k = keyMap[ex.muscleGroup] as keyof typeof t.muscleGroups; return k ? t.muscleGroups[k] : ex.muscleGroup; })()}</p></div>
-              <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-            </div>
-            <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 text-xs text-muted-foreground font-medium">
-              <span>{t.workouts.set}</span><span>{t.workouts.weightKg}</span><span>{t.workouts.reps}</span><span></span>
-            </div>
-            {ex.sets.map((set, setIdx) => (
-              <div key={setIdx} className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center">
-                <span className="text-sm font-medium text-muted-foreground">{setIdx + 1}</span>
-                <Input type="number" placeholder="0" value={set.weight} onChange={(e) => updateSet(exIdx, setIdx, "weight", e.target.value)} className="h-10" />
-                <Input type="number" placeholder="0" value={set.reps} onChange={(e) => updateSet(exIdx, setIdx, "reps", e.target.value)} className="h-10" />
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeSet(exIdx, setIdx)}><Trash2 className="h-3 w-3" /></Button>
+    <TooltipProvider>
+      <div className="space-y-4 animate-fade-in">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft className="h-5 w-5" /></Button>
+            <h2 className="text-xl font-display font-bold">{isEditing ? t.workouts.editWorkout : t.workouts.newWorkout}</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            {!isEditing && (
+              <div className="flex items-center gap-1.5 rounded-xl bg-accent px-3 py-1.5">
+                <Clock className="h-4 w-4 text-primary" />
+                <span className="text-sm font-display font-semibold tabular-nums text-foreground">{formatTime(elapsed)}</span>
               </div>
-            ))}
-            <Button variant="outline" size="sm" className="w-full" onClick={() => addSet(exIdx)}><Plus className="h-3 w-3 mr-1" /> {t.workouts.addSet}</Button>
-            <Textarea placeholder={t.workouts.notesTip} value={ex.notes} onChange={(e) => updateNotes(exIdx, e.target.value)} className="min-h-[60px] text-sm" />
-          </CardContent>
-        </Card>
-      ))}
+            )}
+            <Button variant="ghost" size="icon" onClick={() => setShowTimer(true)}><Timer className="h-5 w-5" /></Button>
+          </div>
+        </div>
 
-      <div className="flex gap-3">
-        <Button variant="outline" className="flex-1 h-12" onClick={() => setShowLibrary(true)}><Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}</Button>
+        {/* Auto rest timer indicator */}
+        {autoRestSeconds !== null && autoRestSeconds > 0 && !isEditing && (
+          <div className="flex items-center justify-center gap-2 rounded-xl bg-accent/50 border border-border/50 px-4 py-2.5">
+            <Timer className="h-4 w-4 text-primary animate-pulse" />
+            <span className="text-sm font-display font-semibold tabular-nums">
+              {t.workouts.restTimer}: {formatTime(autoRestSeconds)}
+            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[220px]">
+                <p className="text-xs">{t.recovery.restTooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
+
+        {exercises.length === 0 && <div className="py-12 text-center text-muted-foreground"><p className="mb-4">{t.workouts.noExercises}</p></div>}
+
+        {exercises.map((ex, exIdx) => (
+          <Card key={exIdx}>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div><p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p><p className="text-xs text-muted-foreground">{(() => { const keyMap: Record<string, string> = { "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest", "Shoulders": "shoulders", "Arms": "arms", "Core": "core" }; const k = keyMap[ex.muscleGroup] as keyof typeof t.muscleGroups; return k ? t.muscleGroups[k] : ex.muscleGroup; })()}</p></div>
+                <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+              </div>
+              <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 text-xs text-muted-foreground font-medium">
+                <span>{t.workouts.set}</span><span>{t.workouts.weightKg}</span><span>{t.workouts.reps}</span><span></span>
+              </div>
+              {ex.sets.map((set, setIdx) => (
+                <div key={setIdx}>
+                  <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center">
+                    <span className="text-sm font-medium text-muted-foreground">{setIdx + 1}</span>
+                    <Input type="number" placeholder="0" value={set.weight} onChange={(e) => updateSet(exIdx, setIdx, "weight", e.target.value)} className="h-10" />
+                    <Input type="number" placeholder="0" value={set.reps} onChange={(e) => updateSet(exIdx, setIdx, "reps", e.target.value)} className="h-10" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeSet(exIdx, setIdx)}><Trash2 className="h-3 w-3" /></Button>
+                  </div>
+                  {set.rest_time !== null && set.rest_time > 0 && (
+                    <div className="ml-8 mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <Timer className="h-2.5 w-2.5" />
+                      <span>{formatTime(set.rest_time)} rest · ×{getRestMultiplier(set.rest_time).toFixed(1)}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <Button variant="outline" size="sm" className="w-full" onClick={() => addSet(exIdx)}><Plus className="h-3 w-3 mr-1" /> {t.workouts.addSet}</Button>
+              <Textarea placeholder={t.workouts.notesTip} value={ex.notes} onChange={(e) => updateNotes(exIdx, e.target.value)} className="min-h-[60px] text-sm" />
+            </CardContent>
+          </Card>
+        ))}
+
+        <div className="flex gap-3">
+          <Button variant="outline" className="flex-1 h-12" onClick={() => setShowLibrary(true)}><Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}</Button>
+        </div>
+
+        {exercises.length > 0 && (
+          <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
+            <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.updatingDots : isEditing ? t.workouts.updateWorkout : t.workouts.finishSave}
+          </Button>
+        )}
+
+        {showTimer && <RestTimer onClose={() => setShowTimer(false)} />}
       </div>
-
-      {exercises.length > 0 && (
-        <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
-          <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.updatingDots : isEditing ? t.workouts.updateWorkout : t.workouts.finishSave}
-        </Button>
-      )}
-
-      {showTimer && <RestTimer onClose={() => setShowTimer(false)} />}
-    </div>
+    </TooltipProvider>
   );
 };
 

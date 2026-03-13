@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail } from "lucide-react";
+import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Timer } from "lucide-react";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 
 const LANGUAGES: { code: Language; label: string }[] = [
@@ -39,6 +39,7 @@ const Profile = () => {
   const { t, lang, setLanguage } = useTranslation();
   const { theme, setTheme } = useTheme();
   const [name, setName] = useState(profile?.full_name || "");
+  const [prepBuffer, setPrepBuffer] = useState<number>((profile as any)?.prep_buffer_seconds ?? 10);
   const [saving, setSaving] = useState(false);
   const [isStandalone] = useState(window.matchMedia("(display-mode: standalone)").matches);
   const [isIOS] = useState(/iPad|iPhone|iPod/.test(navigator.userAgent));
@@ -66,7 +67,7 @@ const Profile = () => {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({ full_name: name }).eq("user_id", user.id);
+    const { error } = await supabase.from("profiles").update({ full_name: name, prep_buffer_seconds: prepBuffer } as any).eq("user_id", user.id);
     setSaving(false);
     if (error) {
       toast({ title: t.common.error, description: error.message, variant: "destructive" });
@@ -137,6 +138,26 @@ const Profile = () => {
             {LANGUAGES.map((l) => (
               <Button key={l.code} variant={lang === l.code ? "default" : "outline"} className="flex-1" onClick={() => setLanguage(l.code)}>
                 {l.label}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Prep Buffer */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-lg flex items-center gap-2">
+            <Timer className="h-5 w-5 text-primary" />
+            {t.recovery.prepTime}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">{t.recovery.prepTimeDesc}</p>
+          <div className="flex gap-2">
+            {[5, 10, 15].map((val) => (
+              <Button key={val} variant={prepBuffer === val ? "default" : "outline"} className="flex-1" onClick={() => setPrepBuffer(val)}>
+                {val} {t.recovery.seconds}
               </Button>
             ))}
           </div>

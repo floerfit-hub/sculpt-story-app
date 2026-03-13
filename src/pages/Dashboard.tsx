@@ -4,6 +4,7 @@ import { usePremium } from "@/hooks/usePremium";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
+import { useRecovery } from "@/hooks/useRecovery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -16,6 +17,8 @@ import FitnessScore from "@/components/dashboard/FitnessScore";
 import WeightChart from "@/components/dashboard/WeightChart";
 import MeasurementsCard from "@/components/dashboard/MeasurementsCard";
 import MuscleHeatmap from "@/components/dashboard/MuscleHeatmap";
+import MuscleRecoveryMap from "@/components/dashboard/MuscleRecoveryMap";
+import AIRecoveryRecommendation from "@/components/dashboard/AIRecoveryRecommendation";
 import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
 import NutritionSummary from "@/components/dashboard/NutritionSummary";
 import SmartInsights from "@/components/dashboard/SmartInsights";
@@ -46,6 +49,7 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { recoveryData } = useRecovery();
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -336,6 +340,14 @@ const Dashboard = () => {
 
       <PremiumGate feature="Muscle Heatmap Analytics">
         <MuscleHeatmap muscleData={muscleData} />
+      </PremiumGate>
+
+      <PremiumGate feature="Muscle Recovery Map">
+        <MuscleRecoveryMap recoveryData={recoveryData} />
+      </PremiumGate>
+
+      <PremiumGate feature="AI Recovery Recommendations">
+        <AIRecoveryRecommendation recoveryData={recoveryData} />
       </PremiumGate>
 
       <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />

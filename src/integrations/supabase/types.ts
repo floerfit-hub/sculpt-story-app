@@ -116,6 +116,39 @@ export type Database = {
         }
         Relationships: []
       }
+      muscle_recovery: {
+        Row: {
+          created_at: string
+          fatigue_score: number
+          id: string
+          last_trained_at: string
+          muscle_group: string
+          recovery_percent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fatigue_score?: number
+          id?: string
+          last_trained_at?: string
+          muscle_group: string
+          recovery_percent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fatigue_score?: number
+          id?: string
+          last_trained_at?: string
+          muscle_group?: string
+          recovery_percent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -123,6 +156,7 @@ export type Database = {
           full_name: string | null
           id: string
           language: string | null
+          prep_buffer_seconds: number | null
           theme: string | null
           updated_at: string
           user_id: string
@@ -133,6 +167,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           language?: string | null
+          prep_buffer_seconds?: number | null
           theme?: string | null
           updated_at?: string
           user_id: string
@@ -143,6 +178,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           language?: string | null
+          prep_buffer_seconds?: number | null
           theme?: string | null
           updated_at?: string
           user_id?: string
