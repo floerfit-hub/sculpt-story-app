@@ -148,7 +148,7 @@ const Pricing = () => {
                   onClick={() => handleBuy("monthly")}
                   disabled={loading !== null || cooldown}
                 >
-                  {loading === "monthly" ? t.premium.activating : "Start Free Trial"}
+                  {loading === "monthly" ? t.premium.activating : "Почати тріал"}
                 </Button>
               </CardContent>
             </Card>
