@@ -68,7 +68,6 @@ const PersonalRecords = () => {
   const [leaderboardReps, setLeaderboardReps] = useState<number>(1);
   const [isVisible, setIsVisible] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
-  const [togglingVisibility, setTogglingVisibility] = useState(false);
 
   useEffect(() => {
     if (!user) return;
