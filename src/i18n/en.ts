@@ -221,6 +221,7 @@ export const en = {
     "Barbell Row": "Barbell Row",
     "Hyperextensions": "Hyperextensions",
     "Face Pull": "Face Pull",
+    "Barbell Bench Press": "Barbell Bench Press",
     "Incline Barbell Bench Press": "Incline Barbell Bench Press",
     "Hammer Strength Chest Press": "Hammer Strength Chest Press",
     "Cable Chest Fly": "Cable Chest Fly",
