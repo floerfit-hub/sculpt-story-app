@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { useTranslation } from "@/i18n";
+import { useSwipeBack } from "@/hooks/useSwipeBack";
 import { Dumbbell, LayoutDashboard, PlusCircle, Calculator, UserCircle, Shield, Crown } from "lucide-react";
 import InstallPrompt from "@/components/InstallPrompt";
 
