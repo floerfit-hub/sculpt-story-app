@@ -1,10 +1,9 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { usePremium } from "@/hooks/usePremium";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
-import { useRecovery } from "@/hooks/useRecovery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -12,21 +11,15 @@ import { PlusCircle, Clock, Pencil, Trash2, Crown, Globe } from "lucide-react";
 import { format, differenceInDays, addDays, startOfMonth, subDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
-import type { MorningCheckin } from "@/lib/muscleScience";
 
 import FitnessScore from "@/components/dashboard/FitnessScore";
 import WeightChart from "@/components/dashboard/WeightChart";
 import MeasurementsCard from "@/components/dashboard/MeasurementsCard";
 import MuscleHeatmap from "@/components/dashboard/MuscleHeatmap";
-import MuscleRecoveryMap from "@/components/dashboard/MuscleRecoveryMap";
-import AIRecoveryRecommendation from "@/components/dashboard/AIRecoveryRecommendation";
 import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
 import NutritionSummary from "@/components/dashboard/NutritionSummary";
 import SmartInsights from "@/components/dashboard/SmartInsights";
 import PremiumGate from "@/components/subscription/PremiumGate";
-import MorningCheckinCard from "@/components/dashboard/MorningCheckin";
-import ReadinessScore from "@/components/dashboard/ReadinessScore";
-import CNSFatigueBar from "@/components/dashboard/CNSFatigueBar";
 
 type ProgressEntry = Tables<"progress_entries">;
 const CHECKIN_INTERVAL = 14;
@@ -53,9 +46,6 @@ const Dashboard = () => {
   const { t, lang, setLanguage } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { recoveryData, lastHeavyCompoundAt } = useRecovery();
-  const [suggestedMuscles, setSuggestedMuscles] = useState<string[]>([]);
-  const [focusedMuscle, setFocusedMuscle] = useState<string | null>(null);
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -63,13 +53,6 @@ const Dashboard = () => {
   const [workouts, setWorkouts] = useState<Tables<"workouts">[]>([]);
   const [perfData, setPerfData] = useState<PerfData[]>([]);
   const [exerciseMap, setExerciseMap] = useState<Map<string, ExerciseInfo>>(new Map());
-  const [morningCheckin, setMorningCheckin] = useState<MorningCheckin | null>(null);
-
-  const cnsFatigueHigh = useMemo(() => {
-    if (!lastHeavyCompoundAt) return false;
-    const hoursSince = (Date.now() - new Date(lastHeavyCompoundAt).getTime()) / (1000 * 60 * 60);
-    return hoursSince < 24; // HIGH if < 24h
-  }, [lastHeavyCompoundAt]);
 
   useEffect(() => {
     try {
@@ -296,15 +279,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Morning Check-in */}
-      <MorningCheckinCard onCheckin={setMorningCheckin} existingCheckin={morningCheckin} />
-
-      {/* Daily Readiness Score */}
-      <ReadinessScore recoveryData={recoveryData} checkin={morningCheckin} cnsFatigueHigh={cnsFatigueHigh} />
-
-      {/* CNS Fatigue Bar */}
-      <CNSFatigueBar lastHeavyCompoundAt={lastHeavyCompoundAt} />
-
       {!canLogEntry && nextCheckinDate && (
         <Card className="border-primary/20 gradient-glow">
           <CardContent className="flex items-center gap-4 p-4">
@@ -345,24 +319,6 @@ const Dashboard = () => {
 
       <PremiumGate feature="Muscle Heatmap Analytics">
         <MuscleHeatmap muscleData={muscleData} />
-      </PremiumGate>
-
-      <PremiumGate feature="Muscle Recovery Map">
-        <MuscleRecoveryMap
-          recoveryData={recoveryData}
-          highlightedMuscles={suggestedMuscles}
-          onMuscleSelect={setFocusedMuscle}
-          checkin={morningCheckin}
-          cnsFatigueHigh={cnsFatigueHigh}
-        />
-      </PremiumGate>
-
-      <PremiumGate feature="AI Recovery Recommendations">
-        <AIRecoveryRecommendation
-          recoveryData={recoveryData}
-          focusedMuscle={focusedMuscle}
-          onSuggestedMuscles={setSuggestedMuscles}
-        />
       </PremiumGate>
 
       <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />
@@ -422,9 +378,9 @@ const Dashboard = () => {
             <AlertDialogDescription>{t.dashboard.deleteConfirm}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">{t.dashboard.cancelDelete}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl">
-              {t.dashboard.confirmDelete}
+            <AlertDialogCancel>{t.workouts.cancel}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t.dashboard.deleteEntry}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

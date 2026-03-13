@@ -13,8 +13,8 @@ interface I18nContextType {
 }
 
 const I18nContext = createContext<I18nContextType>({
-  lang: "en",
-  t: en,
+  lang: "uk",
+  t: uk,
   setLanguage: () => {},
 });
 
