@@ -424,12 +424,6 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
                     <Input type="number" placeholder="0" value={set.reps} onChange={(e) => updateSet(exIdx, setIdx, "reps", e.target.value)} className="h-10" />
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeSet(exIdx, setIdx)}><Trash2 className="h-3 w-3" /></Button>
                   </div>
-                  {set.rest_time !== null && set.rest_time > 0 && (
-                    <div className="ml-8 mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Timer className="h-2.5 w-2.5" />
-                      <span>{formatTime(set.rest_time)} rest · ×{getRestMultiplier(set.rest_time).toFixed(1)}</span>
-                    </div>
-                  )}
                 </div>
               ))}
               <Button variant="outline" size="sm" className="w-full" onClick={() => addSet(exIdx)}><Plus className="h-3 w-3 mr-1" /> {t.workouts.addSet}</Button>
