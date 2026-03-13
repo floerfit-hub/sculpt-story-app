@@ -196,9 +196,8 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   };
 
   const addSet = (idx: number) => {
-    // Calculate rest_time from auto timer
     const restTime = lastSetTimeRef.current
-      ? Math.floor((Date.now() - lastSetTimeRef.current) / 1000) + prepBuffer
+      ? Math.floor((Date.now() - lastSetTimeRef.current) / 1000)
       : null;
     
     setExercises((prev) => {
