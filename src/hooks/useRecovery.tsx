@@ -2,26 +2,33 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { RecoveryData, getRealtimeRecoveryPercent, getRestMultiplier } from "@/lib/recovery";
+import {
+  EXERCISE_TO_PATTERN,
+  SYNERGIST_MAP,
+  OLD_GROUP_TO_SEGMENTS,
+  CNS_EXERCISES,
+  type MuscleSegment,
+} from "@/lib/muscleScience";
 
-const CACHE_KEY_PREFIX = "muscle-recovery-cache-v2";
-const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
+const CACHE_KEY_PREFIX = "muscle-recovery-cache-v3";
+const CACHE_DURATION = 6 * 60 * 60 * 1000;
 
 type CachedRecovery = {
   data: RecoveryData[];
   timestamp: number;
   latestWorkoutFinishedAt: string | null;
+  lastHeavyCompoundAt: string | null;
 };
 
 export function useRecovery() {
   const { user } = useAuth();
   const [recoveryData, setRecoveryData] = useState<RecoveryData[]>([]);
-  const [debugLastChestTrainedAt, setDebugLastChestTrainedAt] = useState<string | null>(null);
+  const [lastHeavyCompoundAt, setLastHeavyCompoundAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchRecovery = useCallback(async () => {
     if (!user) {
       setRecoveryData([]);
-      setDebugLastChestTrainedAt(null);
       setLoading(false);
       return;
     }
@@ -31,7 +38,6 @@ export function useRecovery() {
     try {
       const cacheKey = `${CACHE_KEY_PREFIX}-${user.id}`;
 
-      // Pull latest completed workout timestamp first to avoid stale cache after new workout
       const { data: latestWorkoutRows } = await supabase
         .from("workouts")
         .select("finished_at")
@@ -42,27 +48,21 @@ export function useRecovery() {
 
       const latestWorkoutFinishedAt = latestWorkoutRows?.[0]?.finished_at ?? null;
 
-      // Cache with invalidation by latest finished workout
+      // Cache check
       try {
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
           const parsed = JSON.parse(cached) as CachedRecovery;
-          const isFresh = Date.now() - parsed.timestamp < CACHE_DURATION;
-          const sameWorkoutHead = parsed.latestWorkoutFinishedAt === latestWorkoutFinishedAt;
-          if (isFresh && sameWorkoutHead) {
+          if (Date.now() - parsed.timestamp < CACHE_DURATION && parsed.latestWorkoutFinishedAt === latestWorkoutFinishedAt) {
             setRecoveryData(parsed.data);
-            const chestRow = parsed.data.find((r) => r.muscle_group === "Chest");
-            setDebugLastChestTrainedAt(chestRow?.last_trained_at ?? null);
-            console.debug("[Recovery Debug] Last chest workout (cache):", chestRow?.last_trained_at ?? "not found");
+            setLastHeavyCompoundAt(parsed.lastHeavyCompoundAt);
             setLoading(false);
             return;
           }
         }
-      } catch {
-        // ignore cache parse failures
-      }
+      } catch { /* ignore */ }
 
-      // 1) Base muscle recovery rows
+      // 1) Get existing muscle_recovery rows
       const { data: recoveryRows } = await (supabase as any)
         .from("muscle_recovery")
         .select("muscle_group, fatigue_score, recovery_percent, last_trained_at")
@@ -70,14 +70,30 @@ export function useRecovery() {
 
       const mergedMap = new Map<string, RecoveryData>();
 
+      // Expand old grouped muscle_recovery into 17 segments
       (recoveryRows as RecoveryData[] | null | undefined)?.forEach((row) => {
-        mergedMap.set(row.muscle_group, {
-          ...row,
-          recovery_percent: getRealtimeRecoveryPercent(row),
-        });
+        const segments = OLD_GROUP_TO_SEGMENTS[row.muscle_group];
+        if (segments) {
+          // Distribute to each segment
+          segments.forEach((seg) => {
+            if (!mergedMap.has(seg)) {
+              mergedMap.set(seg, {
+                ...row,
+                muscle_group: seg,
+                recovery_percent: getRealtimeRecoveryPercent({ ...row, muscle_group: seg }),
+              });
+            }
+          });
+        } else {
+          // Already a segment name
+          mergedMap.set(row.muscle_group, {
+            ...row,
+            recovery_percent: getRealtimeRecoveryPercent(row),
+          });
+        }
       });
 
-      // 2) Hard-check the last 72h training source data (workout_sets + performance)
+      // 2) Compute from recent workouts (72h) with synergist system
       const sinceIso = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
 
       const { data: recentWorkouts } = await supabase
@@ -89,6 +105,8 @@ export function useRecovery() {
 
       const workoutIds = (recentWorkouts ?? []).map((w) => w.id);
       const workoutFinishedAt = new Map((recentWorkouts ?? []).map((w) => [w.id, w.finished_at]));
+
+      let heavyCompoundAt: string | null = null;
 
       if (workoutIds.length > 0) {
         const [{ data: setsRows }, { data: perfRows }] = await Promise.all([
@@ -104,77 +122,105 @@ export function useRecovery() {
         ]);
 
         const sets = (setsRows ?? []) as Array<{
-          workout_id: string;
-          exercise_id: string;
-          weight: number;
-          reps: number;
-          rest_time: number | null;
-          created_at: string;
+          workout_id: string; exercise_id: string; weight: number; reps: number;
+          rest_time: number | null; created_at: string;
         }>;
-
-        const perf = (perfRows ?? []) as Array<{
-          workout_id: string;
-          exercise_id: string;
-          estimated_1rm: number;
-        }>;
+        const perf = (perfRows ?? []) as Array<{ workout_id: string; exercise_id: string; estimated_1rm: number }>;
 
         const exerciseIds = [...new Set(sets.map((s) => s.exercise_id))];
-        let exerciseToGroup = new Map<string, string>();
+        let exerciseInfo = new Map<string, { name: string; muscle_group: string }>();
 
         if (exerciseIds.length > 0) {
-          const { data: exercisesRows } = await (supabase as any)
+          const { data: exRows } = await (supabase as any)
             .from("exercises")
-            .select("id, muscle_group")
+            .select("id, name, muscle_group")
             .in("id", exerciseIds);
-          exerciseToGroup = new Map((exercisesRows ?? []).map((e: any) => [e.id, e.muscle_group]));
+          exerciseInfo = new Map((exRows ?? []).map((e: any) => [e.id, { name: e.name, muscle_group: e.muscle_group }]));
         }
 
         const perfMap = new Map<string, number>();
-        perf.forEach((p) => {
-          perfMap.set(`${p.workout_id}:${p.exercise_id}`, Number(p.estimated_1rm) || 0);
-        });
+        perf.forEach((p) => perfMap.set(`${p.workout_id}:${p.exercise_id}`, Number(p.estimated_1rm) || 0));
 
-        const muscleAgg: Record<string, { sets: number; intensitySum: number; lastTrainedAtMs: number }> = {};
+        // Aggregate sets per exercise per workout
+        const exerciseAgg: Record<string, { sets: number; intensitySum: number; lastMs: number; exerciseName: string }> = {};
 
-        sets.forEach((setRow) => {
-          const muscleGroup = exerciseToGroup.get(setRow.exercise_id);
-          if (!muscleGroup) return;
+        sets.forEach((s) => {
+          const ex = exerciseInfo.get(s.exercise_id);
+          if (!ex) return;
 
-          const key = `${setRow.workout_id}:${setRow.exercise_id}`;
-          const estimated1RM = perfMap.get(key) ?? 0;
+          const key = `${s.workout_id}:${s.exercise_id}`;
+          const e1rm = perfMap.get(key) ?? 0;
+          const baseIntensity = e1rm > 0 ? Math.min(1.2, Number(s.weight) / e1rm) : 0.7;
+          const intensity = baseIntensity * getRestMultiplier(s.rest_time);
 
-          const baseIntensity = estimated1RM > 0
-            ? Math.min(1.2, Number(setRow.weight) / estimated1RM)
-            : 0.7;
-          const intensity = baseIntensity * getRestMultiplier(setRow.rest_time);
+          const finishedAt = workoutFinishedAt.get(s.workout_id);
+          const setMs = new Date(s.created_at).getTime();
+          const wMs = finishedAt ? new Date(finishedAt).getTime() : 0;
+          const lastMs = Math.max(Number.isNaN(setMs) ? 0 : setMs, Number.isNaN(wMs) ? 0 : wMs);
 
-          const setMs = new Date(setRow.created_at).getTime();
-          const finishedAt = workoutFinishedAt.get(setRow.workout_id);
-          const workoutMs = finishedAt ? new Date(finishedAt).getTime() : 0;
-          const lastMs = Math.max(Number.isNaN(setMs) ? 0 : setMs, Number.isNaN(workoutMs) ? 0 : workoutMs);
-
-          if (!muscleAgg[muscleGroup]) {
-            muscleAgg[muscleGroup] = { sets: 0, intensitySum: 0, lastTrainedAtMs: 0 };
+          if (!exerciseAgg[key]) {
+            exerciseAgg[key] = { sets: 0, intensitySum: 0, lastMs: 0, exerciseName: ex.name };
           }
+          exerciseAgg[key].sets += 1;
+          exerciseAgg[key].intensitySum += intensity;
+          exerciseAgg[key].lastMs = Math.max(exerciseAgg[key].lastMs, lastMs);
 
-          muscleAgg[muscleGroup].sets += 1;
-          muscleAgg[muscleGroup].intensitySum += intensity;
-          muscleAgg[muscleGroup].lastTrainedAtMs = Math.max(muscleAgg[muscleGroup].lastTrainedAtMs, lastMs);
+          // CNS tracking
+          if (CNS_EXERCISES.has(ex.name) && baseIntensity > 0.85) {
+            const timestamp = new Date(lastMs).toISOString();
+            if (!heavyCompoundAt || timestamp > heavyCompoundAt) {
+              heavyCompoundAt = timestamp;
+            }
+          }
         });
 
-        Object.entries(muscleAgg).forEach(([muscleGroup, agg]) => {
+        // Now apply synergist map
+        const muscleLoads: Record<string, {
+          directSets: number; synergistSets: number; intensityMax: number; lastMs: number;
+        }> = {};
+
+        const ensureMuscle = (m: string) => {
+          if (!muscleLoads[m]) muscleLoads[m] = { directSets: 0, synergistSets: 0, intensityMax: 0, lastMs: 0 };
+        };
+
+        Object.values(exerciseAgg).forEach((agg) => {
+          const patternKey = EXERCISE_TO_PATTERN[agg.exerciseName];
+          const pattern = patternKey ? SYNERGIST_MAP[patternKey] : null;
           const avgIntensity = agg.sets > 0 ? agg.intensitySum / agg.sets : 0.7;
-          const fatigueScore = Math.min(100, Math.max(20, agg.sets * avgIntensity * 12));
-          const lastTrainedAt = new Date(agg.lastTrainedAtMs || Date.now()).toISOString();
+
+          if (pattern) {
+            for (const primary of pattern.primary) {
+              ensureMuscle(primary);
+              muscleLoads[primary].directSets += agg.sets;
+              muscleLoads[primary].intensityMax = Math.max(muscleLoads[primary].intensityMax, avgIntensity);
+              muscleLoads[primary].lastMs = Math.max(muscleLoads[primary].lastMs, agg.lastMs);
+            }
+            for (const [synMuscle, coeff] of Object.entries(pattern.synergists)) {
+              ensureMuscle(synMuscle);
+              muscleLoads[synMuscle].synergistSets += agg.sets * (coeff ?? 0);
+              muscleLoads[synMuscle].lastMs = Math.max(muscleLoads[synMuscle].lastMs, agg.lastMs);
+            }
+          }
+        });
+
+        // Convert to RecoveryData
+        Object.entries(muscleLoads).forEach(([muscle, load]) => {
+          const totalSets = load.directSets + load.synergistSets;
+          const fatigueScore = Math.min(100, Math.max(20, totalSets * load.intensityMax * 12));
+          const lastTrainedAt = new Date(load.lastMs || Date.now()).toISOString();
 
           const row: RecoveryData = {
-            muscle_group: muscleGroup,
+            muscle_group: muscle,
             fatigue_score: fatigueScore,
             recovery_percent: 0,
             last_trained_at: lastTrainedAt,
+            direct_sets: load.directSets,
+            synergist_sets: Math.round(load.synergistSets * 10) / 10,
+            total_sets: Math.round(totalSets * 10) / 10,
+            avg_intensity: Math.round(load.intensityMax * 100),
           };
 
-          mergedMap.set(muscleGroup, {
+          mergedMap.set(muscle, {
             ...row,
             recovery_percent: getRealtimeRecoveryPercent(row),
           });
@@ -183,19 +229,14 @@ export function useRecovery() {
 
       const merged = Array.from(mergedMap.values());
       setRecoveryData(merged);
+      setLastHeavyCompoundAt(heavyCompoundAt);
 
-      const chestRow = merged.find((r) => r.muscle_group === "Chest");
-      setDebugLastChestTrainedAt(chestRow?.last_trained_at ?? null);
-      console.debug("[Recovery Debug] Last chest workout:", chestRow?.last_trained_at ?? "not found");
-
-      localStorage.setItem(
-        cacheKey,
-        JSON.stringify({
-          data: merged,
-          timestamp: Date.now(),
-          latestWorkoutFinishedAt,
-        } satisfies CachedRecovery)
-      );
+      localStorage.setItem(cacheKey, JSON.stringify({
+        data: merged,
+        timestamp: Date.now(),
+        latestWorkoutFinishedAt,
+        lastHeavyCompoundAt: heavyCompoundAt,
+      } satisfies CachedRecovery));
     } catch (error) {
       console.error("Recovery fetch error:", error);
     } finally {
@@ -203,14 +244,7 @@ export function useRecovery() {
     }
   }, [user]);
 
-  useEffect(() => {
-    fetchRecovery();
-  }, [fetchRecovery]);
+  useEffect(() => { fetchRecovery(); }, [fetchRecovery]);
 
-  return {
-    recoveryData,
-    debugLastChestTrainedAt,
-    loading,
-    refetch: fetchRecovery,
-  };
+  return { recoveryData, lastHeavyCompoundAt, loading, refetch: fetchRecovery };
 }

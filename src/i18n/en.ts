@@ -178,7 +178,7 @@ export const en = {
     frontDelts: "Front Delts",
     rearDelts: "Rear Delts",
     abs: "Abs",
-    quads: "Quads",
+    quads: "Quadriceps",
     biceps: "Biceps",
     forearms: "Forearms",
     traps: "Traps",
@@ -187,6 +187,11 @@ export const en = {
     glutes: "Glutes",
     hamstrings: "Hamstrings",
     calves: "Calves",
+    upperBack: "Upper Back",
+    anteriorDelt: "Anterior Delt",
+    lateralDelt: "Lateral Delt",
+    posteriorDelt: "Posterior Delt",
+    triceps: "Triceps",
   },
 
   // Exercise Library
@@ -517,12 +522,13 @@ export const en = {
   // Recovery
   recovery: {
     title: "Muscle Recovery",
-    subtitle: "Real-time recovery status based on your workouts",
+    subtitle: "17-segment recovery with synergist tracking",
     recoveryLabel: "Recovery",
     ready: "Ready to train",
     almostReady: "Almost ready",
     recovering: "Recovering",
     fatigued: "Critical fatigue",
+    peak: "Peak readiness",
     aiRecommendation: "AI Recommendation",
     analyzing: "Analyzing your recovery...",
     noRecommendation: "Complete a workout to get AI recommendations.",
@@ -542,10 +548,42 @@ export const en = {
     backView: "Back",
     upperBody: "Upper Body",
     lowerBody: "Lower Body",
-    timeUntilFull: "Time until full recovery:",
+    timeUntilFull: "Time left:",
     readyNow: "Ready now",
     focusedMuscle: "Focus",
     debugChestDate: "Debug · Last chest workout",
+    // Regions
+    regionChest: "Chest",
+    regionBack: "Back",
+    regionShoulders: "Shoulders",
+    regionArms: "Arms",
+    regionLegs: "Legs",
+    regionCore: "Core",
+    // Morning check-in
+    morningCheckin: "Morning Check-in",
+    sleepHours: "Sleep (hours)",
+    energy: "Energy",
+    soreness: "Soreness",
+    high: "high",
+    none: "none",
+    nutritionScore: "Nutrition",
+    submitCheckin: "Submit Check-in",
+    checkinDone: "Morning check-in done ✓",
+    edit: "Edit",
+    // Readiness
+    dailyReadiness: "Daily Readiness",
+    recommendedIntensity: "Recommended intensity",
+    avgRecovery: "Avg recovery",
+    // CNS
+    cnsRecovery: "CNS Recovery",
+    cnsHigh: "HIGH",
+    cnsMedium: "MEDIUM",
+    cnsLow: "LOW",
+    // Synergist
+    directSets: "Direct",
+    synergistSets: "Synergist",
+    // Sleep
+    sleep: "Sleep",
   },
 
   // Common

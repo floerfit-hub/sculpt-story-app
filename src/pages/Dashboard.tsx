@@ -12,6 +12,7 @@ import { PlusCircle, Clock, Pencil, Trash2, Crown, Globe } from "lucide-react";
 import { format, differenceInDays, addDays, startOfMonth, subDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
+import type { MorningCheckin } from "@/lib/muscleScience";
 
 import FitnessScore from "@/components/dashboard/FitnessScore";
 import WeightChart from "@/components/dashboard/WeightChart";
@@ -23,6 +24,9 @@ import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
 import NutritionSummary from "@/components/dashboard/NutritionSummary";
 import SmartInsights from "@/components/dashboard/SmartInsights";
 import PremiumGate from "@/components/subscription/PremiumGate";
+import MorningCheckinCard from "@/components/dashboard/MorningCheckin";
+import ReadinessScore from "@/components/dashboard/ReadinessScore";
+import CNSFatigueBar from "@/components/dashboard/CNSFatigueBar";
 
 type ProgressEntry = Tables<"progress_entries">;
 const CHECKIN_INTERVAL = 14;
@@ -49,7 +53,7 @@ const Dashboard = () => {
   const { t, lang, setLanguage } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { recoveryData, debugLastChestTrainedAt } = useRecovery();
+  const { recoveryData, lastHeavyCompoundAt } = useRecovery();
   const [suggestedMuscles, setSuggestedMuscles] = useState<string[]>([]);
   const [focusedMuscle, setFocusedMuscle] = useState<string | null>(null);
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
@@ -59,6 +63,13 @@ const Dashboard = () => {
   const [workouts, setWorkouts] = useState<Tables<"workouts">[]>([]);
   const [perfData, setPerfData] = useState<PerfData[]>([]);
   const [exerciseMap, setExerciseMap] = useState<Map<string, ExerciseInfo>>(new Map());
+  const [morningCheckin, setMorningCheckin] = useState<MorningCheckin | null>(null);
+
+  const cnsFatigueHigh = useMemo(() => {
+    if (!lastHeavyCompoundAt) return false;
+    const hoursSince = (Date.now() - new Date(lastHeavyCompoundAt).getTime()) / (1000 * 60 * 60);
+    return hoursSince < 24; // HIGH if < 24h
+  }, [lastHeavyCompoundAt]);
 
   useEffect(() => {
     try {
@@ -82,7 +93,6 @@ const Dashboard = () => {
       setWorkouts(allWorkouts);
 
       if (allWorkouts.length > 0) {
-        // Fetch exercise_performance (pre-aggregated)
         const { data: perf } = await (supabase as any)
           .from("exercise_performance")
           .select("workout_id, exercise_id, total_sets, total_reps, total_volume, max_weight, avg_weight, estimated_1rm")
@@ -91,7 +101,6 @@ const Dashboard = () => {
         const perfItems = (perf || []) as PerfData[];
         setPerfData(perfItems);
 
-        // Get exercise details
         const exerciseIds = [...new Set(perfItems.map(p => p.exercise_id))];
         if (exerciseIds.length > 0) {
           const { data: exercises } = await (supabase as any)
@@ -120,7 +129,6 @@ const Dashboard = () => {
     setDeleteId(null);
   };
 
-  // Derived data
   const sortedEntriesDesc = useMemo(() => [...entries].reverse(), [entries]);
   const latest = sortedEntriesDesc[0];
   const previous = sortedEntriesDesc[1];
@@ -128,7 +136,6 @@ const Dashboard = () => {
   const daysUntilCheckin = nextCheckinDate ? differenceInDays(nextCheckinDate, new Date()) : 0;
   const canLogEntry = !latest || daysUntilCheckin <= 0;
 
-  // Workout stats
   const monthStart = startOfMonth(new Date());
   const workoutsThisMonth = useMemo(
     () => workouts.filter((w) => new Date(w.started_at) >= monthStart).length,
@@ -137,12 +144,9 @@ const Dashboard = () => {
 
   const totalSetsThisMonth = useMemo(() => {
     const monthWorkoutIds = new Set(workouts.filter((w) => new Date(w.started_at) >= monthStart).map((w) => w.id));
-    return perfData
-      .filter((p) => monthWorkoutIds.has(p.workout_id))
-      .reduce((sum, p) => sum + Number(p.total_sets), 0);
+    return perfData.filter((p) => monthWorkoutIds.has(p.workout_id)).reduce((sum, p) => sum + Number(p.total_sets), 0);
   }, [workouts, perfData, monthStart]);
 
-  // Workout streak
   const currentStreak = useMemo(() => {
     if (workouts.length === 0) return 0;
     const workoutDays = new Set(workouts.map((w) => format(new Date(w.started_at), "yyyy-MM-dd")));
@@ -159,29 +163,22 @@ const Dashboard = () => {
     return streak;
   }, [workouts]);
 
-  // Muscle heatmap data (last 30 days) - using exercise_performance
   const muscleData = useMemo(() => {
     const thirtyDaysAgo = subDays(new Date(), 30);
-    const recentWorkoutIds = new Set(
-      workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).map((w) => w.id)
-    );
+    const recentWorkoutIds = new Set(workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).map((w) => w.id));
     const groups: Record<string, number> = {};
     perfData
       .filter((p) => recentWorkoutIds.has(p.workout_id))
       .forEach((p) => {
         const ex = exerciseMap.get(p.exercise_id);
-        if (ex) {
-          groups[ex.muscle_group] = (groups[ex.muscle_group] || 0) + Number(p.total_sets);
-        }
+        if (ex) groups[ex.muscle_group] = (groups[ex.muscle_group] || 0) + Number(p.total_sets);
       });
     return groups;
   }, [workouts, perfData, exerciseMap]);
 
-  // Strength trending
   const strengthTrending = useMemo(() => {
     const sortedWorkouts = [...workouts].sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime());
     const workoutOrder = new Map(sortedWorkouts.map((w, i) => [w.id, i]));
-
     const exerciseHistory: Record<string, number[]> = {};
     perfData
       .sort((a, b) => (workoutOrder.get(a.workout_id) ?? 0) - (workoutOrder.get(b.workout_id) ?? 0))
@@ -192,7 +189,6 @@ const Dashboard = () => {
           exerciseHistory[ex.name].push(Number(p.max_weight));
         }
       });
-
     return Object.values(exerciseHistory).some((weights) => {
       if (weights.length < 3) return false;
       const last3 = weights.slice(-3);
@@ -200,18 +196,15 @@ const Dashboard = () => {
     });
   }, [workouts, perfData, exerciseMap]);
 
-  // Fitness Score calculation
   const fitnessScores = useMemo(() => {
     const thirtyDaysAgo = subDays(new Date(), 30);
     const recentWorkouts = workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).length;
     const workoutsPerWeek = (recentWorkouts / 30) * 7;
     const trainingConsistency = Math.min(100, Math.round((workoutsPerWeek / 4) * 100));
 
-    // Strength progress using exercise_performance
     let strengthProgress = 50;
     const sortedW = [...workouts].sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime());
     const wOrder = new Map(sortedW.map((w, i) => [w.id, i]));
-
     const exerciseHistory: Record<string, number[]> = {};
     perfData
       .sort((a, b) => (wOrder.get(a.workout_id) ?? 0) - (wOrder.get(b.workout_id) ?? 0))
@@ -222,17 +215,13 @@ const Dashboard = () => {
           exerciseHistory[ex.name].push(Number(p.max_weight));
         }
       });
-
     const improvements = Object.values(exerciseHistory).filter((weights) => {
       if (weights.length < 2) return false;
       return weights[weights.length - 1] > weights[0];
     }).length;
     const totalExercises = Object.keys(exerciseHistory).length;
-    if (totalExercises > 0) {
-      strengthProgress = Math.min(100, Math.round((improvements / totalExercises) * 100));
-    }
+    if (totalExercises > 0) strengthProgress = Math.min(100, Math.round((improvements / totalExercises) * 100));
 
-    // Body measurements progress
     let bodyProgress = 50;
     if (entries.length >= 2) {
       const first = entries[0];
@@ -246,7 +235,6 @@ const Dashboard = () => {
       if (totalMeasured > 0) bodyProgress = Math.round((positiveChanges / totalMeasured) * 100);
     }
 
-    // Muscle balance
     const groupCounts = Object.values(muscleData);
     let muscleBalance = 50;
     if (groupCounts.length >= 2) {
@@ -292,12 +280,7 @@ const Dashboard = () => {
           <p className="text-muted-foreground mt-1 text-sm">{t.dashboard.trackTransformation}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1.5 text-xs"
-            onClick={() => setLanguage(lang === "uk" ? "en" : "uk")}
-          >
+          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setLanguage(lang === "uk" ? "en" : "uk")}>
             <Globe className="h-3.5 w-3.5" />
             {lang === "uk" ? "ENG" : "УКР"}
           </Button>
@@ -312,6 +295,15 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Morning Check-in */}
+      <MorningCheckinCard onCheckin={setMorningCheckin} existingCheckin={morningCheckin} />
+
+      {/* Daily Readiness Score */}
+      <ReadinessScore recoveryData={recoveryData} checkin={morningCheckin} cnsFatigueHigh={cnsFatigueHigh} />
+
+      {/* CNS Fatigue Bar */}
+      <CNSFatigueBar lastHeavyCompoundAt={lastHeavyCompoundAt} />
 
       {!canLogEntry && nextCheckinDate && (
         <Card className="border-primary/20 gradient-glow">
@@ -360,7 +352,8 @@ const Dashboard = () => {
           recoveryData={recoveryData}
           highlightedMuscles={suggestedMuscles}
           onMuscleSelect={setFocusedMuscle}
-          debugLastChestTrainedAt={debugLastChestTrainedAt}
+          checkin={morningCheckin}
+          cnsFatigueHigh={cnsFatigueHigh}
         />
       </PremiumGate>
 
