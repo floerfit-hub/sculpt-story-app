@@ -170,6 +170,18 @@ export const uk: Translations = {
     shoulders: "Плечі",
     arms: "Руки",
     core: "Кор",
+    frontDelts: "Передні дельти",
+    rearDelts: "Задні дельти",
+    abs: "Прес",
+    quads: "Квадрицепси",
+    biceps: "Біцепси",
+    forearms: "Передпліччя",
+    traps: "Трапеції",
+    lats: "Широкі м'язи спини",
+    lowerBack: "Поперек",
+    glutes: "Сідниці",
+    hamstrings: "Біцепс стегна",
+    calves: "Литки",
   },
 
   exerciseLib: {
