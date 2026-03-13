@@ -196,10 +196,10 @@ const Pricing = () => {
 
         {/* Footer links */}
         <div className="flex justify-center gap-4 text-xs text-muted-foreground pt-4 pb-8">
-          <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-          <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-          <Link to="/refund" className="hover:text-foreground transition-colors">Refund</Link>
-          <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+          <Link to="/terms" className="hover:text-foreground transition-colors">Умови</Link>
+          <Link to="/privacy" className="hover:text-foreground transition-colors">Конфіденційність</Link>
+          <Link to="/refund" className="hover:text-foreground transition-colors">Повернення</Link>
+          <Link to="/contact" className="hover:text-foreground transition-colors">Контакти</Link>
         </div>
       </div>
     </div>
