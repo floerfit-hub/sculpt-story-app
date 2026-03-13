@@ -46,23 +46,7 @@ const Dashboard = () => {
   const { t, lang, setLanguage } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { recoveryData, lastHeavyCompoundAt } = useRecovery();
-  const [suggestedMuscles, setSuggestedMuscles] = useState<string[]>([]);
-  const [focusedMuscle, setFocusedMuscle] = useState<string | null>(null);
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [nutrition, setNutrition] = useState<{ calories: number; protein: number; fat: number; carbs: number } | null>(null);
-  const [workouts, setWorkouts] = useState<Tables<"workouts">[]>([]);
-  const [perfData, setPerfData] = useState<PerfData[]>([]);
-  const [exerciseMap, setExerciseMap] = useState<Map<string, ExerciseInfo>>(new Map());
-  const [morningCheckin, setMorningCheckin] = useState<MorningCheckin | null>(null);
-
-  const cnsFatigueHigh = useMemo(() => {
-    if (!lastHeavyCompoundAt) return false;
-    const hoursSince = (Date.now() - new Date(lastHeavyCompoundAt).getTime()) / (1000 * 60 * 60);
-    return hoursSince < 24; // HIGH if < 24h
-  }, [lastHeavyCompoundAt]);
 
   useEffect(() => {
     try {
