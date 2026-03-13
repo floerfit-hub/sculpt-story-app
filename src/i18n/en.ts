@@ -178,7 +178,7 @@ export const en = {
     frontDelts: "Front Delts",
     rearDelts: "Rear Delts",
     abs: "Abs",
-    quads: "Quads",
+    quads: "Quadriceps",
     biceps: "Biceps",
     forearms: "Forearms",
     traps: "Traps",
@@ -187,6 +187,11 @@ export const en = {
     glutes: "Glutes",
     hamstrings: "Hamstrings",
     calves: "Calves",
+    upperBack: "Upper Back",
+    anteriorDelt: "Anterior Delt",
+    lateralDelt: "Lateral Delt",
+    posteriorDelt: "Posterior Delt",
+    triceps: "Triceps",
   },
 
   // Exercise Library
