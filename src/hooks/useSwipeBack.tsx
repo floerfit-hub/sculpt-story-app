@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Components can listen for this event and call preventDefault() to handle swipe themselves
 export const SWIPE_BACK_EVENT = "swipe-back";
+
+// Stack of handlers — most recently registered (deepest child) gets priority
+const handlerStack: Array<() => boolean> = [];
 
 export const useSwipeBack = () => {
   const navigate = useNavigate();
@@ -22,11 +24,15 @@ export const useSwipeBack = () => {
       const dx = touch.clientX - touchStartX.current;
       const dy = Math.abs(touch.clientY - touchStartY.current);
 
-      // Swipe left (finger moves right-to-left), at least 80px horizontal, not too vertical
       if (dx < -80 && dy < 100) {
-        // Dispatch custom event — if a component handles it, skip navigate
-        const event = new CustomEvent(SWIPE_BACK_EVENT, { cancelable: true });
-        const handled = !document.dispatchEvent(event);
+        // Try handlers from most recent (deepest) to oldest (shallowest)
+        let handled = false;
+        for (let i = handlerStack.length - 1; i >= 0; i--) {
+          if (handlerStack[i]()) {
+            handled = true;
+            break;
+          }
+        }
         if (!handled) {
           navigate(-1);
         }
@@ -46,19 +52,17 @@ export const useSwipeBack = () => {
   }, [navigate]);
 };
 
-/** Hook for components to intercept swipe-back and handle it themselves */
+/** Hook for components to intercept swipe-back. Handler should return true if it handled the swipe. */
 export const useSwipeBackHandler = (handler: () => boolean) => {
   const handlerRef = useRef(handler);
   handlerRef.current = handler;
 
   useEffect(() => {
-    const listener = (e: Event) => {
-      // If handler returns true, it handled the swipe — prevent default navigate(-1)
-      if (handlerRef.current()) {
-        e.preventDefault();
-      }
+    const wrappedHandler = () => handlerRef.current();
+    handlerStack.push(wrappedHandler);
+    return () => {
+      const idx = handlerStack.indexOf(wrappedHandler);
+      if (idx !== -1) handlerStack.splice(idx, 1);
     };
-    document.addEventListener(SWIPE_BACK_EVENT, listener);
-    return () => document.removeEventListener(SWIPE_BACK_EVENT, listener);
   }, []);
 };
