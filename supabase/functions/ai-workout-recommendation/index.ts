@@ -6,17 +6,28 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
 
   try {
-    const { recoveryStatus, language } = await req.json();
+    const { recoveryStatus, language, focusMuscle } = await req.json();
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const lang = language === "uk" ? "Ukrainian" : "English";
-    const systemPrompt = `You are a fitness coach AI. Based on the user's muscle recovery data, give a brief, actionable workout recommendation for today. Respond in ${lang}. Keep it to 2-3 sentences. Be specific about which muscle groups to train and which to avoid. Always mention the muscle group names explicitly (e.g., Chest, Back, Legs).`;
+    const targetLanguage = language === "en" ? "English" : "Ukrainian";
+    const focusContext = focusMuscle
+      ? `The user clicked this muscle group: ${focusMuscle}. First evaluate if this specific muscle should be trained today, then suggest a full workout split around that decision.`
+      : "Recommend the best workout split for today based on recovery percentages.";
 
-    const userMessage = `Here is my current muscle recovery status:\n${JSON.stringify(recoveryStatus, null, 2)}\n\nRecovery percent means how recovered each muscle group is (100% = fully recovered, 0% = just trained). What should I train today?`;
+    const systemPrompt = `You are a fitness coach AI. Use muscle recovery data and training recency to recommend today's workout. Respond in ${targetLanguage}. Keep it to 2-3 practical sentences. Mention specific muscles to train and to avoid. ${focusContext}`;
+
+    const userMessage = `Current recovery status (100 = fully recovered, 0 = just trained):\n${JSON.stringify(
+      recoveryStatus,
+      null,
+      2
+    )}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -34,21 +45,13 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited, try again later" }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Credits exhausted" }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const text = await response.text();
-      console.error("AI error:", response.status, text);
-      throw new Error("AI gateway error");
+      const errorText = await response.text();
+      console.error("AI gateway error:", response.status, errorText);
+
+      return new Response(JSON.stringify({ error: "AI gateway error", status: response.status }), {
+        status: response.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const data = await response.json();
@@ -57,11 +60,14 @@ serve(async (req) => {
     return new Response(JSON.stringify({ recommendation }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e) {
-    console.error("Error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+  } catch (error) {
+    console.error("ai-workout-recommendation error:", error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 });

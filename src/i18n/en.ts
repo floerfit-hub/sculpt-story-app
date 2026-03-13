@@ -536,10 +536,16 @@ export const en = {
     restTimeRecommended: "Recommended rest",
     hours: "h",
     days: "d",
-    clickForDetails: "Click for details",
+    clickForDetails: "Tap for details",
     languageToggle: "Language",
     frontView: "Front",
     backView: "Back",
+    upperBody: "Upper Body",
+    lowerBody: "Lower Body",
+    timeUntilFull: "Time until full recovery:",
+    readyNow: "Ready now",
+    focusedMuscle: "Focus",
+    debugChestDate: "Debug · Last chest workout",
   },
 
   // Common

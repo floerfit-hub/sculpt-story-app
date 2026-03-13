@@ -49,8 +49,9 @@ const Dashboard = () => {
   const { t, lang, setLanguage } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { recoveryData } = useRecovery();
+  const { recoveryData, debugLastChestTrainedAt } = useRecovery();
   const [suggestedMuscles, setSuggestedMuscles] = useState<string[]>([]);
+  const [focusedMuscle, setFocusedMuscle] = useState<string | null>(null);
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -355,11 +356,20 @@ const Dashboard = () => {
       </PremiumGate>
 
       <PremiumGate feature="Muscle Recovery Map">
-        <MuscleRecoveryMap recoveryData={recoveryData} highlightedMuscles={suggestedMuscles} />
+        <MuscleRecoveryMap
+          recoveryData={recoveryData}
+          highlightedMuscles={suggestedMuscles}
+          onMuscleSelect={setFocusedMuscle}
+          debugLastChestTrainedAt={debugLastChestTrainedAt}
+        />
       </PremiumGate>
 
       <PremiumGate feature="AI Recovery Recommendations">
-        <AIRecoveryRecommendation recoveryData={recoveryData} onSuggestedMuscles={setSuggestedMuscles} />
+        <AIRecoveryRecommendation
+          recoveryData={recoveryData}
+          focusedMuscle={focusedMuscle}
+          onSuggestedMuscles={setSuggestedMuscles}
+        />
       </PremiumGate>
 
       <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />

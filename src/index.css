@@ -50,6 +50,7 @@
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
+    --warning: 48 96% 53%;
 
     --glass-bg: 0 0% 100% / 0.7;
     --glass-border: 220 15% 10% / 0.08;
@@ -86,6 +87,7 @@
     --sidebar-ring: 82 85% 55%;
     --glass-bg: 220 15% 8% / 0.7;
     --glass-border: 0 0% 100% / 0.06;
+    --warning: 48 92% 50%;
   }
 }
 
