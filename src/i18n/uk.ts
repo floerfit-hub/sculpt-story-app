@@ -27,6 +27,7 @@ export const uk: Translations = {
     dontHaveAccount: "Немає акаунту? Зареєструватися",
     checkEmail: "Перевірте пошту",
     confirmationSent: "Ми відправили вам посилання для підтвердження.",
+    rememberMe: "Запам'ятати мене",
   },
 
   dashboard: {
