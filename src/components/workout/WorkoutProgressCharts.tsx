@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useSwipeBackHandler } from "@/hooks/useSwipeBack";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ interface PerfRow {
 }
 
 const WorkoutProgressCharts = ({ onBack }: { onBack: () => void }) => {
+  useSwipeBackHandler(useCallback(() => { onBack(); return true; }, [onBack]));
   const { user } = useAuth();
   const { t } = useTranslation();
   const [exerciseData, setExerciseData] = useState<Record<string, ChartPoint[]>>({});

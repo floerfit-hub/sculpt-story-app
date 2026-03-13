@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
-import { useSwipeBackHandler } from "@/hooks/useSwipeBack";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Play, BookOpen, History, BarChart3 } from "lucide-react";
@@ -36,15 +35,6 @@ const Workouts = () => {
     sessionStorage.setItem("workout-view", view);
   }, [view]);
 
-  // Swipe left exits sub-views back to hub
-  useSwipeBackHandler(useCallback(() => {
-    if (view !== "hub") {
-      if (view === "edit") setEditData(undefined);
-      setView(view === "edit" ? "history" : "hub");
-      return true;
-    }
-    return false; // Let default navigate(-1) handle it on hub
-  }, [view]));
 
   const handleEdit = (data: EditWorkoutData) => {
     setEditData(data);
