@@ -164,29 +164,14 @@ export const uk: Translations = {
   },
 
   muscleGroups: {
-    legsGlutes: "Ноги та сідниці",
-    back: "Спина",
     chest: "Груди",
+    back: "Спина",
     shoulders: "Плечі",
     arms: "Руки",
-    core: "Кор",
-    frontDelts: "Передні дельти",
-    rearDelts: "Задні дельти",
+    legsGlutes: "Ноги та сідниці",
     abs: "Прес",
-    quads: "Квадрицепс",
-    biceps: "Біцепс",
-    forearms: "Передпліччя",
-    traps: "Трапеції",
-    lats: "Широкий м'яз",
     lowerBack: "Поперек",
-    glutes: "Сідниці",
-    hamstrings: "Задня поверхня стегна",
     calves: "Литки",
-    upperBack: "Верх спини",
-    anteriorDelt: "Передня дельта",
-    lateralDelt: "Середня дельта",
-    posteriorDelt: "Задня дельта",
-    triceps: "Тріцепс",
   },
 
   exerciseLib: {
@@ -504,7 +489,7 @@ export const uk: Translations = {
 
   recovery: {
     title: "Відновлення м'язів",
-    subtitle: "17 сегментів з системою синергістів",
+    subtitle: "8 груп з системою синергістів",
     recoveryLabel: "Відновлення",
     ready: "Готовий до тренування",
     almostReady: "Майже готовий",
