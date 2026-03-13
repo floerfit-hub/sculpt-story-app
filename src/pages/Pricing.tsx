@@ -141,7 +141,7 @@ const Pricing = () => {
                 <p className="font-display font-bold">{t.premium.monthly}</p>
                 <p className="text-3xl font-display font-extrabold">$1</p>
                 <p className="text-xs text-muted-foreground">/ {t.premium.month}</p>
-                <p className="text-[10px] text-muted-foreground">7-day free trial included</p>
+                <p className="text-[10px] text-muted-foreground">Включає 7 днів безкоштовного тріалу</p>
                 <Button
                   variant="outline"
                   className="w-full"
