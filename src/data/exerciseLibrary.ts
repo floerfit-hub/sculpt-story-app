@@ -33,6 +33,7 @@ export const EXERCISES: Exercise[] = [
   { name: "Hyperextensions", muscleGroup: "Back" },
   { name: "Face Pull", muscleGroup: "Back" },
   // Chest
+  { name: "Barbell Bench Press", muscleGroup: "Chest" },
   { name: "Incline Barbell Bench Press", muscleGroup: "Chest" },
   { name: "Hammer Strength Chest Press", muscleGroup: "Chest" },
   { name: "Cable Chest Fly", muscleGroup: "Chest" },

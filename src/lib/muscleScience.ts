@@ -358,7 +358,8 @@ export function calculateReadinessScore(
 // ─── CNS FATIGUE ───
 // Compound exercises that generate CNS fatigue
 export const CNS_EXERCISES = new Set([
-  "Barbell Squat", "Romanian Deadlift", "Incline Barbell Bench Press",
+  "Barbell Squat", "Romanian Deadlift", "Deadlift",
+  "Barbell Bench Press", "Incline Barbell Bench Press",
   "Standing Barbell Press", "Barbell Row",
 ]);
 
