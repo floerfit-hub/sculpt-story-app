@@ -426,6 +426,18 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
                     <Input type="number" placeholder="0" value={set.reps} onChange={(e) => updateSet(exIdx, setIdx, "reps", e.target.value)} className="h-10" />
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeSet(exIdx, setIdx)}><Trash2 className="h-3 w-3" /></Button>
                   </div>
+                  <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center mt-1">
+                    <span></span>
+                    <div className="flex gap-1">
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "weight", -0.5)}>−0.5</Button>
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "weight", 0.5)}>+0.5</Button>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "reps", -1)}>−1</Button>
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "reps", 1)}>+1</Button>
+                    </div>
+                    <span></span>
+                  </div>
                 </div>
               ))}
               <Button variant="outline" size="sm" className="w-full" onClick={() => addSet(exIdx)}><Plus className="h-3 w-3 mr-1" /> {t.workouts.addSet}</Button>
