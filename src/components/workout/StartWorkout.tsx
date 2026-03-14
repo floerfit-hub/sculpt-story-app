@@ -258,6 +258,18 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     setExercises((prev) => { const c = [...prev]; c[exIdx] = { ...c[exIdx], sets: c[exIdx].sets.filter((_, i) => i !== setIdx) }; return c; });
   };
 
+  const quickAdjust = (exIdx: number, setIdx: number, field: "weight" | "reps", delta: number) => {
+    setExercises((prev) => {
+      const c = [...prev];
+      const sets = [...c[exIdx].sets];
+      const current = Number(sets[setIdx][field]) || 0;
+      const newVal = Math.max(0, current + delta);
+      sets[setIdx] = { ...sets[setIdx], [field]: newVal };
+      c[exIdx] = { ...c[exIdx], sets };
+      return c;
+    });
+  };
+
   const saveWorkout = async () => {
     if (!user || exercises.length === 0) return;
     setSaving(true);
