@@ -24,7 +24,19 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
   ];
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    // Ignore swipes on interactive elements (inputs, textareas, sliders, charts)
+    const tag = (e.target as HTMLElement).tagName?.toLowerCase();
+    if (["input", "textarea", "select", "canvas"].includes(tag)) {
+      touchStart.current = null;
+      return;
+    }
+    // Ignore edge swipes (within 30px of screen edge) to avoid OS gesture conflicts
+    const x = e.touches[0].clientX;
+    if (x < 30 || x > window.innerWidth - 30) {
+      touchStart.current = null;
+      return;
+    }
+    touchStart.current = { x, y: e.touches[0].clientY };
   }, []);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
@@ -32,7 +44,8 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     const dx = e.changedTouches[0].clientX - touchStart.current.x;
     const dy = e.changedTouches[0].clientY - touchStart.current.y;
     touchStart.current = null;
-    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.7) return;
+    // Require 80px horizontal swipe, mostly horizontal direction
+    if (Math.abs(dx) < 80 || Math.abs(dy) > Math.abs(dx) * 0.5) return;
     const currentIndex = navItems.findIndex((item) => item.to === location.pathname);
     if (currentIndex === -1) return;
     const nextIndex = dx < 0 ? currentIndex + 1 : currentIndex - 1;
