@@ -252,6 +252,15 @@ const PersonalRecords = () => {
     return groups;
   }, [exercises]);
 
+  const filteredRecords = useMemo(() => {
+    const q = recordsSearch.toLowerCase().trim();
+    if (!q) return records;
+    return records.filter((pr) =>
+      (t.exerciseNames[pr.exerciseName] || pr.exerciseName).toLowerCase().includes(q) ||
+      pr.exerciseName.toLowerCase().includes(q)
+    );
+  }, [records, recordsSearch, t]);
+
   const handleManualSave = async () => {
     if (!user || !manualExercise || !manualWeight) return;
     setSavingManual(true);
