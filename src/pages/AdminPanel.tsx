@@ -273,6 +273,8 @@ const AdminPanel = () => {
         const isExpanded = expanded === client.profile.id;
         const latestEntry = client.entries[0];
         const roleNames = client.roles.map((r) => r.role);
+        const clientIsPremium = isUserPremium(client.subscription);
+        const daysLeft = getDaysLeft(client.subscription);
 
         return (
           <Card key={client.profile.id} className="overflow-hidden">
@@ -286,7 +288,16 @@ const AdminPanel = () => {
                     {(client.profile.full_name || "?")[0].toUpperCase()}
                   </div>
                   <div>
-                    <div className="font-display">{client.profile.full_name || t.admin.unnamed}</div>
+                    <div className="flex items-center gap-2 font-display">
+                      {client.profile.full_name || t.admin.unnamed}
+                      {clientIsPremium && (
+                        <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30 text-[10px] px-1.5 py-0">
+                          <Crown className="h-2.5 w-2.5 mr-0.5" />
+                          Pro
+                          {daysLeft !== null && <span className="ml-1">({daysLeft}{t.admin.daysShort})</span>}
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex gap-1 mt-0.5">
                       {roleNames.map((r) => (
                         <Badge key={r} variant="outline" className="text-[10px] px-1.5 py-0">
