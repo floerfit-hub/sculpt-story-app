@@ -351,6 +351,37 @@ const AdminPanel = () => {
 
             {isExpanded && (
               <CardContent className="pt-0">
+                {/* Premium Toggle */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Button
+                    size="sm"
+                    variant={clientIsPremium ? "destructive" : "default"}
+                    className={clientIsPremium ? "" : "bg-green-600 hover:bg-green-700 text-white"}
+                    disabled={premiumLoading === client.profile.user_id}
+                    onClick={(e) => { e.stopPropagation(); handleTogglePremium(client.profile.user_id, clientIsPremium); }}
+                  >
+                    {premiumLoading === client.profile.user_id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                    ) : (
+                      <Crown className="h-3.5 w-3.5 mr-1" />
+                    )}
+                    {clientIsPremium ? t.admin.revokePremium : t.admin.activatePremium}
+                  </Button>
+                  {clientIsPremium && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpirationDialog({ userId: client.profile.user_id, currentEnd: client.subscription?.current_period_end ?? null });
+                        setExpirationDate(client.subscription?.current_period_end ? new Date(client.subscription.current_period_end).toISOString().split("T")[0] : "");
+                      }}
+                    >
+                      {t.admin.setExpiration}
+                    </Button>
+                  )}
+                </div>
+
                 {/* Stats Summary */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="rounded-lg bg-accent/50 p-3 text-center">
