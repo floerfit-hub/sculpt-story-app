@@ -51,6 +51,9 @@ const AdminPanel = () => {
   const [roleDialog, setRoleDialog] = useState<{ userId: string; currentRoles: string[] } | null>(null);
   const [newRole, setNewRole] = useState<string>("");
   const [lightbox, setLightbox] = useState<{ urls: string[]; index: number } | null>(null);
+  const [premiumLoading, setPremiumLoading] = useState<string | null>(null);
+  const [expirationDialog, setExpirationDialog] = useState<{ userId: string; currentEnd: string | null } | null>(null);
+  const [expirationDate, setExpirationDate] = useState("");
 
   const fetchClients = async () => {
     setLoading(true);
@@ -59,16 +62,66 @@ const AdminPanel = () => {
 
     const clientData = await Promise.all(
       profiles.map(async (p) => {
-        const [{ data: entries }, { data: workouts }, { data: roles }] = await Promise.all([
+        const [{ data: entries }, { data: workouts }, { data: roles }, { data: sub }] = await Promise.all([
           supabase.from("progress_entries").select("*").eq("user_id", p.user_id).order("entry_date", { ascending: false }),
           supabase.from("workouts").select("*, workout_exercises(*)").eq("user_id", p.user_id).order("started_at", { ascending: false }).limit(10),
           supabase.from("user_roles").select("*").eq("user_id", p.user_id),
+          supabase.from("subscriptions").select("*").eq("user_id", p.user_id).single(),
         ]);
-        return { profile: p, entries: entries ?? [], workouts: (workouts ?? []) as Workout[], roles: roles ?? [] };
+        return { profile: p, entries: entries ?? [], workouts: (workouts ?? []) as Workout[], roles: roles ?? [], subscription: sub };
       })
     );
     setClients(clientData);
     setLoading(false);
+  };
+
+  const isUserPremium = (sub: Subscription | null) =>
+    sub != null && sub.plan !== "free" && (sub.status === "active" || sub.status === "trialing");
+
+  const getDaysLeft = (sub: Subscription | null) => {
+    if (!sub || !sub.current_period_end) return null;
+    const days = Math.ceil((new Date(sub.current_period_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return days > 0 ? days : 0;
+  };
+
+  const handleTogglePremium = async (userId: string, currentlyPremium: boolean) => {
+    setPremiumLoading(userId);
+    if (currentlyPremium) {
+      await supabase.from("subscriptions").update({
+        plan: "free",
+        status: "active",
+        trial_start: null,
+        trial_end: null,
+        current_period_start: null,
+        current_period_end: null,
+      }).eq("user_id", userId);
+      toast({ title: t.admin.premiumRevoked });
+    } else {
+      const now = new Date().toISOString();
+      const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      await supabase.from("subscriptions").update({
+        plan: "monthly",
+        status: "active",
+        current_period_start: now,
+        current_period_end: periodEnd,
+        trial_start: null,
+        trial_end: null,
+      }).eq("user_id", userId);
+      toast({ title: t.admin.premiumActivated });
+    }
+    await fetchClients();
+    setPremiumLoading(null);
+  };
+
+  const handleSetExpiration = async () => {
+    if (!expirationDialog || !expirationDate) return;
+    await supabase.from("subscriptions").update({
+      current_period_end: new Date(expirationDate).toISOString(),
+    }).eq("user_id", expirationDialog.userId);
+    toast({ title: t.admin.expirationUpdated });
+    setExpirationDialog(null);
+    setExpirationDate("");
+    await fetchClients();
   };
 
   useEffect(() => { if (isAdmin) fetchClients(); }, [isAdmin]);
