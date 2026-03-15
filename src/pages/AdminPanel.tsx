@@ -614,6 +614,27 @@ const AdminPanel = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Expiration Date Dialog */}
+      <Dialog open={!!expirationDialog} onOpenChange={() => { setExpirationDialog(null); setExpirationDate(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.admin.setExpiration}</DialogTitle>
+            <DialogDescription>{t.admin.setExpirationDesc}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="date"
+              value={expirationDate}
+              onChange={(e) => setExpirationDate(e.target.value)}
+              min={new Date().toISOString().split("T")[0]}
+            />
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSetExpiration} disabled={!expirationDate}>{t.admin.save}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Lightbox */}
       <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
         <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 sm:p-4 bg-black/95 border-none">
