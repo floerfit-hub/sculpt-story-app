@@ -451,9 +451,9 @@ const PersonalRecords = () => {
                   ))}
                 </div>
               )}
-              {records.length > 6 && (
+              {filteredRecords.length > 6 && (
                 <p className="text-[10px] text-muted-foreground text-center mt-1.5">
-                  +{records.length - 6} {t.pr.moreRecords}
+                  +{filteredRecords.length - 6} {t.pr.moreRecords}
                 </p>
               )}
             </>

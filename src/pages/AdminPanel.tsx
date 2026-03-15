@@ -294,7 +294,11 @@ const AdminPanel = () => {
                         <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30 text-[10px] px-1.5 py-0">
                           <Crown className="h-2.5 w-2.5 mr-0.5" />
                           Pro
-                          {daysLeft !== null && <span className="ml-1">({daysLeft}{t.admin.daysShort})</span>}
+                          {client.subscription?.current_period_end && (
+                            <span className="ml-1">
+                              ({t.admin.activeUntil} {format(new Date(client.subscription.current_period_end), "dd.MM.yy")})
+                            </span>
+                          )}
                         </Badge>
                       )}
                     </div>
