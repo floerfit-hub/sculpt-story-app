@@ -408,6 +408,7 @@ export const uk: Translations = {
     setExpirationDesc: "Вкажіть дату закінчення Premium доступу",
     expirationUpdated: "Дату оновлено",
     daysShort: "д",
+    activeUntil: "до",
     save: "Зберегти",
   },
 
