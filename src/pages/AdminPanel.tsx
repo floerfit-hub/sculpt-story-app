@@ -19,7 +19,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { Input } from "@/components/ui/input";
 import {
   Shield, Users, ChevronDown, ChevronUp, Trash2, UserCog,
-  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download, Search,
+  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download, Search, Crown, Loader2,
 } from "lucide-react";
 import { toCsv, downloadCsv, buildFilename } from "@/lib/csvExport";
 import { exportClientPdf } from "@/lib/pdfExport";
@@ -29,12 +29,14 @@ type Profile = Tables<"profiles">;
 type ProgressEntry = Tables<"progress_entries">;
 type Workout = Tables<"workouts"> & { workout_exercises: Tables<"workout_exercises">[] };
 type UserRole = Tables<"user_roles">;
+type Subscription = Tables<"subscriptions">;
 
 interface ClientData {
   profile: Profile;
   entries: ProgressEntry[];
   workouts: Workout[];
   roles: UserRole[];
+  subscription: Subscription | null;
 }
 
 const AdminPanel = () => {
