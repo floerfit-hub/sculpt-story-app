@@ -19,7 +19,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { Input } from "@/components/ui/input";
 import {
   Shield, Users, ChevronDown, ChevronUp, Trash2, UserCog,
-  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download, Search,
+  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download, Search, Crown, Loader2,
 } from "lucide-react";
 import { toCsv, downloadCsv, buildFilename } from "@/lib/csvExport";
 import { exportClientPdf } from "@/lib/pdfExport";
@@ -29,12 +29,14 @@ type Profile = Tables<"profiles">;
 type ProgressEntry = Tables<"progress_entries">;
 type Workout = Tables<"workouts"> & { workout_exercises: Tables<"workout_exercises">[] };
 type UserRole = Tables<"user_roles">;
+type Subscription = Tables<"subscriptions">;
 
 interface ClientData {
   profile: Profile;
   entries: ProgressEntry[];
   workouts: Workout[];
   roles: UserRole[];
+  subscription: Subscription | null;
 }
 
 const AdminPanel = () => {
@@ -49,6 +51,9 @@ const AdminPanel = () => {
   const [roleDialog, setRoleDialog] = useState<{ userId: string; currentRoles: string[] } | null>(null);
   const [newRole, setNewRole] = useState<string>("");
   const [lightbox, setLightbox] = useState<{ urls: string[]; index: number } | null>(null);
+  const [premiumLoading, setPremiumLoading] = useState<string | null>(null);
+  const [expirationDialog, setExpirationDialog] = useState<{ userId: string; currentEnd: string | null } | null>(null);
+  const [expirationDate, setExpirationDate] = useState("");
 
   const fetchClients = async () => {
     setLoading(true);
@@ -57,16 +62,66 @@ const AdminPanel = () => {
 
     const clientData = await Promise.all(
       profiles.map(async (p) => {
-        const [{ data: entries }, { data: workouts }, { data: roles }] = await Promise.all([
+        const [{ data: entries }, { data: workouts }, { data: roles }, { data: sub }] = await Promise.all([
           supabase.from("progress_entries").select("*").eq("user_id", p.user_id).order("entry_date", { ascending: false }),
           supabase.from("workouts").select("*, workout_exercises(*)").eq("user_id", p.user_id).order("started_at", { ascending: false }).limit(10),
           supabase.from("user_roles").select("*").eq("user_id", p.user_id),
+          supabase.from("subscriptions").select("*").eq("user_id", p.user_id).single(),
         ]);
-        return { profile: p, entries: entries ?? [], workouts: (workouts ?? []) as Workout[], roles: roles ?? [] };
+        return { profile: p, entries: entries ?? [], workouts: (workouts ?? []) as Workout[], roles: roles ?? [], subscription: sub };
       })
     );
     setClients(clientData);
     setLoading(false);
+  };
+
+  const isUserPremium = (sub: Subscription | null) =>
+    sub != null && sub.plan !== "free" && (sub.status === "active" || sub.status === "trialing");
+
+  const getDaysLeft = (sub: Subscription | null) => {
+    if (!sub || !sub.current_period_end) return null;
+    const days = Math.ceil((new Date(sub.current_period_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return days > 0 ? days : 0;
+  };
+
+  const handleTogglePremium = async (userId: string, currentlyPremium: boolean) => {
+    setPremiumLoading(userId);
+    if (currentlyPremium) {
+      await supabase.from("subscriptions").update({
+        plan: "free",
+        status: "active",
+        trial_start: null,
+        trial_end: null,
+        current_period_start: null,
+        current_period_end: null,
+      }).eq("user_id", userId);
+      toast({ title: t.admin.premiumRevoked });
+    } else {
+      const now = new Date().toISOString();
+      const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      await supabase.from("subscriptions").update({
+        plan: "monthly",
+        status: "active",
+        current_period_start: now,
+        current_period_end: periodEnd,
+        trial_start: null,
+        trial_end: null,
+      }).eq("user_id", userId);
+      toast({ title: t.admin.premiumActivated });
+    }
+    await fetchClients();
+    setPremiumLoading(null);
+  };
+
+  const handleSetExpiration = async () => {
+    if (!expirationDialog || !expirationDate) return;
+    await supabase.from("subscriptions").update({
+      current_period_end: new Date(expirationDate).toISOString(),
+    }).eq("user_id", expirationDialog.userId);
+    toast({ title: t.admin.expirationUpdated });
+    setExpirationDialog(null);
+    setExpirationDate("");
+    await fetchClients();
   };
 
   useEffect(() => { if (isAdmin) fetchClients(); }, [isAdmin]);
@@ -218,6 +273,8 @@ const AdminPanel = () => {
         const isExpanded = expanded === client.profile.id;
         const latestEntry = client.entries[0];
         const roleNames = client.roles.map((r) => r.role);
+        const clientIsPremium = isUserPremium(client.subscription);
+        const daysLeft = getDaysLeft(client.subscription);
 
         return (
           <Card key={client.profile.id} className="overflow-hidden">
@@ -231,7 +288,16 @@ const AdminPanel = () => {
                     {(client.profile.full_name || "?")[0].toUpperCase()}
                   </div>
                   <div>
-                    <div className="font-display">{client.profile.full_name || t.admin.unnamed}</div>
+                    <div className="flex items-center gap-2 font-display">
+                      {client.profile.full_name || t.admin.unnamed}
+                      {clientIsPremium && (
+                        <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30 text-[10px] px-1.5 py-0">
+                          <Crown className="h-2.5 w-2.5 mr-0.5" />
+                          Pro
+                          {daysLeft !== null && <span className="ml-1">({daysLeft}{t.admin.daysShort})</span>}
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex gap-1 mt-0.5">
                       {roleNames.map((r) => (
                         <Badge key={r} variant="outline" className="text-[10px] px-1.5 py-0">
@@ -285,6 +351,37 @@ const AdminPanel = () => {
 
             {isExpanded && (
               <CardContent className="pt-0">
+                {/* Premium Toggle */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Button
+                    size="sm"
+                    variant={clientIsPremium ? "destructive" : "default"}
+                    className={clientIsPremium ? "" : "bg-green-600 hover:bg-green-700 text-white"}
+                    disabled={premiumLoading === client.profile.user_id}
+                    onClick={(e) => { e.stopPropagation(); handleTogglePremium(client.profile.user_id, clientIsPremium); }}
+                  >
+                    {premiumLoading === client.profile.user_id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                    ) : (
+                      <Crown className="h-3.5 w-3.5 mr-1" />
+                    )}
+                    {clientIsPremium ? t.admin.revokePremium : t.admin.activatePremium}
+                  </Button>
+                  {clientIsPremium && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpirationDialog({ userId: client.profile.user_id, currentEnd: client.subscription?.current_period_end ?? null });
+                        setExpirationDate(client.subscription?.current_period_end ? new Date(client.subscription.current_period_end).toISOString().split("T")[0] : "");
+                      }}
+                    >
+                      {t.admin.setExpiration}
+                    </Button>
+                  )}
+                </div>
+
                 {/* Stats Summary */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="rounded-lg bg-accent/50 p-3 text-center">
@@ -514,6 +611,27 @@ const AdminPanel = () => {
             </div>
           </div>
           <DialogFooter />
+        </DialogContent>
+      </Dialog>
+
+      {/* Expiration Date Dialog */}
+      <Dialog open={!!expirationDialog} onOpenChange={() => { setExpirationDialog(null); setExpirationDate(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.admin.setExpiration}</DialogTitle>
+            <DialogDescription>{t.admin.setExpirationDesc}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="date"
+              value={expirationDate}
+              onChange={(e) => setExpirationDate(e.target.value)}
+              min={new Date().toISOString().split("T")[0]}
+            />
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSetExpiration} disabled={!expirationDate}>{t.admin.save}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

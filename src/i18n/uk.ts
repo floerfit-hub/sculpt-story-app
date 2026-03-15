@@ -400,6 +400,15 @@ export const uk: Translations = {
       workouts: "Тренування",
     } as Record<string, string>,
     searchUsers: "Пошук за ім'ям...",
+    activatePremium: "Активувати Premium",
+    revokePremium: "Забрати Premium",
+    premiumActivated: "Premium активовано",
+    premiumRevoked: "Premium деактивовано",
+    setExpiration: "Дата закінчення",
+    setExpirationDesc: "Вкажіть дату закінчення Premium доступу",
+    expirationUpdated: "Дату оновлено",
+    daysShort: "д",
+    save: "Зберегти",
   },
 
   fitScore: {

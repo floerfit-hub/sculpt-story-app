@@ -415,6 +415,15 @@ export const en = {
       workouts: "Workouts",
     } as Record<string, string>,
     searchUsers: "Search by name...",
+    activatePremium: "Activate Premium",
+    revokePremium: "Revoke Premium",
+    premiumActivated: "Premium activated",
+    premiumRevoked: "Premium revoked",
+    setExpiration: "Set expiration",
+    setExpirationDesc: "Set the date when premium access expires",
+    expirationUpdated: "Expiration date updated",
+    daysShort: "d",
+    save: "Save",
   },
 
   // Fitness Score
