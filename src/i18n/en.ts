@@ -423,6 +423,7 @@ export const en = {
     setExpirationDesc: "Set the date when premium access expires",
     expirationUpdated: "Expiration date updated",
     daysShort: "d",
+    activeUntil: "until",
     save: "Save",
   },
 

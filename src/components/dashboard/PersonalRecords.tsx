@@ -60,6 +60,7 @@ const PersonalRecords = () => {
   const [exercises, setExercises] = useState<{ id: string; name: string; muscle_group: string }[]>([]);
   const [savingManual, setSavingManual] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [recordsSearch, setRecordsSearch] = useState("");
 
   // Leaderboard state
   const [leaderboardExercise, setLeaderboardExercise] = useState("");
@@ -251,6 +252,15 @@ const PersonalRecords = () => {
     return groups;
   }, [exercises]);
 
+  const filteredRecords = useMemo(() => {
+    const q = recordsSearch.toLowerCase().trim();
+    if (!q) return records;
+    return records.filter((pr) =>
+      (t.exerciseNames[pr.exerciseName] || pr.exerciseName).toLowerCase().includes(q) ||
+      pr.exerciseName.toLowerCase().includes(q)
+    );
+  }, [records, recordsSearch, t]);
+
   const handleManualSave = async () => {
     if (!user || !manualExercise || !manualWeight) return;
     setSavingManual(true);
@@ -407,15 +417,27 @@ const PersonalRecords = () => {
           {tab === "my" ? (
             /* My Records Tab */
             <>
+              {/* Search input for records */}
+              {records.length > 0 && (
+                <div className="relative mb-2">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    className="pl-8 h-8 text-xs"
+                    placeholder={t.pr.searchExercise}
+                    value={recordsSearch}
+                    onChange={(e) => setRecordsSearch(e.target.value)}
+                  />
+                </div>
+              )}
               {loading ? (
                 <div className="flex items-center justify-center py-4">
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 </div>
-              ) : records.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-3">{t.pr.noRecords}</p>
+              ) : filteredRecords.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-3">{recordsSearch ? t.pr.noExercisesFound : t.pr.noRecords}</p>
               ) : (
                 <div className="grid grid-cols-2 gap-1.5">
-                  {records.slice(0, 6).map((pr) => (
+                  {filteredRecords.slice(0, 6).map((pr) => (
                     <div
                       key={pr.exerciseId}
                       onClick={() => handleCardClick(pr)}
@@ -439,9 +461,9 @@ const PersonalRecords = () => {
                   ))}
                 </div>
               )}
-              {records.length > 6 && (
+              {filteredRecords.length > 6 && (
                 <p className="text-[10px] text-muted-foreground text-center mt-1.5">
-                  +{records.length - 6} {t.pr.moreRecords}
+                  +{filteredRecords.length - 6} {t.pr.moreRecords}
                 </p>
               )}
             </>

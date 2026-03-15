@@ -55,9 +55,11 @@ const SubscriptionManager = () => {
           )}
 
           {isPremium && subscription?.current_period_end && (
-            <p className="text-xs text-muted-foreground">
-              {t.premium.renewsOn} {new Date(subscription.current_period_end).toLocaleDateString()}
-            </p>
+            <div className="rounded-xl bg-primary/10 p-3 text-center">
+              <p className="text-sm font-display font-semibold text-primary">
+                {t.premium.renewsOn} {new Date(subscription.current_period_end).toLocaleDateString()}
+              </p>
+            </div>
           )}
 
           {isPremium ? (
