@@ -60,6 +60,7 @@ const PersonalRecords = () => {
   const [exercises, setExercises] = useState<{ id: string; name: string; muscle_group: string }[]>([]);
   const [savingManual, setSavingManual] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [recordsSearch, setRecordsSearch] = useState("");
 
   // Leaderboard state
   const [leaderboardExercise, setLeaderboardExercise] = useState("");
