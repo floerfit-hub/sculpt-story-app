@@ -77,14 +77,45 @@ const CalculatorPage = () => {
     { key: "lifestyle", title: t.calc.lifestyleGoal, fields: ["sleep", "pace", "goal"] },
   ];
 
-  const radioOptions: Record<string, { value: string; label: string }[]> = {
-    steps: [{ value: "<5000", label: "< 5,000" }, { value: "5000-8000", label: "5,000 – 8,000" }, { value: "8000-12000", label: "8,000 – 12,000" }, { value: "12000+", label: "12,000+" }],
-    workActivity: [{ value: "sedentary", label: t.calc.sedentary }, { value: "moderate", label: t.calc.moderatelyActive }, { value: "active", label: t.calc.physicallyActive }],
-    trainingFreq: [{ value: "0", label: t.calc.workouts0 }, { value: "1-2", label: t.calc.workouts12 }, { value: "3-4", label: t.calc.workouts34 }, { value: "5+", label: t.calc.workouts5 }],
-    trainingExp: [{ value: "beginner", label: t.calc.beginner }, { value: "intermediate", label: t.calc.intermediate }, { value: "advanced", label: t.calc.advanced }],
-    sleep: [{ value: "<6", label: t.calc.sleepLt6 }, { value: "6-7", label: t.calc.sleep67 }, { value: "7-8", label: t.calc.sleep78 }, { value: "8+", label: t.calc.sleep8plus }],
-    pace: [{ value: "slow", label: t.calc.paceSlow }, { value: "moderate", label: t.calc.paceModerate }, { value: "aggressive", label: t.calc.paceAggressive }],
-    goal: [{ value: "gain", label: t.calc.goalGain }, { value: "maintenance", label: t.calc.goalMaintenance }, { value: "loss", label: t.calc.goalLoss }],
+  const radioOptions: Record<string, { value: string; label: string; hint?: string }[]> = {
+    steps: [
+      { value: "<5000", label: "< 5,000", hint: t.calc.hints.steps_lt5000 },
+      { value: "5000-8000", label: "5,000 – 8,000", hint: t.calc.hints.steps_5000_8000 },
+      { value: "8000-12000", label: "8,000 – 12,000", hint: t.calc.hints.steps_8000_12000 },
+      { value: "12000+", label: "12,000+", hint: t.calc.hints.steps_12000 },
+    ],
+    workActivity: [
+      { value: "sedentary", label: t.calc.sedentary, hint: t.calc.hints.work_sedentary },
+      { value: "moderate", label: t.calc.moderatelyActive, hint: t.calc.hints.work_moderate },
+      { value: "active", label: t.calc.physicallyActive, hint: t.calc.hints.work_active },
+    ],
+    trainingFreq: [
+      { value: "0", label: t.calc.workouts0, hint: t.calc.hints.train_0 },
+      { value: "1-2", label: t.calc.workouts12, hint: t.calc.hints.train_12 },
+      { value: "3-4", label: t.calc.workouts34, hint: t.calc.hints.train_34 },
+      { value: "5+", label: t.calc.workouts5, hint: t.calc.hints.train_5 },
+    ],
+    trainingExp: [
+      { value: "beginner", label: t.calc.beginner, hint: t.calc.hints.exp_beginner },
+      { value: "intermediate", label: t.calc.intermediate, hint: t.calc.hints.exp_intermediate },
+      { value: "advanced", label: t.calc.advanced, hint: t.calc.hints.exp_advanced },
+    ],
+    sleep: [
+      { value: "<6", label: t.calc.sleepLt6, hint: t.calc.hints.sleep_lt6 },
+      { value: "6-7", label: t.calc.sleep67, hint: t.calc.hints.sleep_67 },
+      { value: "7-8", label: t.calc.sleep78, hint: t.calc.hints.sleep_78 },
+      { value: "8+", label: t.calc.sleep8plus, hint: t.calc.hints.sleep_8plus },
+    ],
+    pace: [
+      { value: "slow", label: t.calc.paceSlow, hint: t.calc.hints.pace_slow },
+      { value: "moderate", label: t.calc.paceModerate, hint: t.calc.hints.pace_moderate },
+      { value: "aggressive", label: t.calc.paceAggressive, hint: t.calc.hints.pace_aggressive },
+    ],
+    goal: [
+      { value: "gain", label: t.calc.goalGain, hint: t.calc.hints.goal_gain },
+      { value: "maintenance", label: t.calc.goalMaintenance, hint: t.calc.hints.goal_maintenance },
+      { value: "loss", label: t.calc.goalLoss, hint: t.calc.hints.goal_loss },
+    ],
   };
 
   const update = (key: keyof FormData, value: string) => setForm((f) => ({ ...f, [key]: value }));
@@ -154,19 +185,28 @@ const CalculatorPage = () => {
 
   const currentStep = STEPS[step];
 
-  const renderRadioGroup = (key: string, label: string) => (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <RadioGroup value={form[key as keyof FormData]} onValueChange={(v) => update(key as keyof FormData, v)}>
-        {radioOptions[key].map((o) => (
-          <div key={o.value} className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer hover:bg-accent/50 transition-colors">
-            <RadioGroupItem value={o.value} id={`${key}-${o.value}`} />
-            <Label htmlFor={`${key}-${o.value}`} className="font-normal cursor-pointer flex-1">{o.label}</Label>
-          </div>
-        ))}
-      </RadioGroup>
-    </div>
-  );
+  const renderRadioGroup = (key: string, label: string) => {
+    const selected = form[key as keyof FormData];
+    const selectedOption = radioOptions[key].find((o) => o.value === selected);
+    return (
+      <div className="space-y-2">
+        <Label>{label}</Label>
+        <RadioGroup value={selected} onValueChange={(v) => update(key as keyof FormData, v)}>
+          {radioOptions[key].map((o) => (
+            <div key={o.value} className={`rounded-lg border p-3 cursor-pointer transition-colors ${selected === o.value ? "border-primary bg-primary/5" : "hover:bg-accent/50"}`}>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value={o.value} id={`${key}-${o.value}`} />
+                <Label htmlFor={`${key}-${o.value}`} className="font-normal cursor-pointer flex-1">{o.label}</Label>
+              </div>
+              {selected === o.value && o.hint && (
+                <p className="text-xs text-muted-foreground mt-2 ml-6 leading-relaxed">{o.hint}</p>
+              )}
+            </div>
+          ))}
+        </RadioGroup>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6 animate-fade-in max-w-xl mx-auto">
