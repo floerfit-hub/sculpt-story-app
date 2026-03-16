@@ -58,10 +58,11 @@ const AddEntry = () => {
     const checkEligibility = async () => {
       const { data } = await supabase
         .from("progress_entries").select("*").eq("user_id", user.id)
-        .order("entry_date", { ascending: false }).limit(1);
+        .order("entry_date", { ascending: false }).limit(2);
       if (data && data.length > 0) {
         const lastEntry = data[0];
         setPreviousEntry(lastEntry);
+        if (data.length > 1) setSecondPreviousEntry(data[1]);
         const next = addDays(new Date(lastEntry.entry_date), CHECKIN_INTERVAL);
         const diff = differenceInDays(next, new Date());
         if (diff > 0) { setCanLog(false); setDaysLeft(diff); setNextDate(next); }
