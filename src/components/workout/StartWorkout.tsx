@@ -209,6 +209,18 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     });
   };
 
+  const copySet = (idx: number) => {
+    const lastSet = exercises[idx].sets[exercises[idx].sets.length - 1];
+    const restTime = lastSetTimeRef.current
+      ? Math.floor((Date.now() - lastSetTimeRef.current) / 1000)
+      : null;
+    setExercises((prev) => {
+      const c = [...prev];
+      c[idx] = { ...c[idx], sets: [...c[idx].sets, { weight: lastSet.weight, reps: lastSet.reps, rest_time: restTime }] };
+      return c;
+    });
+  };
+
   const removeExercise = (idx: number) => setExercises((prev) => prev.filter((_, i) => i !== idx));
 
   const updateSet = (exIdx: number, setIdx: number, field: "weight" | "reps", val: string) => {
