@@ -438,7 +438,7 @@ const PersonalRecords = () => {
                 <p className="text-sm text-muted-foreground text-center py-3">{recordsSearch ? t.pr.noExercisesFound : t.pr.noRecords}</p>
               ) : (
                 <div className="grid grid-cols-2 gap-1.5">
-                  {filteredRecords.slice(0, 6).map((pr) => (
+                  {(showAllRecords ? filteredRecords : filteredRecords.slice(0, 6)).map((pr) => (
                     <div
                       key={pr.exerciseId}
                       onClick={() => handleCardClick(pr)}
@@ -463,9 +463,14 @@ const PersonalRecords = () => {
                 </div>
               )}
               {filteredRecords.length > 6 && (
-                <p className="text-[10px] text-muted-foreground text-center mt-1.5">
-                  +{filteredRecords.length - 6} {t.pr.moreRecords}
-                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full mt-1.5 h-7 text-[11px] text-muted-foreground"
+                  onClick={() => setShowAllRecords(!showAllRecords)}
+                >
+                  {showAllRecords ? t.pr.collapse : `+${filteredRecords.length - 6} ${t.pr.moreRecords}`}
+                </Button>
               )}
             </>
           ) : (
