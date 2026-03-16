@@ -247,18 +247,7 @@ const AddEntry = () => {
     { key: "body_fat", label: t.addEntry.bodyFatOptional, placeholder: "15" },
   ] as const;
 
-  const lastFields = [
-    { label: t.addEntry.weightKg, value: previousEntry?.weight, unit: t.common.kg },
-    { label: t.addEntry.waistCm, value: previousEntry?.waist, unit: t.common.cm },
-    { label: t.addEntry.chestCm, value: previousEntry?.chest, unit: t.common.cm },
-    { label: t.addEntry.hipsCm, value: previousEntry?.hips, unit: t.common.cm },
-    { label: t.addEntry.armCm, value: (previousEntry as any)?.arm_circumference, unit: t.common.cm },
-    { label: t.addEntry.gluteCm, value: (previousEntry as any)?.glute_circumference, unit: t.common.cm },
-    { label: t.addEntry.thighCm, value: (previousEntry as any)?.thigh_circumference, unit: t.common.cm },
-    { label: t.addEntry.bodyFatOptional, value: previousEntry?.body_fat, unit: "%" },
-  ];
 
-  const hasAnyPrevious = lastFields.some(f => f.value != null);
 
   return (
     <div className="max-w-2xl animate-fade-in space-y-4">
