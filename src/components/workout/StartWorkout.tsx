@@ -192,6 +192,89 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     sessionStorage.removeItem("workout-start-time");
   }, []);
 
+  // Keep refs in sync for auto-save on app exit
+  const exercisesRef = useRef(exercises);
+  exercisesRef.current = exercises;
+  const savedRef = useRef(saved);
+  savedRef.current = saved;
+  const savingRef = useRef(saving);
+  savingRef.current = saving;
+  const startTimeRef = useRef(startTime);
+  startTimeRef.current = startTime;
+
+  // Auto-save workout when user leaves the app (tab hidden / close)
+  useEffect(() => {
+    if (isEditing) return;
+
+    const autoSave = async () => {
+      const currentExercises = exercisesRef.current;
+      if (savedRef.current || savingRef.current || !user || currentExercises.length === 0) return;
+
+      // Check if there are any filled sets
+      const hasSets = currentExercises.some(ex => ex.sets.some(s => s.weight !== "" || s.reps !== ""));
+      if (!hasSets) return;
+
+      try {
+        const exerciseIdMap = await resolveExerciseIds(
+          currentExercises.map(ex => ({ name: ex.name, muscleGroup: ex.muscleGroup }))
+        );
+
+        const startedAt = new Date(startTimeRef.current || Date.now()).toISOString();
+        const elapsedNow = startTimeRef.current ? Math.floor((Date.now() - startTimeRef.current) / 1000) : 0;
+
+        const { data: workout, error: wErr } = await supabase.from("workouts")
+          .insert({ user_id: user.id, started_at: startedAt })
+          .select("id").single();
+        if (wErr || !workout) return;
+
+        const setsRows: any[] = [];
+        currentExercises.forEach((ex, exIdx) => {
+          const exerciseId = exerciseIdMap.get(`${ex.name}::${ex.muscleGroup}`);
+          if (!exerciseId) return;
+          ex.sets
+            .filter((s) => s.weight !== "" || s.reps !== "")
+            .forEach((s, setIdx) => {
+              setsRows.push({
+                workout_id: workout.id,
+                exercise_id: exerciseId,
+                set_number: setIdx + 1,
+                weight: Number(s.weight) || 0,
+                reps: Number(s.reps) || 0,
+                sort_order: exIdx,
+                notes: setIdx === 0 ? (ex.notes || null) : null,
+                rest_time: s.rest_time,
+              });
+            });
+        });
+
+        if (setsRows.length > 0) {
+          await (supabase as any).from("workout_sets").insert(setsRows);
+        }
+
+        await supabase.from("workouts").update({
+          finished_at: new Date().toISOString(),
+          duration_seconds: elapsedNow,
+        } as any).eq("id", workout.id);
+
+        // Clear persisted data so it doesn't double-save
+        sessionStorage.removeItem("workout-in-progress");
+        sessionStorage.removeItem("workout-view");
+        sessionStorage.removeItem("workout-start-time");
+      } catch {
+        // Silent fail – data is still in sessionStorage for recovery
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        autoSave();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [user, isEditing]);
+
   const addExercise = (name: string, group: string) => {
     setExercises((prev) => [{ name, muscleGroup: group, sets: [{ weight: "", reps: "", rest_time: null }], notes: "" }, ...prev]);
     setShowLibrary(false);
