@@ -107,9 +107,9 @@ const CalculatorPage = () => {
       { value: "8+", label: t.calc.sleep8plus, hint: t.calc.hints.sleep_8plus },
     ],
     pace: [
-      { value: "slow", label: t.calc.paceSlow, hint: t.calc.hints.pace_slow },
-      { value: "moderate", label: t.calc.paceModerate, hint: t.calc.hints.pace_moderate },
-      { value: "aggressive", label: t.calc.paceAggressive, hint: t.calc.hints.pace_aggressive },
+      { value: "slow", label: t.calc.paceSlow, hint: form.goal === "gain" ? t.calc.hints.pace_slow_gain : form.goal === "loss" ? t.calc.hints.pace_slow_loss : t.calc.hints.pace_slow_maintain },
+      { value: "moderate", label: t.calc.paceModerate, hint: form.goal === "gain" ? t.calc.hints.pace_moderate_gain : form.goal === "loss" ? t.calc.hints.pace_moderate_loss : t.calc.hints.pace_moderate_maintain },
+      { value: "aggressive", label: t.calc.paceAggressive, hint: form.goal === "gain" ? t.calc.hints.pace_aggressive_gain : form.goal === "loss" ? t.calc.hints.pace_aggressive_loss : t.calc.hints.pace_aggressive_maintain },
     ],
     goal: [
       { value: "gain", label: t.calc.goalGain, hint: t.calc.hints.goal_gain },
