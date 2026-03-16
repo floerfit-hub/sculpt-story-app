@@ -78,7 +78,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
         </div>
       </header>
 
-      <main className="px-5 py-6 pb-28 lg:pb-8 max-w-2xl mx-auto" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>{children}</main>
+      <main className="px-5 py-6 pb-20 lg:pb-8 max-w-2xl mx-auto" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>{children}</main>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong safe-bottom">
         <div className="flex justify-around py-1 max-w-lg mx-auto">
