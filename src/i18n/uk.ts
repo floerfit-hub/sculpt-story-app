@@ -68,6 +68,21 @@ export const uk: Translations = {
     last30Days: "Теплова карта тренувань за 30 днів",
     setsLast30: "підходів за останні 30 днів",
     noExercisesLogged: "Ще немає вправ для цієї групи.",
+    customizeDashboard: "Налаштувати панелі",
+    editPanels: "Редагувати панелі",
+    donePanels: "Готово",
+    panelNames: {
+      checkin: "Нагадування про запис",
+      fitnessScore: "Фітнес бал",
+      weightChart: "Графік ваги",
+      measurements: "Заміри тіла",
+      muscleHeatmap: "Карта м'язів",
+      workoutActivity: "Активність тренувань",
+      personalRecords: "Особисті рекорди",
+      nutrition: "План харчування",
+      insights: "ШІ поради",
+      recentEntries: "Останні записи",
+    },
   },
 
   addEntry: {
