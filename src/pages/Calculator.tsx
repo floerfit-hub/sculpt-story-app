@@ -185,19 +185,28 @@ const CalculatorPage = () => {
 
   const currentStep = STEPS[step];
 
-  const renderRadioGroup = (key: string, label: string) => (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <RadioGroup value={form[key as keyof FormData]} onValueChange={(v) => update(key as keyof FormData, v)}>
-        {radioOptions[key].map((o) => (
-          <div key={o.value} className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer hover:bg-accent/50 transition-colors">
-            <RadioGroupItem value={o.value} id={`${key}-${o.value}`} />
-            <Label htmlFor={`${key}-${o.value}`} className="font-normal cursor-pointer flex-1">{o.label}</Label>
-          </div>
-        ))}
-      </RadioGroup>
-    </div>
-  );
+  const renderRadioGroup = (key: string, label: string) => {
+    const selected = form[key as keyof FormData];
+    const selectedOption = radioOptions[key].find((o) => o.value === selected);
+    return (
+      <div className="space-y-2">
+        <Label>{label}</Label>
+        <RadioGroup value={selected} onValueChange={(v) => update(key as keyof FormData, v)}>
+          {radioOptions[key].map((o) => (
+            <div key={o.value} className={`rounded-lg border p-3 cursor-pointer transition-colors ${selected === o.value ? "border-primary bg-primary/5" : "hover:bg-accent/50"}`}>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value={o.value} id={`${key}-${o.value}`} />
+                <Label htmlFor={`${key}-${o.value}`} className="font-normal cursor-pointer flex-1">{o.label}</Label>
+              </div>
+              {selected === o.value && o.hint && (
+                <p className="text-xs text-muted-foreground mt-2 ml-6 leading-relaxed">{o.hint}</p>
+              )}
+            </div>
+          ))}
+        </RadioGroup>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6 animate-fade-in max-w-xl mx-auto">
