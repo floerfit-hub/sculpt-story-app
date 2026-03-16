@@ -132,6 +132,7 @@ export const en = {
     addSet: "Add Set",
     set: "Set",
     weightKg: "Weight (kg)",
+    weightLb: "Weight (lb)",
     reps: "Reps",
     notesTip: "Notes (e.g., felt strong, increase weight)",
     finishSave: "Finish Workout",
