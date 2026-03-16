@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { EXERCISE_IMAGES } from "@/data/exerciseImages";
 
 interface Props { onBack: () => void; onSelect?: (name: string, group: string) => void; selectable?: boolean }
 
