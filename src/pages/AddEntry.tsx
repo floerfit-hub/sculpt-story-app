@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, X, Save, Clock, PartyPopper, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import MeasurementsCard from "@/components/dashboard/MeasurementsCard";
 import { differenceInDays, addDays, format } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
