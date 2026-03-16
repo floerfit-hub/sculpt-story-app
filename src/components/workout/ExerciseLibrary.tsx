@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { EXERCISE_IMAGES } from "@/data/exerciseImages";
 
 interface Props { onBack: () => void; onSelect?: (name: string, group: string) => void; selectable?: boolean }
 
@@ -205,14 +206,25 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
         )}
 
         <div className="grid gap-2">
-          {builtIn.map((ex) => (
-            <Card key={ex.name} className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform`} onClick={() => selectable && onSelect?.(ex.name, ex.muscleGroup)}>
-              <CardContent className="flex items-center justify-between p-4">
-                <span className="font-medium">{t.exerciseNames[ex.name] || ex.name}</span>
-                {selectable && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-              </CardContent>
-            </Card>
-          ))}
+          {builtIn.map((ex) => {
+            const img = EXERCISE_IMAGES[ex.name];
+            return (
+              <Card key={ex.name} className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform overflow-hidden`} onClick={() => selectable && onSelect?.(ex.name, ex.muscleGroup)}>
+                <CardContent className="flex items-center gap-3 p-3">
+                  {img && (
+                    <img
+                      src={img}
+                      alt={t.exerciseNames[ex.name] || ex.name}
+                      className="h-14 w-14 rounded-lg object-cover shrink-0 bg-muted"
+                      loading="lazy"
+                    />
+                  )}
+                  <span className="font-medium flex-1">{t.exerciseNames[ex.name] || ex.name}</span>
+                  {selectable && <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+                </CardContent>
+              </Card>
+            );
+          })}
           {customInGroup.map((ex) => (
             <Card key={ex.id} className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform border-primary/20`}>
               <CardContent className="flex items-center justify-between p-4">
