@@ -382,9 +382,14 @@ const Dashboard = () => {
         </div>
         <div className="flex items-center gap-2">
           {editMode ? (
-            <Button size="sm" onClick={exitEditMode}>
-              <Check className="mr-1.5 h-4 w-4" />{t.dashboard.donePanels}
-            </Button>
+            <>
+              <Button size="sm" variant="outline" onClick={resetPanels}>
+                {t.dashboard.resetPanels}
+              </Button>
+              <Button size="sm" onClick={exitEditMode}>
+                <Check className="mr-1.5 h-4 w-4" />{t.dashboard.donePanels}
+              </Button>
+            </>
           ) : canLogEntry ? (
             <Link to="/add-entry">
               <Button size="sm"><PlusCircle className="mr-1.5 h-4 w-4" />{t.dashboard.newEntry}</Button>
