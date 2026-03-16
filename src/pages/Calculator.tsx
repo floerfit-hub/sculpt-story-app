@@ -134,13 +134,16 @@ const CalculatorPage = () => {
   const handleCalculate = () => {
     const res = calculate(form, t);
     setResults(res);
+    localStorage.setItem("calc_results_full", JSON.stringify(res));
     localStorage.setItem("nutrition_results", JSON.stringify({
       calories: res.calories, protein: res.protein, fat: res.fat, carbs: res.carbs,
       bmr: res.bmr, tdee: res.tdee, updatedAt: new Date().toISOString(),
     }));
   };
-
-  if (results) {
+  const handleReset = () => {
+    setResults(null); setStep(0); setForm(INITIAL);
+    localStorage.removeItem("calc_form"); localStorage.removeItem("calc_step"); localStorage.removeItem("calc_results_full");
+  };
     const macros = [
       { label: t.calc.calories, value: results.calories, unit: "kcal", icon: Flame, color: "text-orange-500" },
       { label: t.calc.protein, value: results.protein, unit: "g", icon: Beef, color: "text-red-500" },
