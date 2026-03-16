@@ -244,8 +244,46 @@ const AddEntry = () => {
     { key: "body_fat", label: t.addEntry.bodyFatOptional, placeholder: "15" },
   ] as const;
 
+  const lastFields = [
+    { label: t.addEntry.weightKg, value: previousEntry?.weight, unit: t.common.kg },
+    { label: t.addEntry.waistCm, value: previousEntry?.waist, unit: t.common.cm },
+    { label: t.addEntry.chestCm, value: previousEntry?.chest, unit: t.common.cm },
+    { label: t.addEntry.hipsCm, value: previousEntry?.hips, unit: t.common.cm },
+    { label: t.addEntry.armCm, value: (previousEntry as any)?.arm_circumference, unit: t.common.cm },
+    { label: t.addEntry.gluteCm, value: (previousEntry as any)?.glute_circumference, unit: t.common.cm },
+    { label: t.addEntry.thighCm, value: (previousEntry as any)?.thigh_circumference, unit: t.common.cm },
+    { label: t.addEntry.bodyFatOptional, value: previousEntry?.body_fat, unit: "%" },
+  ];
+
+  const hasAnyPrevious = lastFields.some(f => f.value != null);
+
   return (
-    <div className="max-w-2xl animate-fade-in">
+    <div className="max-w-2xl animate-fade-in space-y-4">
+      {hasAnyPrevious && !isEditing && (
+        <Card className="border-primary/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-display text-sm">{t.addEntry.lastMeasurements}</CardTitle>
+            {previousEntry && (
+              <p className="text-[11px] text-muted-foreground">
+                {format(new Date(previousEntry.entry_date), "dd.MM.yyyy")}
+              </p>
+            )}
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+              {lastFields.map((f) =>
+                f.value != null ? (
+                  <div key={f.label} className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{f.label}</span>
+                    <span className="font-semibold tabular-nums">{f.value} {f.unit}</span>
+                  </div>
+                ) : null
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader><CardTitle className="font-display text-xl">{isEditing ? t.addEntry.update : t.addEntry.logProgress}</CardTitle></CardHeader>
         <CardContent>

@@ -105,6 +105,7 @@ export const en = {
     progressPhotos: "Progress Photos",
     upload: "Upload",
     saveEntry: "Save Entry",
+    lastMeasurements: "Last Measurements",
     saving: "Saving...",
     notYet: "Not Yet!",
     nextCheckinIn: "Your next progress check-in is available in",
