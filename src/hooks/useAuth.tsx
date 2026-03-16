@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isCoach, setIsCoach] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string | null; weight_unit: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
