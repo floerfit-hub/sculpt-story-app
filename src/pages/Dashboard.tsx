@@ -42,12 +42,26 @@ interface ExerciseInfo {
   muscle_group: string;
 }
 
+const PANEL_IDS = ["checkin", "fitnessScore", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutrition", "insights", "recentEntries"] as const;
+type PanelId = typeof PANEL_IDS[number];
+
+interface PanelConfig { order: PanelId[]; hidden: PanelId[] }
+
+function loadPanelConfig(): PanelConfig {
+  try {
+    const saved = localStorage.getItem("dashboard_panels");
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return { order: [...PANEL_IDS], hidden: [] };
+}
+
+function savePanelConfig(config: PanelConfig) {
+  localStorage.setItem("dashboard_panels", JSON.stringify(config));
+}
+
 const Dashboard = () => {
   const { user, profile } = useAuth();
   const { isPremium } = usePremium();
-  const { t } = useTranslation();
-  const { toast } = useToast();
-  const navigate = useNavigate();
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
