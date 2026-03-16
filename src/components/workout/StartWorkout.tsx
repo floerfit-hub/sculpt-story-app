@@ -453,18 +453,25 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
                   <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center mt-1">
                     <span></span>
                     <div className="flex gap-1">
-                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "weight", -0.5)}>−0.5</Button>
-                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "weight", 0.5)}>+0.5</Button>
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "weight", -0.5)}>−</Button>
+                      <span className="flex items-center text-xs text-muted-foreground">0.5</span>
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "weight", 0.5)}>+</Button>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "reps", -1)}>−1</Button>
-                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "reps", 1)}>+1</Button>
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "reps", -1)}>−</Button>
+                      <span className="flex items-center text-xs text-muted-foreground">1</span>
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "reps", 1)}>+</Button>
                     </div>
                     <span></span>
                   </div>
                 </div>
               ))}
-              <Button variant="outline" size="sm" className="w-full" onClick={() => addSet(exIdx)}><Plus className="h-3 w-3 mr-1" /> {t.workouts.addSet}</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => addSet(exIdx)}><Plus className="h-3 w-3 mr-1" /> {t.workouts.addSet}</Button>
+                {ex.sets.length > 0 && (
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => copySet(exIdx)}><Copy className="h-3 w-3 mr-1" /> {t.workouts.copySet}</Button>
+                )}
+              </div>
               <Textarea placeholder={t.workouts.notesTip} value={ex.notes} onChange={(e) => updateNotes(exIdx, e.target.value)} className="min-h-[60px] text-sm" />
             </CardContent>
           </Card>
