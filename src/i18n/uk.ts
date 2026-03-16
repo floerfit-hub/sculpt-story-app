@@ -638,6 +638,7 @@ export const uk: Translations = {
     noExercisesFound: "Нічого не знайдено",
     needMoreData: "Запишіть вправу 2+ разів, щоб побачити графік.",
     moreRecords: "ще рекордів",
+    collapse: "Згорнути",
     newRecord: "Новий рекорд! 🏆",
     newRecordDesc: "Ви щойно побили свій особистий рекорд!",
     myRecords: "Мої рекорди",

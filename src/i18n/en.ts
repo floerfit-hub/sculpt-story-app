@@ -659,6 +659,7 @@ export const en = {
     noExercisesFound: "Nothing found",
     needMoreData: "Log the exercise across 2+ workouts to see the chart.",
     moreRecords: "more records",
+    collapse: "Collapse",
     newRecord: "New Record! 🏆",
     newRecordDesc: "You just set a new personal record!",
     myRecords: "My Records",
