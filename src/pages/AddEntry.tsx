@@ -29,6 +29,7 @@ const AddEntry = () => {
   const [daysLeft, setDaysLeft] = useState(0);
   const [nextDate, setNextDate] = useState<Date | null>(null);
   const [previousEntry, setPreviousEntry] = useState<ProgressEntry | null>(null);
+  const [secondPreviousEntry, setSecondPreviousEntry] = useState<ProgressEntry | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [savedEntry, setSavedEntry] = useState<Partial<ProgressEntry> | null>(null);
 
