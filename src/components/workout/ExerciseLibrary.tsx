@@ -215,7 +215,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                     <img
                       src={img}
                       alt={t.exerciseNames[ex.name] || ex.name}
-                      className="h-14 w-14 rounded-lg object-cover shrink-0 bg-muted"
+                      className="h-14 w-14 rounded-lg object-contain shrink-0 bg-muted"
                       loading="lazy"
                     />
                   )}
