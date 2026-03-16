@@ -363,12 +363,6 @@ const Dashboard = () => {
     ),
   };
 
-  // Ensure all panel IDs are in order (handle new panels added after user saved config)
-  const orderedPanels = useMemo(() => {
-    const ordered = [...panelConfig.order];
-    PANEL_IDS.forEach(id => { if (!ordered.includes(id)) ordered.push(id); });
-    return ordered;
-  }, [panelConfig.order]);
 
   return (
     <div className="space-y-5 animate-fade-in">
