@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail } from "lucide-react";
+import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Weight } from "lucide-react";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 
 const LANGUAGES: { code: Language; label: string }[] = [
@@ -40,6 +40,7 @@ const Profile = () => {
   const { t, lang, setLanguage } = useTranslation();
   const { theme, setTheme } = useTheme();
   const [name, setName] = useState(profile?.full_name || "");
+  const [weightUnit, setWeightUnit] = useState(profile?.weight_unit || "kg");
   const [saving, setSaving] = useState(false);
   const [isStandalone] = useState(window.matchMedia("(display-mode: standalone)").matches);
   const [isIOS] = useState(/iPad|iPhone|iPod/.test(navigator.userAgent));
@@ -144,7 +145,40 @@ const Profile = () => {
         </CardContent>
       </Card>
 
-      {/* Subscription */}
+      {/* Weight Unit */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-lg flex items-center gap-2">
+            <Weight className="h-5 w-5 text-primary" />
+            {t.profile.weightUnit}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">{t.profile.weightUnitDesc}</p>
+          <div className="flex gap-2">
+            <Button
+              variant={weightUnit === "kg" ? "default" : "outline"}
+              className="flex-1"
+              onClick={async () => {
+                setWeightUnit("kg");
+                if (user) await supabase.from("profiles").update({ weight_unit: "kg" } as any).eq("user_id", user.id);
+              }}
+            >
+              kg
+            </Button>
+            <Button
+              variant={weightUnit === "lb" ? "default" : "outline"}
+              className="flex-1"
+              onClick={async () => {
+                setWeightUnit("lb");
+                if (user) await supabase.from("profiles").update({ weight_unit: "lb" } as any).eq("user_id", user.id);
+              }}
+            >
+              lb
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       <SubscriptionManager />
 
       {/* Pro Benefits comparison table */}
