@@ -145,7 +145,40 @@ const Profile = () => {
         </CardContent>
       </Card>
 
-      {/* Subscription */}
+      {/* Weight Unit */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-lg flex items-center gap-2">
+            <Weight className="h-5 w-5 text-primary" />
+            {t.profile.weightUnit}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">{t.profile.weightUnitDesc}</p>
+          <div className="flex gap-2">
+            <Button
+              variant={weightUnit === "kg" ? "default" : "outline"}
+              className="flex-1"
+              onClick={async () => {
+                setWeightUnit("kg");
+                if (user) await supabase.from("profiles").update({ weight_unit: "kg" } as any).eq("user_id", user.id);
+              }}
+            >
+              kg
+            </Button>
+            <Button
+              variant={weightUnit === "lb" ? "default" : "outline"}
+              className="flex-1"
+              onClick={async () => {
+                setWeightUnit("lb");
+                if (user) await supabase.from("profiles").update({ weight_unit: "lb" } as any).eq("user_id", user.id);
+              }}
+            >
+              lb
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       <SubscriptionManager />
 
       {/* Pro Benefits comparison table */}
