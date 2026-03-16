@@ -495,6 +495,9 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           </div>
         </div>
 
+        {/* Add exercise button at top */}
+        <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}><Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}</Button>
+
         {/* Auto rest timer indicator */}
         {autoRestSeconds !== null && autoRestSeconds > 0 && !isEditing && (
           <div className="flex items-center justify-center gap-2 rounded-xl bg-accent/50 border border-border/50 px-4 py-2.5">
@@ -522,7 +525,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
                 <div><p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p><p className="text-xs text-muted-foreground">{(() => { const keyMap: Record<string, string> = { "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest", "Shoulders": "shoulders", "Arms": "arms", "Core": "core" }; const k = keyMap[ex.muscleGroup] as keyof typeof t.muscleGroups; return k ? t.muscleGroups[k] : ex.muscleGroup; })()}</p></div>
                 <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
               </div>
-              <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 text-xs text-muted-foreground font-medium">
+              <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 text-xs font-bold text-foreground uppercase tracking-wide">
                 <span>{t.workouts.set}</span><span>{t.workouts.weightKg}</span><span>{t.workouts.reps}</span><span></span>
               </div>
               {ex.sets.map((set, setIdx) => (
@@ -559,10 +562,6 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
             </CardContent>
           </Card>
         ))}
-
-        <div className="flex gap-3">
-          <Button variant="outline" className="flex-1 h-12" onClick={() => setShowLibrary(true)}><Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}</Button>
-        </div>
 
         {exercises.length > 0 && (
           <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
