@@ -288,7 +288,7 @@ export const uk: Translations = {
     fitnessGoal: "Фітнес-ціль",
     goalGain: "Набір м'язів",
     goalMaintenance: "Підтримка / Рекомпозиція",
-    goalLoss: "Втрата жиру",
+    goalLoss: "Жироспалювання",
     back: "Назад",
     next: "Далі",
     calculate: "Розрахувати",
