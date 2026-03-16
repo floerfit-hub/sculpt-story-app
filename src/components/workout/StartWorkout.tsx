@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import RestTimer from "./RestTimer";
 import { useToast } from "@/hooks/use-toast";
@@ -205,6 +205,18 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     setExercises((prev) => {
       const c = [...prev];
       c[idx] = { ...c[idx], sets: [...c[idx].sets, { weight: "", reps: "", rest_time: restTime }] };
+      return c;
+    });
+  };
+
+  const copySet = (idx: number) => {
+    const lastSet = exercises[idx].sets[exercises[idx].sets.length - 1];
+    const restTime = lastSetTimeRef.current
+      ? Math.floor((Date.now() - lastSetTimeRef.current) / 1000)
+      : null;
+    setExercises((prev) => {
+      const c = [...prev];
+      c[idx] = { ...c[idx], sets: [...c[idx].sets, { weight: lastSet.weight, reps: lastSet.reps, rest_time: restTime }] };
       return c;
     });
   };
@@ -441,18 +453,25 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
                   <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center mt-1">
                     <span></span>
                     <div className="flex gap-1">
-                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "weight", -0.5)}>−0.5</Button>
-                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "weight", 0.5)}>+0.5</Button>
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "weight", -0.5)}>−</Button>
+                      <span className="flex items-center text-xs text-muted-foreground">0.5</span>
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "weight", 0.5)}>+</Button>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "reps", -1)}>−1</Button>
-                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "reps", 1)}>+1</Button>
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "reps", -1)}>−</Button>
+                      <span className="flex items-center text-xs text-muted-foreground">1</span>
+                      <Button variant="outline" size="sm" className="h-7 flex-1 text-xs px-1" onClick={() => quickAdjust(exIdx, setIdx, "reps", 1)}>+</Button>
                     </div>
                     <span></span>
                   </div>
                 </div>
               ))}
-              <Button variant="outline" size="sm" className="w-full" onClick={() => addSet(exIdx)}><Plus className="h-3 w-3 mr-1" /> {t.workouts.addSet}</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => addSet(exIdx)}><Plus className="h-3 w-3 mr-1" /> {t.workouts.addSet}</Button>
+                {ex.sets.length > 0 && (
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => copySet(exIdx)}><Copy className="h-3 w-3 mr-1" /> {t.workouts.copySet}</Button>
+                )}
+              </div>
               <Textarea placeholder={t.workouts.notesTip} value={ex.notes} onChange={(e) => updateNotes(exIdx, e.target.value)} className="min-h-[60px] text-sm" />
             </CardContent>
           </Card>

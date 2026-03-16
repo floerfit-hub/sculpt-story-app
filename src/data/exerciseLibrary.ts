@@ -17,7 +17,6 @@ export const EXERCISES: Exercise[] = [
   { name: "Forward Lunges", muscleGroup: "Legs & Glutes" },
   { name: "Bulgarian Split Squat", muscleGroup: "Legs & Glutes" },
   { name: "Romanian Deadlift", muscleGroup: "Legs & Glutes" },
-  { name: "Glute Bridge", muscleGroup: "Legs & Glutes" },
   { name: "Hip Thrust", muscleGroup: "Legs & Glutes" },
   { name: "Cable Glute Kickback", muscleGroup: "Legs & Glutes" },
   { name: "Lying Leg Curl", muscleGroup: "Legs & Glutes" },
