@@ -128,6 +128,7 @@ export const uk: Translations = {
     addSet: "Додати підхід",
     set: "Підхід",
     weightKg: "Вага (кг)",
+    weightLb: "Вага (lb)",
     reps: "Повтори",
     notesTip: "Нотатки (напр., відчував силу, збільшити вагу)",
     finishSave: "Завершити тренування",
