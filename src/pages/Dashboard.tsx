@@ -264,6 +264,8 @@ const Dashboard = () => {
       </div>
 
 
+      <PersonalRecords />
+
       {canLogEntry && entries.length > 0 && (
         <Card className="border-primary/20 gradient-glow">
           <CardContent className="flex items-center gap-4 p-4">
@@ -293,8 +295,6 @@ const Dashboard = () => {
       </PremiumGate>
 
       <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />
-
-      <PersonalRecords />
 
       <NutritionSummary nutrition={nutrition} />
 
