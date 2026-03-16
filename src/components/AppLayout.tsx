@@ -88,6 +88,12 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
               <Link
                 key={item.to}
                 to={item.to}
+                onClick={(e) => {
+                  if (active) {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
                 className={`flex flex-col items-center gap-1 px-3 py-2 text-[11px] transition-all duration-200 min-w-[56px] rounded-xl ${
                   active
                     ? "text-primary text-glow"
