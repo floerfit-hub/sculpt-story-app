@@ -296,6 +296,13 @@ const Dashboard = () => {
     setSearchParams({});
   };
 
+  const resetPanels = () => {
+    const defaultConfig: PanelConfig = { order: [...PANEL_IDS], hidden: [] };
+    setPanelConfig(defaultConfig);
+    savePanelConfig(defaultConfig);
+    toast({ title: t.dashboard.panelsReset });
+  };
+
   const panelComponents: Record<PanelId, ReactNode> = {
     checkin: canLogEntry && entries.length > 0 ? (
       <Card className="border-primary/20 gradient-glow">
