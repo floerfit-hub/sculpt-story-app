@@ -72,6 +72,8 @@ export const en = {
     customizeDashboard: "Customize Dashboard",
     editPanels: "Edit Panels",
     donePanels: "Done",
+    resetPanels: "Reset to Default",
+    panelsReset: "Panels reset to default",
     panelNames: {
       checkin: "Check-in Reminder",
       fitnessScore: "Fitness Score",
