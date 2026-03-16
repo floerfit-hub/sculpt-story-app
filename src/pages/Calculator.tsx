@@ -243,7 +243,7 @@ const CalculatorPage = () => {
           )}
           {step === 1 && (<>{renderRadioGroup("steps", t.calc.dailySteps)}{renderRadioGroup("workActivity", t.calc.workActivity)}</>)}
           {step === 2 && (<>{renderRadioGroup("trainingFreq", t.calc.trainingFreq)}{renderRadioGroup("trainingExp", t.calc.trainingExp)}</>)}
-          {step === 3 && (<>{renderRadioGroup("sleep", t.calc.sleepDuration)}{renderRadioGroup("pace", t.calc.pace)}{renderRadioGroup("goal", t.calc.fitnessGoal)}</>)}
+          {step === 3 && (<>{renderRadioGroup("sleep", t.calc.sleepDuration)}{renderRadioGroup("goal", t.calc.fitnessGoal)}{renderRadioGroup("pace", t.calc.pace)}</>)}
         </CardContent>
       </Card>
 
