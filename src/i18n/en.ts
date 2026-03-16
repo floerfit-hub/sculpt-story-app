@@ -393,6 +393,8 @@ export const en = {
     signOut: "Sign Out",
     language: "Language",
     languageDesc: "Choose your preferred language",
+    weightUnit: "Weight Unit",
+    weightUnitDesc: "Choose weight measurement unit",
     theme: "Theme",
     themeDesc: "Choose your preferred theme",
     dark: "Dark",

@@ -381,6 +381,8 @@ export const uk: Translations = {
     signOut: "Вийти",
     language: "Мова",
     languageDesc: "Оберіть бажану мову",
+    weightUnit: "Одиниця ваги",
+    weightUnitDesc: "Оберіть одиницю вимірювання ваги",
     theme: "Тема",
     themeDesc: "Оберіть бажану тему",
     dark: "Темна",
