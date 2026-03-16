@@ -480,7 +480,7 @@ export const uk: Translations = {
     chest: "Груди",
     waistM: "Талія",
     glute: "Сідниці",
-    thigh: "Стегна",
+    thigh: "Стегно",
     workoutActivity: "Активність тренувань",
     workoutsMonth: "Тренування",
     setsMonth: "Всього підходів",
