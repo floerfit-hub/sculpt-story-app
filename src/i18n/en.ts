@@ -196,7 +196,6 @@ export const en = {
     "Forward Lunges": "Forward Lunges",
     "Bulgarian Split Squat": "Bulgarian Split Squat",
     "Romanian Deadlift": "Romanian Deadlift",
-    "Glute Bridge": "Glute Bridge",
     "Hip Thrust": "Hip Thrust",
     "Cable Glute Kickback": "Cable Glute Kickback",
     "Lying Leg Curl": "Lying Leg Curl",
