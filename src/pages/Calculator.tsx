@@ -193,7 +193,7 @@ const CalculatorPage = () => {
         <Label>{label}</Label>
         <RadioGroup value={selected} onValueChange={(v) => update(key as keyof FormData, v)}>
           {radioOptions[key].map((o) => (
-            <div key={o.value} className={`rounded-lg border p-3 cursor-pointer transition-colors ${selected === o.value ? "border-primary bg-primary/5" : "hover:bg-accent/50"}`}>
+            <div key={o.value} onClick={() => update(key as keyof FormData, o.value)} className={`rounded-lg border p-3 cursor-pointer transition-colors ${selected === o.value ? "border-primary bg-primary/5" : "hover:bg-accent/50"}`}>
               <div className="flex items-center gap-2">
                 <RadioGroupItem value={o.value} id={`${key}-${o.value}`} />
                 <Label htmlFor={`${key}-${o.value}`} className="font-normal cursor-pointer flex-1">{o.label}</Label>
