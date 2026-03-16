@@ -61,7 +61,12 @@ function savePanelConfig(config: PanelConfig) {
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
-  const { isPremium } = usePremium();
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [editMode, setEditMode] = useState(searchParams.get("edit") === "true");
+  const [panelConfig, setPanelConfig] = useState<PanelConfig>(loadPanelConfig);
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
