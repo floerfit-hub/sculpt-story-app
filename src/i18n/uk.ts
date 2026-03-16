@@ -103,6 +103,7 @@ export const uk: Translations = {
     progressPhotos: "Фото прогресу",
     upload: "Завантажити",
     saveEntry: "Зберегти запис",
+    lastMeasurements: "Останні заміри",
     saving: "Збереження...",
     notYet: "Ще не час!",
     nextCheckinIn: "Наступна перевірка прогресу доступна через",
