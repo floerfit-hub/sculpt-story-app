@@ -71,6 +71,8 @@ export const uk: Translations = {
     customizeDashboard: "Налаштувати панелі",
     editPanels: "Редагувати панелі",
     donePanels: "Готово",
+    resetPanels: "За замовчуванням",
+    panelsReset: "Панелі скинуто до стандартних",
     panelNames: {
       checkin: "Нагадування про запис",
       fitnessScore: "Фітнес бал",
