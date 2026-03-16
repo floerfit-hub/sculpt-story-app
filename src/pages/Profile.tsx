@@ -38,6 +38,7 @@ const Profile = () => {
   const { isPremium } = usePremium();
   const { toast } = useToast();
   const { t, lang, setLanguage } = useTranslation();
+  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const [name, setName] = useState(profile?.full_name || "");
   const [weightUnit, setWeightUnit] = useState(profile?.weight_unit || "kg");
