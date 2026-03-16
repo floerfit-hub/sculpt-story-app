@@ -252,6 +252,13 @@ const Dashboard = () => {
     return { trainingConsistency, strengthProgress, bodyProgress, muscleBalance };
   }, [workouts, perfData, exerciseMap, entries, muscleData]);
 
+  // Ensure all panel IDs are in order (handle new panels added after user saved config)
+  const orderedPanels = useMemo(() => {
+    const ordered = [...panelConfig.order];
+    PANEL_IDS.forEach(id => { if (!ordered.includes(id)) ordered.push(id); });
+    return ordered;
+  }, [panelConfig.order]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
