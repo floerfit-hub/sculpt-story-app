@@ -66,9 +66,18 @@ function genInsights(d: FormData, w: number, cal: number, tdee: number, prot: nu
 
 const CalculatorPage = () => {
   const { t } = useTranslation();
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState<FormData>(INITIAL);
-  const [results, setResults] = useState<Results | null>(null);
+  const [step, setStep] = useState(() => {
+    try { const s = localStorage.getItem("calc_step"); return s ? Number(s) : 0; } catch { return 0; }
+  });
+  const [form, setForm] = useState<FormData>(() => {
+    try { const s = localStorage.getItem("calc_form"); return s ? JSON.parse(s) : INITIAL; } catch { return INITIAL; }
+  });
+  const [results, setResults] = useState<Results | null>(() => {
+    try { const s = localStorage.getItem("calc_results_full"); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
+
+  useEffect(() => { localStorage.setItem("calc_form", JSON.stringify(form)); }, [form]);
+  useEffect(() => { localStorage.setItem("calc_step", String(step)); }, [step]);
 
   const STEPS = [
     { key: "basics", title: t.calc.basicInfo, fields: ["gender", "age", "height", "weight"] },
