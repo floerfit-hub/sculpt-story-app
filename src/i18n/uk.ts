@@ -234,7 +234,7 @@ export const uk: Translations = {
   } as Record<string, string>,
 
   calcInsights: {
-    fatLoss: "📉 ~{wl} кг/тиждень втрати жиру. ~{wlMonth} кг/місяць.",
+    fatLoss: "📉 ~{wl} кг/тиждень жироспалювання. ~{wlMonth} кг/місяць.",
     muscleGain: "📈 ~{wg} кг/тиждень набору м'язової маси за оптимальних умов.",
     maintenance: "⚖️ Підтримка: вага стабільна, склад тіла може покращуватись.",
     aggressiveDeficit: "⚠️ Агресивний дефіцит → ризик плато через 4–6 тижнів. Розгляньте рефід-дні.",
