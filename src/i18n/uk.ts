@@ -77,7 +77,7 @@ export const uk: Translations = {
       checkin: "Нагадування про запис",
       fitnessScore: "Фітнес бал",
       weightChart: "Графік ваги",
-      measurements: "Заміри тіла",
+      measurements: "Виміри тіла",
       muscleHeatmap: "Карта м'язів",
       workoutActivity: "Активність тренувань",
       personalRecords: "Особисті рекорди",
