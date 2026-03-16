@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,9 +66,18 @@ function genInsights(d: FormData, w: number, cal: number, tdee: number, prot: nu
 
 const CalculatorPage = () => {
   const { t } = useTranslation();
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState<FormData>(INITIAL);
-  const [results, setResults] = useState<Results | null>(null);
+  const [step, setStep] = useState(() => {
+    try { const s = localStorage.getItem("calc_step"); return s ? Number(s) : 0; } catch { return 0; }
+  });
+  const [form, setForm] = useState<FormData>(() => {
+    try { const s = localStorage.getItem("calc_form"); return s ? JSON.parse(s) : INITIAL; } catch { return INITIAL; }
+  });
+  const [results, setResults] = useState<Results | null>(() => {
+    try { const s = localStorage.getItem("calc_results_full"); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
+
+  useEffect(() => { localStorage.setItem("calc_form", JSON.stringify(form)); }, [form]);
+  useEffect(() => { localStorage.setItem("calc_step", String(step)); }, [step]);
 
   const STEPS = [
     { key: "basics", title: t.calc.basicInfo, fields: ["gender", "age", "height", "weight"] },
@@ -120,11 +129,15 @@ const CalculatorPage = () => {
 
   const update = (key: keyof FormData, value: string) => setForm((f) => ({ ...f, [key]: value }));
   const canProceed = () => STEPS[step].fields.every((f) => form[f as keyof FormData]?.trim());
-  const handleReset = () => { setResults(null); setStep(0); setForm(INITIAL); };
+  const handleReset = () => {
+    setResults(null); setStep(0); setForm(INITIAL);
+    localStorage.removeItem("calc_form"); localStorage.removeItem("calc_step"); localStorage.removeItem("calc_results_full");
+  };
 
   const handleCalculate = () => {
     const res = calculate(form, t);
     setResults(res);
+    localStorage.setItem("calc_results_full", JSON.stringify(res));
     localStorage.setItem("nutrition_results", JSON.stringify({
       calories: res.calories, protein: res.protein, fat: res.fat, carbs: res.carbs,
       bmr: res.bmr, tdee: res.tdee, updatedAt: new Date().toISOString(),
