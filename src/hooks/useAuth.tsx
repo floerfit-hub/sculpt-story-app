@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   isCoach: boolean;
   isAdmin: boolean;
-  profile: { full_name: string | null } | null;
+  profile: { full_name: string | null; weight_unit: string } | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
