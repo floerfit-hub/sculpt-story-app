@@ -133,7 +133,6 @@ export const EXERCISE_TO_PATTERN: Record<string, string> = {
   "Leg Extension": "Squats / Leg press",
   "Romanian Deadlift": "Romanian deadlift / Hip hinge",
   "Lying Leg Curl": "Romanian deadlift / Hip hinge",
-  "Glute Bridge": "Glute bridge / Hip thrust",
   "Hip Thrust": "Glute bridge / Hip thrust",
   "Cable Glute Kickback": "Glute bridge / Hip thrust",
   "Standing Calf Raises": "Calf raises",
