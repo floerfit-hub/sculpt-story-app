@@ -81,7 +81,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       <main className="px-5 py-6 pb-28 lg:pb-8 max-w-2xl mx-auto" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>{children}</main>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong safe-bottom">
-        <div className="flex justify-around py-2 max-w-lg mx-auto">
+        <div className="flex justify-around py-1 max-w-lg mx-auto">
           {navItems.map((item) => {
             const active = location.pathname === item.to;
             return (
@@ -94,19 +94,19 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }
                 }}
-                className={`flex flex-col items-center gap-1 px-3 py-2 text-[11px] transition-all duration-200 min-w-[56px] rounded-xl ${
+                className={`flex flex-col items-center gap-0.5 px-2 py-1 text-[10px] transition-all duration-200 min-w-[48px] rounded-xl ${
                   active
                     ? "text-primary text-glow"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <div className={`relative p-1.5 rounded-xl transition-all duration-200 ${active ? "bg-accent" : ""}`}>
-                  <item.icon className={`h-5 w-5 transition-transform duration-200 ${active ? "scale-110" : ""}`} />
+                <div className={`relative p-1 rounded-xl transition-all duration-200 ${active ? "bg-accent" : ""}`}>
+                  <item.icon className={`h-4.5 w-4.5 transition-transform duration-200 ${active ? "scale-110" : ""}`} />
                   {active && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-primary" />
+                    <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 w-3.5 rounded-full bg-primary" />
                   )}
                 </div>
-                <span className="font-semibold">{item.label}</span>
+                <span className="font-semibold leading-tight">{item.label}</span>
               </Link>
             );
           })}

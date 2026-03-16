@@ -5,7 +5,7 @@ export const uk: Translations = {
     home: "Головна",
     workouts: "Тренування",
     track: "Запис",
-    macros: "Макроси",
+    macros: "Калькулятор",
     profile: "Профіль",
     insights: "Аналітика",
     admin: "Адмін",

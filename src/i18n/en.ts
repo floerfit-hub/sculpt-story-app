@@ -4,7 +4,7 @@ export const en = {
     home: "Home",
     workouts: "Workouts",
     track: "Track",
-    macros: "Macros",
+    macros: "Calculator",
     profile: "Profile",
     insights: "Insights",
     admin: "Admin",
