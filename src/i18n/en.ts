@@ -69,6 +69,21 @@ export const en = {
     last30Days: "Last 30 days training heatmap",
     setsLast30: "sets in the last 30 days",
     noExercisesLogged: "No exercises logged for this group yet.",
+    customizeDashboard: "Customize Dashboard",
+    editPanels: "Edit Panels",
+    donePanels: "Done",
+    panelNames: {
+      checkin: "Check-in Reminder",
+      fitnessScore: "Fitness Score",
+      weightChart: "Weight Chart",
+      measurements: "Body Measurements",
+      muscleHeatmap: "Muscle Heatmap",
+      workoutActivity: "Workout Activity",
+      personalRecords: "Personal Records",
+      nutrition: "Nutrition Plan",
+      insights: "AI Insights",
+      recentEntries: "Recent Entries",
+    },
   },
 
   // Add Entry

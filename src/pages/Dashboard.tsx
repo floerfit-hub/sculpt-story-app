@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState, useMemo, useCallback, ReactNode } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { usePremium } from "@/hooks/usePremium";
 import PersonalRecords from "@/components/dashboard/PersonalRecords";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,7 @@ import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { PlusCircle, Clock, Pencil, Trash2, Crown } from "lucide-react";
+import { PlusCircle, Clock, Pencil, Trash2, Crown, ChevronUp, ChevronDown, Eye, EyeOff, Check } from "lucide-react";
 import { format, differenceInDays, addDays, startOfMonth, subDays } from "date-fns";
 import { uk as ukLocale } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -42,12 +42,31 @@ interface ExerciseInfo {
   muscle_group: string;
 }
 
+const PANEL_IDS = ["checkin", "fitnessScore", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutrition", "insights", "recentEntries"] as const;
+type PanelId = typeof PANEL_IDS[number];
+
+interface PanelConfig { order: PanelId[]; hidden: PanelId[] }
+
+function loadPanelConfig(): PanelConfig {
+  try {
+    const saved = localStorage.getItem("dashboard_panels");
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return { order: [...PANEL_IDS], hidden: [] };
+}
+
+function savePanelConfig(config: PanelConfig) {
+  localStorage.setItem("dashboard_panels", JSON.stringify(config));
+}
+
 const Dashboard = () => {
   const { user, profile } = useAuth();
-  const { isPremium } = usePremium();
   const { t } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [editMode, setEditMode] = useState(searchParams.get("edit") === "true");
+  const [panelConfig, setPanelConfig] = useState<PanelConfig>(loadPanelConfig);
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -233,6 +252,13 @@ const Dashboard = () => {
     return { trainingConsistency, strengthProgress, bodyProgress, muscleBalance };
   }, [workouts, perfData, exerciseMap, entries, muscleData]);
 
+  // Ensure all panel IDs are in order (handle new panels added after user saved config)
+  const orderedPanels = useMemo(() => {
+    const ordered = [...panelConfig.order];
+    PANEL_IDS.forEach(id => { if (!ordered.includes(id)) ordered.push(id); });
+    return ordered;
+  }, [panelConfig.order]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -241,67 +267,58 @@ const Dashboard = () => {
     );
   }
 
-  return (
-    <div className="space-y-5 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-display font-extrabold tracking-tight">
-            {t.dashboard.hey}, {profile?.full_name || t.dashboard.there} 💪
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">{t.dashboard.trackTransformation}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {canLogEntry ? (
-            <Link to="/add-entry">
-              <Button size="sm"><PlusCircle className="mr-1.5 h-4 w-4" />{t.dashboard.newEntry}</Button>
-            </Link>
-          ) : (
-            <Button variant="outline" size="sm" disabled>
-              <Clock className="mr-1.5 h-4 w-4" />{daysUntilCheckin}{t.dashboard.daysLeft}
-            </Button>
-          )}
-        </div>
-      </div>
+  const movePanel = (id: PanelId, dir: -1 | 1) => {
+    setPanelConfig(prev => {
+      const order = [...prev.order];
+      const idx = order.indexOf(id);
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= order.length) return prev;
+      [order[idx], order[newIdx]] = [order[newIdx], order[idx]];
+      const next = { ...prev, order };
+      savePanelConfig(next);
+      return next;
+    });
+  };
 
+  const togglePanel = (id: PanelId) => {
+    setPanelConfig(prev => {
+      const hidden = prev.hidden.includes(id)
+        ? prev.hidden.filter(h => h !== id)
+        : [...prev.hidden, id];
+      const next = { ...prev, hidden };
+      savePanelConfig(next);
+      return next;
+    });
+  };
 
-      <PersonalRecords />
+  const exitEditMode = () => {
+    setEditMode(false);
+    setSearchParams({});
+  };
 
-      {canLogEntry && entries.length > 0 && (
-        <Card className="border-primary/20 gradient-glow">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-              <PlusCircle className="h-4 w-4 text-primary" />
-            </div>
-            <p className="text-sm">
-              {t.dashboard.checkinReady}{" "}
-              <Link to="/add-entry" className="font-bold text-primary hover:underline">{t.dashboard.logProgressNow}</Link>.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      <PremiumGate feature="Fitness Score Dashboard">
-        <FitnessScore {...fitnessScores} />
-      </PremiumGate>
-
-      <WeightChart entries={entries} />
-
-      <PremiumGate feature="Body Composition Dashboard">
-        <MeasurementsCard latest={latest} previous={previous} />
-      </PremiumGate>
-
-      <PremiumGate feature="Muscle Heatmap Analytics">
-        <MuscleHeatmap muscleData={muscleData} />
-      </PremiumGate>
-
-      <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />
-
-      <NutritionSummary nutrition={nutrition} />
-
-      <PremiumGate feature="AI Training Insights">
-        <SmartInsights entries={entries} muscleData={muscleData} strengthTrending={strengthTrending} />
-      </PremiumGate>
-
+  const panelComponents: Record<PanelId, ReactNode> = {
+    checkin: canLogEntry && entries.length > 0 ? (
+      <Card className="border-primary/20 gradient-glow">
+        <CardContent className="flex items-center gap-4 p-4">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <PlusCircle className="h-4 w-4 text-primary" />
+          </div>
+          <p className="text-sm">
+            {t.dashboard.checkinReady}{" "}
+            <Link to="/add-entry" className="font-bold text-primary hover:underline">{t.dashboard.logProgressNow}</Link>.
+          </p>
+        </CardContent>
+      </Card>
+    ) : null,
+    fitnessScore: <PremiumGate feature="Fitness Score Dashboard"><FitnessScore {...fitnessScores} /></PremiumGate>,
+    weightChart: <WeightChart entries={entries} />,
+    measurements: <PremiumGate feature="Body Composition Dashboard"><MeasurementsCard latest={latest} previous={previous} /></PremiumGate>,
+    muscleHeatmap: <PremiumGate feature="Muscle Heatmap Analytics"><MuscleHeatmap muscleData={muscleData} /></PremiumGate>,
+    workoutActivity: <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />,
+    personalRecords: <PersonalRecords />,
+    nutrition: <NutritionSummary nutrition={nutrition} />,
+    insights: <PremiumGate feature="AI Training Insights"><SmartInsights entries={entries} muscleData={muscleData} strengthTrending={strengthTrending} /></PremiumGate>,
+    recentEntries: (
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">{t.dashboard.recentEntries}</CardTitle>
@@ -343,6 +360,69 @@ const Dashboard = () => {
           )}
         </CardContent>
       </Card>
+    ),
+  };
+
+
+  return (
+    <div className="space-y-5 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-extrabold tracking-tight">
+            {t.dashboard.hey}, {profile?.full_name || t.dashboard.there} 💪
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">{t.dashboard.trackTransformation}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {editMode ? (
+            <Button size="sm" onClick={exitEditMode}>
+              <Check className="mr-1.5 h-4 w-4" />{t.dashboard.donePanels}
+            </Button>
+          ) : canLogEntry ? (
+            <Link to="/add-entry">
+              <Button size="sm"><PlusCircle className="mr-1.5 h-4 w-4" />{t.dashboard.newEntry}</Button>
+            </Link>
+          ) : (
+            <Button variant="outline" size="sm" disabled>
+              <Clock className="mr-1.5 h-4 w-4" />{daysUntilCheckin}{t.dashboard.daysLeft}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {editMode ? (
+        <div className="space-y-2">
+          {orderedPanels.map((id, idx) => {
+            const isHidden = panelConfig.hidden.includes(id);
+            const name = t.dashboard.panelNames[id as keyof typeof t.dashboard.panelNames] || id;
+            return (
+              <div key={id} className={`flex items-center gap-2 rounded-xl border p-3 transition-colors ${isHidden ? "opacity-50 border-border/30" : "border-border"}`}>
+                <div className="flex flex-col gap-0.5">
+                  <Button variant="ghost" size="icon" className="h-6 w-6" disabled={idx === 0} onClick={() => movePanel(id, -1)}>
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" disabled={idx === orderedPanels.length - 1} onClick={() => movePanel(id, 1)}>
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                <span className="flex-1 font-display font-semibold text-sm">{name}</span>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => togglePanel(id)}>
+                  {isHidden ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-primary" />}
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <>
+          {orderedPanels.map(id => {
+            if (panelConfig.hidden.includes(id)) return null;
+            const component = panelComponents[id];
+            if (!component) return null;
+            return <div key={id}>{component}</div>;
+          })}
+        </>
+      )}
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent className="glass-strong rounded-2xl">

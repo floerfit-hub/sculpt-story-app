@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { useTheme } from "@/hooks/useTheme";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Weight } from "lucide-react";
+import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Weight, LayoutDashboard } from "lucide-react";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 
 const LANGUAGES: { code: Language; label: string }[] = [
@@ -38,6 +38,7 @@ const Profile = () => {
   const { isPremium } = usePremium();
   const { toast } = useToast();
   const { t, lang, setLanguage } = useTranslation();
+  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const [name, setName] = useState(profile?.full_name || "");
   const [weightUnit, setWeightUnit] = useState(profile?.weight_unit || "kg");
@@ -179,6 +180,19 @@ const Profile = () => {
           </div>
         </CardContent>
       </Card>
+      {/* Dashboard Customization */}
+      <Card className="cursor-pointer transition-all hover:border-primary/40 active:scale-[0.98]" onClick={() => navigate("/?edit=true")}>
+        <CardContent className="p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
+            <LayoutDashboard className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="font-display font-semibold text-sm">{t.dashboard.customizeDashboard}</p>
+            <p className="text-xs text-muted-foreground">{t.dashboard.editPanels}</p>
+          </div>
+        </CardContent>
+      </Card>
+
       <SubscriptionManager />
 
       {/* Pro Benefits comparison table */}
