@@ -262,29 +262,8 @@ const AddEntry = () => {
 
   return (
     <div className="max-w-2xl animate-fade-in space-y-4">
-      {hasAnyPrevious && !isEditing && (
-        <Card className="border-primary/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="font-display text-sm">{t.addEntry.lastMeasurements}</CardTitle>
-            {previousEntry && (
-              <p className="text-[11px] text-muted-foreground">
-                {format(new Date(previousEntry.entry_date), "dd.MM.yyyy")}
-              </p>
-            )}
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-              {lastFields.map((f) =>
-                f.value != null ? (
-                  <div key={f.label} className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">{f.label}</span>
-                    <span className="font-semibold tabular-nums">{f.value} {f.unit}</span>
-                  </div>
-                ) : null
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      {previousEntry && !isEditing && (
+        <MeasurementsCard latest={previousEntry} previous={secondPreviousEntry ?? undefined} />
       )}
 
       <Card>
