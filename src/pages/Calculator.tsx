@@ -129,7 +129,10 @@ const CalculatorPage = () => {
 
   const update = (key: keyof FormData, value: string) => setForm((f) => ({ ...f, [key]: value }));
   const canProceed = () => STEPS[step].fields.every((f) => form[f as keyof FormData]?.trim());
-  const handleReset = () => { setResults(null); setStep(0); setForm(INITIAL); };
+  const handleReset = () => {
+    setResults(null); setStep(0); setForm(INITIAL);
+    localStorage.removeItem("calc_form"); localStorage.removeItem("calc_step"); localStorage.removeItem("calc_results_full");
+  };
 
   const handleCalculate = () => {
     const res = calculate(form, t);
@@ -140,10 +143,8 @@ const CalculatorPage = () => {
       bmr: res.bmr, tdee: res.tdee, updatedAt: new Date().toISOString(),
     }));
   };
-  const handleReset = () => {
-    setResults(null); setStep(0); setForm(INITIAL);
-    localStorage.removeItem("calc_form"); localStorage.removeItem("calc_step"); localStorage.removeItem("calc_results_full");
-  };
+
+  if (results) {
     const macros = [
       { label: t.calc.calories, value: results.calories, unit: "kcal", icon: Flame, color: "text-orange-500" },
       { label: t.calc.protein, value: results.protein, unit: "g", icon: Beef, color: "text-red-500" },
