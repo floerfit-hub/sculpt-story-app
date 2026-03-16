@@ -4,7 +4,7 @@ export const uk: Translations = {
   nav: {
     home: "Головна",
     workouts: "Тренування",
-    track: "Запис",
+    track: "Заміри",
     macros: "Калькулятор",
     profile: "Профіль",
     insights: "Аналітика",
