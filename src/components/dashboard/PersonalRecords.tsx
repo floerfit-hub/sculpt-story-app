@@ -52,6 +52,7 @@ const PersonalRecords = () => {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [tab, setTab] = useState<Tab>("my");
+  const [showAllRecords, setShowAllRecords] = useState(false);
 
   // Manual entry state
   const [manualExercise, setManualExercise] = useState("");
@@ -383,7 +384,7 @@ const PersonalRecords = () => {
               <Trophy className="h-4 w-4 text-yellow-500" />
               {t.pr.title}
             </CardTitle>
-            {tab === "my" && (
+            {false && tab === "my" && (
               <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowAddModal(true)}>
                 <Plus className="h-3 w-3" />
                 {t.pr.addManual}
@@ -437,7 +438,7 @@ const PersonalRecords = () => {
                 <p className="text-sm text-muted-foreground text-center py-3">{recordsSearch ? t.pr.noExercisesFound : t.pr.noRecords}</p>
               ) : (
                 <div className="grid grid-cols-2 gap-1.5">
-                  {filteredRecords.slice(0, 6).map((pr) => (
+                  {(showAllRecords ? filteredRecords : filteredRecords.slice(0, 6)).map((pr) => (
                     <div
                       key={pr.exerciseId}
                       onClick={() => handleCardClick(pr)}
@@ -462,9 +463,14 @@ const PersonalRecords = () => {
                 </div>
               )}
               {filteredRecords.length > 6 && (
-                <p className="text-[10px] text-muted-foreground text-center mt-1.5">
-                  +{filteredRecords.length - 6} {t.pr.moreRecords}
-                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full mt-1.5 h-7 text-[11px] text-muted-foreground"
+                  onClick={() => setShowAllRecords(!showAllRecords)}
+                >
+                  {showAllRecords ? t.pr.collapse : `+${filteredRecords.length - 6} ${t.pr.moreRecords}`}
+                </Button>
               )}
             </>
           ) : (
