@@ -334,7 +334,7 @@ const Dashboard = () => {
         </CardContent>
       </Card>
     ) : null,
-    fitnessScore: <PremiumGate feature="Fitness Score Dashboard"><FitnessScore {...fitnessScores} /></PremiumGate>,
+    fitnessScore: <PremiumGate feature="Fitness Score Dashboard"><FitnessScore {...fitnessScores} totalXP={fitnessStatsData?.total_xp} level={fitnessStatsData?.level} fitScore={coldStart ? undefined : fitnessScores.overall} weeklyChange={weeklyChange} isInactive={isInactive} coldStart={coldStart} /></PremiumGate>,
     weightChart: <WeightChart entries={entries} />,
     measurements: <PremiumGate feature="Body Composition Dashboard"><MeasurementsCard latest={latest} previous={previous} /></PremiumGate>,
     muscleHeatmap: <PremiumGate feature="Muscle Heatmap Analytics"><MuscleHeatmap muscleData={muscleData} /></PremiumGate>,
