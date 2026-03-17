@@ -203,9 +203,9 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   startTimeRef.current = startTime;
 
   // Track auto-saved workout ID to avoid duplicates
-  const autoSaveIdRef = useRef<string | null>(() => {
-    return sessionStorage.getItem("workout-autosave-id");
-  });
+  const autoSaveIdRef = useRef<string | null>(
+    sessionStorage.getItem("workout-autosave-id")
+  );
 
   // Auto-save workout when user leaves the app (tab hidden / close)
   useEffect(() => {
