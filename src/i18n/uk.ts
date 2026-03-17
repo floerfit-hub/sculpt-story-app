@@ -503,6 +503,63 @@ export const uk: Translations = {
     insightStrengthUp: "💪 Сила у ваших вправах зросла останнім часом.",
     insightCoreNeglect: "⚠️ Ви не тренували кор за останні 30 днів. Додайте вправи на кор!",
     insightKeepGoing: "🚀 Продовжуйте записувати тренування та прогрес для персоналізованих порад!",
+    analyzing: "Аналізуємо...",
+  },
+
+  onboarding: {
+    goalTitle: "Яка ваша основна мета?",
+    goalSubtitle: "Ми налаштуємо ваш досвід",
+    goals: {
+      muscle_gain: "Набрати м'язи",
+      fat_loss: "Скинути жир",
+      strength: "Збільшити силу",
+      maintenance: "Підтримувати форму",
+      endurance: "Покращити витривалість",
+    },
+    frequencyTitle: "Як часто тренуєтесь?",
+    frequencySubtitle: "Тренувань на тиждень",
+    levelTitle: "Ваш рівень досвіду?",
+    levelSubtitle: "Це допоможе калібрувати цілі",
+    levels: {
+      beginner: "Початківець",
+      intermediate: "Середній",
+      advanced: "Просунутий",
+    },
+    levelDescs: {
+      beginner: "Менше 1 року регулярних тренувань",
+      intermediate: "1–3 роки регулярних тренувань",
+      advanced: "3+ роки серйозних тренувань",
+    },
+    styleTitle: "Стиль тренувань?",
+    styleSubtitle: "Де ви зазвичай тренуєтесь?",
+    styles: {
+      gym: "Зал",
+      bodyweight: "Власна вага",
+      mixed: "Змішаний",
+    },
+    priorityTitle: "Що найважливіше?",
+    prioritySubtitle: "Ваш пріоритет оцінювання",
+    priorities: {
+      strength: "Прогрес сили",
+      composition: "Композиція тіла",
+      consistency: "Стабільність",
+      balance: "Баланс м'язів",
+    },
+    back: "Назад",
+    next: "Далі",
+    finish: "Почнімо!",
+    saving: "Збереження...",
+    skip: "Пропустити",
+  },
+
+  xp: {
+    gained: "XP отримано",
+    workout: "Тренування завершено",
+    pr: "Особистий рекорд",
+    bodyUpdate: "Оновлення вимірів",
+    streak: "Серія 7 днів",
+    levelUp: "Новий рівень!",
+    newLevel: "Ви досягли рівня",
   },
 
   proBenefits: {
