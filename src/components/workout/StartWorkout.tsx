@@ -472,7 +472,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         const { error: uErr } = await supabase.from("workouts").update({
           finished_at: new Date().toISOString(),
           duration_seconds: elapsed,
-        } as any).eq("id", workout.id);
+        } as any).eq("id", workoutId);
         if (uErr) throw uErr;
 
         clearPersistedData();
