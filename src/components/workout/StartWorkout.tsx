@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useFitnessStats, getPRXP } from "@/hooks/useFitnessStats";
 import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
