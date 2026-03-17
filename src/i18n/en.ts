@@ -168,6 +168,7 @@ export const en = {
     customSec: "Custom (sec)",
     start: "Start",
     done: "Done!",
+    timeToStartSet: "⏱ Time to start your set!",
     exercises: "exercises",
     noWorkoutsYet: "No workouts logged yet.",
     logSameExercise: "Log the same exercise across 2+ workouts to see progress charts.",
