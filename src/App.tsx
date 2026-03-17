@@ -28,11 +28,12 @@ import Pricing from "@/pages/Pricing";
 import WelcomePro from "@/pages/WelcomePro";
 import Contact from "@/pages/Contact";
 import Index from "@/pages/Index";
+import Onboarding from "@/pages/Onboarding";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, profile } = useAuth();
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -41,7 +42,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
   if (!user) return <Navigate to="/landing" replace />;
+  if (user && profile && !profile.onboarding_completed) return <Navigate to="/onboarding" replace />;
   return <AppLayout>{children}</AppLayout>;
+};
+
+const OnboardingRoute = () => {
+  const { user, loading, profile } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/landing" replace />;
+  if (profile?.onboarding_completed) return <Navigate to="/" replace />;
+  return <Onboarding />;
 };
 
 const AuthRoute = () => {
@@ -71,6 +81,7 @@ const App = () => (
               <PremiumProvider>
               <Routes>
                 <Route path="/landing" element={<LandingRoute />} />
+                <Route path="/onboarding" element={<OnboardingRoute />} />
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/add-entry" element={<ProtectedRoute><AddEntry /></ProtectedRoute>} />

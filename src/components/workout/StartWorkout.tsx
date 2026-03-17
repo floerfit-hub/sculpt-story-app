@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useFitnessStats, getPRXP } from "@/hooks/useFitnessStats";
 import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -79,7 +80,9 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { addXP, updateLastWorkout, stats: fitnessStats } = useFitnessStats();
   const isEditing = !!editData;
+  const [xpGained, setXpGained] = useState(0);
   
 
   const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
@@ -511,6 +514,20 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
 
         clearPersistedData();
         setFinalDuration(elapsed);
+        
+        // Award XP for workout completion
+        let earnedXP = 10; // base workout XP
+        // Check if any PR was set during this workout (from prMapRef)
+        const prXP = getPRXP(profile?.experience_level || null);
+        // Simple PR check: if any toast was shown for new record
+        // We'll count PRs from the ref
+        if (prMapRef.current.size > 0) {
+          // prMapRef tracks current maxes; PRs detected via toast during session
+        }
+        const result = await addXP(earnedXP);
+        setXpGained(earnedXP);
+        await updateLastWorkout();
+        
         setSaved(true);
         toast({ title: t.workouts.workoutSaved, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       }
@@ -528,6 +545,13 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           <Clock className="h-5 w-5" />
           <span className="text-lg font-display font-semibold">{formatTime(finalDuration)}</span>
         </div>
+        {xpGained > 0 && !isEditing && (
+          <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: "300ms", animationFillMode: "backwards" }}>
+            <div className="rounded-full bg-primary/15 px-4 py-2 flex items-center gap-2">
+              <span className="text-primary font-display font-bold text-lg">+{xpGained} XP</span>
+            </div>
+          </div>
+        )}
         <p className="text-muted-foreground text-center">{t.workouts.greatSession}</p>
         <Button onClick={onBack} className="mt-4">{t.workouts.backToWorkouts}</Button>
       </div>

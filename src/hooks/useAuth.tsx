@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   isCoach: boolean;
   isAdmin: boolean;
-  profile: { full_name: string | null; weight_unit: string } | null;
+  profile: { full_name: string | null; weight_unit: string; onboarding_completed?: boolean; primary_goal?: string | null; training_frequency?: number | null; experience_level?: string | null } | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isCoach, setIsCoach] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [profile, setProfile] = useState<{ full_name: string | null; weight_unit: string } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string | null; weight_unit: string; onboarding_completed?: boolean; primary_goal?: string | null; training_frequency?: number | null; experience_level?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             const { data: prof } = await supabase
               .from("profiles")
-              .select("full_name, weight_unit")
+              .select("full_name, weight_unit, onboarding_completed, primary_goal, training_frequency, experience_level")
               .eq("user_id", session.user.id)
               .single();
             setProfile(prof);

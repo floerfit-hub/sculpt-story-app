@@ -519,6 +519,65 @@ export const en = {
     insightStrengthUp: "💪 Strength in your exercises has increased recently.",
     insightCoreNeglect: "⚠️ You haven't trained your core in the last 30 days. Add some core work!",
     insightKeepGoing: "🚀 Keep logging your workouts and progress to unlock personalized insights!",
+    analyzing: "Analyzing...",
+  },
+
+  // Onboarding
+  onboarding: {
+    goalTitle: "What's your main goal?",
+    goalSubtitle: "We'll tailor your experience",
+    goals: {
+      muscle_gain: "Build Muscle",
+      fat_loss: "Lose Fat",
+      strength: "Increase Strength",
+      maintenance: "Maintain Fitness",
+      endurance: "Improve Endurance",
+    },
+    frequencyTitle: "How often do you train?",
+    frequencySubtitle: "Workouts per week",
+    levelTitle: "Your experience level?",
+    levelSubtitle: "This helps us calibrate your goals",
+    levels: {
+      beginner: "Beginner",
+      intermediate: "Intermediate",
+      advanced: "Advanced",
+    },
+    levelDescs: {
+      beginner: "Less than 1 year of consistent training",
+      intermediate: "1–3 years of regular training",
+      advanced: "3+ years of serious training",
+    },
+    styleTitle: "Preferred training style?",
+    styleSubtitle: "Where do you usually work out?",
+    styles: {
+      gym: "Gym",
+      bodyweight: "Bodyweight",
+      mixed: "Mixed",
+    },
+    priorityTitle: "What matters most?",
+    prioritySubtitle: "Your scoring priority focus",
+    priorities: {
+      strength: "Strength Progress",
+      composition: "Body Composition",
+      consistency: "Consistency",
+      balance: "Muscle Balance",
+    },
+    back: "Back",
+    next: "Next",
+    finish: "Let's Go!",
+    saving: "Saving...",
+    skip: "Skip for now",
+  },
+
+  // XP
+  xp: {
+    gained: "XP Earned",
+    workout: "Workout completed",
+    pr: "Personal Record",
+    bodyUpdate: "Body update",
+    streak: "7-day streak",
+    levelUp: "Level Up!",
+    newLevel: "You reached level",
   },
 
   // Pro Benefits
