@@ -264,6 +264,22 @@ const Profile = () => {
         </CardContent>
       </Card>
 
+      {/* Check for updates */}
+      <Card
+        className="cursor-pointer transition-all hover:border-primary/40 active:scale-[0.98]"
+        onClick={checkingUpdate ? undefined : handleCheckUpdate}
+      >
+        <CardContent className="p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
+            <RefreshCw className={`h-5 w-5 text-primary ${checkingUpdate ? "animate-spin" : ""}`} />
+          </div>
+          <div className="flex-1">
+            <p className="font-display font-semibold text-sm">{t.profile.checkForUpdates}</p>
+            <p className="text-xs text-muted-foreground">{checkingUpdate ? t.profile.checking : t.profile.checkForUpdatesDesc}</p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Support */}
       <Card>
         <CardHeader>
