@@ -430,10 +430,19 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       } else {
         const startedAt = new Date(startTime || Date.now()).toISOString();
-        const { data: workout, error: wErr } = await supabase.from("workouts")
-          .insert({ user_id: user.id, started_at: startedAt })
-          .select("id").single();
-        if (wErr || !workout) throw wErr;
+        let workoutId = autoSaveIdRef.current;
+
+        if (workoutId) {
+          // Reuse existing autosaved workout – delete old sets
+          await (supabase as any).from("workout_sets").delete().eq("workout_id", workoutId);
+          await supabase.from("workouts").update({ started_at: startedAt } as any).eq("id", workoutId);
+        } else {
+          const { data: workout, error: wErr } = await supabase.from("workouts")
+            .insert({ user_id: user.id, started_at: startedAt })
+            .select("id").single();
+          if (wErr || !workout) throw wErr;
+          workoutId = workout.id;
+        }
 
         const setsRows: any[] = [];
         exercises.forEach((ex, exIdx) => {
@@ -443,7 +452,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
             .filter((s) => s.weight !== "" || s.reps !== "")
             .forEach((s, setIdx) => {
               setsRows.push({
-                workout_id: workout.id,
+                workout_id: workoutId,
                 exercise_id: exerciseId,
                 set_number: setIdx + 1,
                 weight: Number(s.weight) || 0,
