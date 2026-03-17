@@ -191,6 +191,10 @@ export const en = {
     deleteWorkout: "Delete Workout",
     deleteWorkoutConfirm: "Are you sure you want to delete this workout? This cannot be undone.",
     workoutDeleted: "Workout deleted",
+    editExercise: "Edit",
+    editCustomExercise: "Edit Exercise",
+    saveExercise: "Save",
+    exerciseUpdated: "Exercise updated!",
   },
 
   // Muscle groups (6 unified)

@@ -187,6 +187,10 @@ export const uk: Translations = {
     deleteWorkout: "Видалити тренування",
     deleteWorkoutConfirm: "Ви впевнені, що хочете видалити це тренування? Цю дію не можна скасувати.",
     workoutDeleted: "Тренування видалено",
+    editExercise: "Редагувати",
+    editCustomExercise: "Редагувати вправу",
+    saveExercise: "Зберегти",
+    exerciseUpdated: "Вправу оновлено!",
   },
 
   muscleGroups: {
