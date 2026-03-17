@@ -205,9 +205,10 @@ const Dashboard = () => {
   const fitnessScores = useMemo(() => {
     const thirtyDaysAgo = subDays(new Date(), 30);
     const recentWorkouts = workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).length;
-    const workoutsPerWeek = (recentWorkouts / 30) * 7;
-    const trainingConsistency = Math.min(100, Math.round((workoutsPerWeek / 4) * 100));
+    const planned = (profileGoals?.training_frequency || 4) * 4;
+    const trainingConsistency = Math.min(100, Math.round((recentWorkouts / planned) * 100));
 
+    // Strength Progress: count PRs based on experience level
     let strengthProgress = 50;
     const sortedW = [...workouts].sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime());
     const wOrder = new Map(sortedW.map((w, i) => [w.id, i]));
@@ -218,41 +219,55 @@ const Dashboard = () => {
         const ex = exerciseMap.get(p.exercise_id);
         if (ex) {
           if (!exerciseHistory[ex.name]) exerciseHistory[ex.name] = [];
-          exerciseHistory[ex.name].push(Number(p.max_weight));
+          exerciseHistory[ex.name].push(Number(p.estimated_1rm));
         }
       });
-    const improvements = Object.values(exerciseHistory).filter((weights) => {
-      if (weights.length < 2) return false;
-      return weights[weights.length - 1] > weights[0];
-    }).length;
-    const totalExercises = Object.keys(exerciseHistory).length;
-    if (totalExercises > 0) strengthProgress = Math.min(100, Math.round((improvements / totalExercises) * 100));
+    
+    // Count PRs (new 1RM highs) in last 30 days
+    let prCount = 0;
+    Object.values(exerciseHistory).forEach((history) => {
+      if (history.length < 2) return;
+      let maxSoFar = history[0];
+      for (let i = 1; i < history.length; i++) {
+        if (history[i] > maxSoFar) { prCount++; maxSoFar = history[i]; }
+      }
+    });
+    
+    const expLevel = profileGoals?.experience_level || "beginner";
+    const prThreshold = expLevel === "advanced" ? 1 : expLevel === "intermediate" ? 3 : 5;
+    strengthProgress = Math.min(100, Math.round((prCount / prThreshold) * 100));
 
+    // Muscle Balance: trained groups / 8
+    const trainedGroups = Object.keys(muscleData).length;
+    const muscleBalance = Math.min(100, Math.round((trainedGroups / 8) * 100));
+
+    // Body/Measurements score based on recency
     let bodyProgress = 50;
-    if (entries.length >= 2) {
-      const first = entries[0];
-      const last = entries[entries.length - 1];
-      let positiveChanges = 0;
-      let totalMeasured = 0;
-      if (last.waist != null && first.waist != null) { totalMeasured++; if (last.waist <= first.waist) positiveChanges++; }
-      if (last.body_fat != null && first.body_fat != null) { totalMeasured++; if (last.body_fat <= first.body_fat) positiveChanges++; }
-      if (last.arm_circumference != null && first.arm_circumference != null) { totalMeasured++; if (last.arm_circumference >= first.arm_circumference) positiveChanges++; }
-      if (last.chest != null && first.chest != null) { totalMeasured++; if (last.chest >= first.chest) positiveChanges++; }
-      if (totalMeasured > 0) bodyProgress = Math.round((positiveChanges / totalMeasured) * 100);
+    if (entries.length > 0) {
+      const lastEntry = entries[entries.length - 1];
+      const daysSince = differenceInDays(new Date(), new Date(lastEntry.entry_date));
+      if (daysSince < 7) bodyProgress = 100;
+      else if (daysSince < 14) bodyProgress = 70;
+      else if (daysSince < 30) bodyProgress = 40;
+      else bodyProgress = 10;
     }
 
-    const groupCounts = Object.values(muscleData);
-    let muscleBalance = 50;
-    if (groupCounts.length >= 2) {
-      const max = Math.max(...groupCounts);
-      const min = Math.min(...groupCounts);
-      if (max > 0) muscleBalance = Math.round((min / max) * 100);
-    } else if (groupCounts.length === 1) {
-      muscleBalance = 30;
+    // Calculate weighted overall score based on goal
+    const weights = getWeights(profileGoals?.primary_goal || null);
+    const overall = Math.round(
+      trainingConsistency * weights.consistency +
+      strengthProgress * weights.strength +
+      muscleBalance * weights.balance +
+      bodyProgress * weights.measurements
+    );
+
+    // Persist score
+    if (fitnessStatsData && !coldStart && overall !== fitnessStatsData.fit_score) {
+      updateFitScore(overall);
     }
 
-    return { trainingConsistency, strengthProgress, bodyProgress, muscleBalance };
-  }, [workouts, perfData, exerciseMap, entries, muscleData]);
+    return { trainingConsistency, strengthProgress, bodyProgress, muscleBalance, overall };
+  }, [workouts, perfData, exerciseMap, entries, muscleData, profileGoals, fitnessStatsData, coldStart, updateFitScore, getWeights]);
 
   // Ensure all panel IDs are in order (handle new panels added after user saved config)
   const orderedPanels = useMemo(() => {
