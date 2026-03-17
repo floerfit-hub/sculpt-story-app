@@ -576,7 +576,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
               <Textarea placeholder={t.workouts.notesTip} value={ex.notes} onChange={(e) => updateNotes(exIdx, e.target.value)} className="min-h-[60px] text-sm" />
 
               {/* Auto rest timer inside last exercise card */}
-              {exIdx === 0 && autoRestSeconds !== null && autoRestSeconds > 0 && !isEditing && (
+              {exIdx === 0 && autoRestSeconds !== null && autoRestSeconds > 0 && (
                 <div className="flex items-center justify-center gap-2 rounded-xl bg-accent/50 border border-border/50 px-3 py-2">
                   <Timer className="h-4 w-4 text-primary animate-pulse" />
                   <span className="text-sm font-display font-semibold tabular-nums">

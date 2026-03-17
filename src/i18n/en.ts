@@ -168,6 +168,7 @@ export const en = {
     customSec: "Custom (sec)",
     start: "Start",
     done: "Done!",
+    timeToStartSet: "⏱ Time to start your set!",
     exercises: "exercises",
     noWorkoutsYet: "No workouts logged yet.",
     logSameExercise: "Log the same exercise across 2+ workouts to see progress charts.",
@@ -425,6 +426,11 @@ export const en = {
     support: "Support",
     supportDesc: "Need help? Contact us",
     supportEmail: "support@fittrack.app",
+    checkForUpdates: "Check for Updates",
+    checkForUpdatesDesc: "Check for new app versions",
+    checking: "Checking...",
+    noUpdates: "You're on the latest version",
+    updateFound: "Update found! Updating...",
   },
 
   // Charts

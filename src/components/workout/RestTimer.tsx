@@ -13,12 +13,41 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
   const [running, setRunning] = useState(false);
   const [customInput, setCustomInput] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const playBeep = () => {
+    try {
+      const ctx = audioCtxRef.current || new AudioContext();
+      audioCtxRef.current = ctx;
+      const playTone = (freq: number, start: number, dur: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = "sine";
+        gain.gain.setValueAtTime(0.5, ctx.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + dur);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + dur);
+      };
+      playTone(880, 0, 0.15);
+      playTone(880, 0.2, 0.15);
+      playTone(1320, 0.4, 0.3);
+    } catch { /* audio not available */ }
+  };
 
   useEffect(() => {
     if (!running || remaining <= 0) return;
     intervalRef.current = setInterval(() => {
       setRemaining((r) => {
-        if (r <= 1) { clearInterval(intervalRef.current); setRunning(false); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); return 0; }
+        if (r <= 1) {
+          clearInterval(intervalRef.current);
+          setRunning(false);
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          playBeep();
+          return 0;
+        }
         return r - 1;
       });
     }, 1000);
@@ -46,10 +75,13 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
                 <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
                 <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--primary))" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 58}`} strokeDashoffset={`${2 * Math.PI * 58 * (1 - pct / 100)}`} className="transition-all duration-1000" />
               </svg>
-              <span className="text-3xl font-display font-bold">{remaining === 0 ? t.workouts.done : formatTime(remaining)}</span>
+              <span className="text-3xl font-display font-bold">{remaining === 0 ? "🔔" : formatTime(remaining)}</span>
             </div>
             {remaining === 0 ? (
-              <Button className="w-full" onClick={onClose}>{t.workouts.continueWorkout}</Button>
+              <div className="space-y-2 w-full">
+                <p className="text-center font-display font-semibold text-primary">{t.workouts.timeToStartSet}</p>
+                <Button className="w-full" onClick={onClose}>{t.workouts.continueWorkout}</Button>
+              </div>
             ) : (
               <Button variant="outline" className="w-full" onClick={() => { clearInterval(intervalRef.current); setRunning(false); setSeconds(null); }}>{t.workouts.cancel}</Button>
             )}

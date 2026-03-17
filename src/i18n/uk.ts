@@ -164,6 +164,7 @@ export const uk: Translations = {
     customSec: "Свій час (сек)",
     start: "Старт",
     done: "Готово!",
+    timeToStartSet: "⏱ Час починати підхід!",
     exercises: "вправ",
     noWorkoutsYet: "Тренувань ще немає.",
     logSameExercise: "Запишіть одну вправу 2+ разів, щоб побачити графіки прогресу.",
@@ -413,6 +414,11 @@ export const uk: Translations = {
     support: "Підтримка",
     supportDesc: "Потрібна допомога? Зв'яжіться з нами",
     supportEmail: "support@fittrack.app",
+    checkForUpdates: "Перевірити оновлення",
+    checkForUpdatesDesc: "Перевірте наявність нових версій додатку",
+    checking: "Перевірка...",
+    noUpdates: "У вас найновіша версія",
+    updateFound: "Знайдено оновлення! Оновлюємо...",
   },
 
   charts: {

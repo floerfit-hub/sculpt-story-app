@@ -11,8 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Weight, LayoutDashboard } from "lucide-react";
+import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Weight, LayoutDashboard, RefreshCw } from "lucide-react";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
+import { useRegisterSW } from "virtual:pwa-register/react";
 
 const LANGUAGES: { code: Language; label: string }[] = [
   { code: "en", label: "English" },
@@ -46,6 +47,36 @@ const Profile = () => {
   const [isStandalone] = useState(window.matchMedia("(display-mode: standalone)").matches);
   const [isIOS] = useState(/iPad|iPhone|iPod/.test(navigator.userAgent));
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegisteredSW(_swUrl, _registration) {},
+    onRegisterError() {},
+  });
+
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    try {
+      const registrations = await navigator.serviceWorker?.getRegistrations();
+      if (registrations?.length) {
+        await Promise.all(registrations.map(r => r.update()));
+      }
+      // Give SW time to detect update
+      await new Promise(r => setTimeout(r, 2000));
+      if (needRefresh) {
+        toast({ title: t.profile.updateFound });
+        updateServiceWorker(true);
+      } else {
+        toast({ title: t.profile.noUpdates });
+      }
+    } catch {
+      toast({ title: t.profile.noUpdates });
+    }
+    setCheckingUpdate(false);
+  };
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -230,6 +261,22 @@ const Profile = () => {
               </Badge>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Check for updates */}
+      <Card
+        className="cursor-pointer transition-all hover:border-primary/40 active:scale-[0.98]"
+        onClick={checkingUpdate ? undefined : handleCheckUpdate}
+      >
+        <CardContent className="p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
+            <RefreshCw className={`h-5 w-5 text-primary ${checkingUpdate ? "animate-spin" : ""}`} />
+          </div>
+          <div className="flex-1">
+            <p className="font-display font-semibold text-sm">{t.profile.checkForUpdates}</p>
+            <p className="text-xs text-muted-foreground">{checkingUpdate ? t.profile.checking : t.profile.checkForUpdatesDesc}</p>
+          </div>
         </CardContent>
       </Card>
 
