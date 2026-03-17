@@ -514,6 +514,20 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
 
         clearPersistedData();
         setFinalDuration(elapsed);
+        
+        // Award XP for workout completion
+        let earnedXP = 10; // base workout XP
+        // Check if any PR was set during this workout (from prMapRef)
+        const prXP = getPRXP(profile?.experience_level || null);
+        // Simple PR check: if any toast was shown for new record
+        // We'll count PRs from the ref
+        if (prMapRef.current.size > 0) {
+          // prMapRef tracks current maxes; PRs detected via toast during session
+        }
+        const result = await addXP(earnedXP);
+        setXpGained(earnedXP);
+        await updateLastWorkout();
+        
         setSaved(true);
         toast({ title: t.workouts.workoutSaved, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       }
