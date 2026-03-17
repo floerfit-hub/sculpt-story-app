@@ -190,6 +190,8 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     sessionStorage.removeItem("workout-in-progress");
     sessionStorage.removeItem("workout-view");
     sessionStorage.removeItem("workout-start-time");
+    sessionStorage.removeItem("workout-autosave-id");
+    autoSaveIdRef.current = null;
   }, []);
 
   // Keep refs in sync for auto-save on app exit
