@@ -290,6 +290,8 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
       c[idx] = { ...c[idx], sets: [...c[idx].sets, { weight: "", reps: "", rest_time: restTime }] };
       return c;
     });
+    lastSetTimeRef.current = Date.now();
+    setAutoRestSeconds(0);
   };
 
   const copySet = (idx: number) => {
@@ -302,6 +304,8 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
       c[idx] = { ...c[idx], sets: [...c[idx].sets, { weight: lastSet.weight, reps: lastSet.reps, rest_time: restTime }] };
       return c;
     });
+    lastSetTimeRef.current = Date.now();
+    setAutoRestSeconds(0);
   };
 
   const removeExercise = (idx: number) => setExercises((prev) => prev.filter((_, i) => i !== idx));
