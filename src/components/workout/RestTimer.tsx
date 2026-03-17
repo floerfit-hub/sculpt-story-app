@@ -75,7 +75,7 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
                 <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
                 <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--primary))" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 58}`} strokeDashoffset={`${2 * Math.PI * 58 * (1 - pct / 100)}`} className="transition-all duration-1000" />
               </svg>
-              <span className="text-3xl font-display font-bold">{remaining === 0 ? t.workouts.done : formatTime(remaining)}</span>
+              <span className="text-3xl font-display font-bold">{remaining === 0 ? "🔔" : formatTime(remaining)}</span>
             </div>
             {remaining === 0 ? (
               <Button className="w-full" onClick={onClose}>{t.workouts.continueWorkout}</Button>
