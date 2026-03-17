@@ -26,8 +26,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 glass-strong">
-        <div className="max-w-5xl mx-auto flex h-16 items-center justify-between px-5">
+      <header className="sticky top-0 z-50 glass-strong" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        <div className="max-w-5xl mx-auto flex h-14 items-center justify-between px-5">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-primary glow-primary">
               <Dumbbell className="h-4 w-4 text-primary-foreground" />
@@ -46,7 +46,7 @@ const Index = () => {
       </header>
 
       {/* Hero */}
-      <section className="max-w-5xl mx-auto px-5 pt-16 pb-20 text-center space-y-6">
+      <section className="max-w-5xl mx-auto px-5 pt-8 pb-16 text-center space-y-5">
         <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary">
           <Zap className="h-3 w-3" /> Відстеження тренувань та аналітика м'язів SaaS
         </div>
