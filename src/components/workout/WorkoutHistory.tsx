@@ -224,9 +224,10 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
               </div>
               {expanded && (
                 <div className="space-y-3 pt-2 border-t">
-                  {w.exercises.map((ex) => (
+                  {w.exercises.map((ex, exIdx) => (
                     <div key={ex.exercise_id} className="space-y-1">
                       <p className="font-medium text-sm">
+                        <span className="text-muted-foreground mr-1">{exIdx + 1}.</span>
                         {t.exerciseNames[ex.exercise_name] || ex.exercise_name}{" "}
                         <span className="text-muted-foreground text-xs">({MUSCLE_GROUP_UK[ex.muscle_group] || ex.muscle_group})</span>
                       </p>
