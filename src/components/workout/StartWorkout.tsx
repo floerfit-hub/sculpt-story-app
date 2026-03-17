@@ -320,6 +320,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const addExercise = (name: string, group: string) => {
     setExercises((prev) => [{ name, muscleGroup: group, sets: [{ weight: "", reps: "", rest_time: null }], notes: "" }, ...prev]);
     setShowLibrary(false);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   };
 
   const addSet = (idx: number) => {
@@ -454,7 +455,11 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         if (wErr) throw wErr;
 
         clearPersistedData();
-        setFinalDuration(elapsed);
+        // Show original workout duration, not editing session time
+        const originalDuration = editData.finished_at && editData.started_at
+          ? Math.floor((new Date(editData.finished_at).getTime() - new Date(editData.started_at).getTime()) / 1000)
+          : 0;
+        setFinalDuration(originalDuration);
         setSaved(true);
         toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       } else {
