@@ -181,7 +181,9 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   };
 
   useEffect(() => {
-    if (!isEditing) {
+    if (isEditing) {
+      sessionStorage.setItem("workout-edit-in-progress", JSON.stringify(exercises));
+    } else {
       sessionStorage.setItem("workout-in-progress", JSON.stringify(exercises));
     }
   }, [exercises, isEditing]);
