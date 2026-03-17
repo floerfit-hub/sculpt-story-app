@@ -144,6 +144,8 @@ const AddEntry = () => {
     } else {
       setSavedEntry(entryData);
       setShowComparison(true);
+      // Award +5 XP for body measurements update
+      await addXP(5, 'body_update');
       const msg = t.motivation[Math.floor(Math.random() * t.motivation.length)];
       toast({ title: t.addEntry.progressLogged, description: msg });
     }
