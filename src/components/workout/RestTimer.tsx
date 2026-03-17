@@ -3,7 +3,8 @@ import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Timer, X } from "lucide-react";
 
-const PRESETS = [30, 60, 90, 120];
+const PRESETS = [30, 60, 120, 180];
+const PRESET_LABELS: Record<number, string> = { 30: "0:30", 60: "1:00", 120: "2:00", 180: "3:00" };
 
 const RestTimer = ({ onClose }: { onClose: () => void }) => {
   const { t } = useTranslation();
@@ -57,7 +58,7 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {PRESETS.map((p) => (
-                <Button key={p} variant="outline" className="h-14 text-lg font-display" onClick={() => start(p)}>{formatTime(p)}</Button>
+                <Button key={p} variant="outline" className="h-14 text-lg font-display" onClick={() => start(p)}>{PRESET_LABELS[p] || formatTime(p)}</Button>
               ))}
             </div>
             <div className="flex gap-2">
