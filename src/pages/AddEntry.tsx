@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useFitnessStats } from "@/hooks/useFitnessStats";
 import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ const CHECKIN_INTERVAL = 14;
 
 const AddEntry = () => {
   const { user } = useAuth();
+  const { addXP } = useFitnessStats();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -142,6 +144,8 @@ const AddEntry = () => {
     } else {
       setSavedEntry(entryData);
       setShowComparison(true);
+      // Award +5 XP for body measurements update
+      await addXP(5, 'body_update');
       const msg = t.motivation[Math.floor(Math.random() * t.motivation.length)];
       toast({ title: t.addEntry.progressLogged, description: msg });
     }

@@ -80,7 +80,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { addXP, updateLastWorkout, stats: fitnessStats } = useFitnessStats();
+  const { addXP, updateLastWorkout, checkAndAwardStreak, stats: fitnessStats } = useFitnessStats();
   const isEditing = !!editData;
   const [xpGained, setXpGained] = useState(0);
   
@@ -110,6 +110,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [finalDuration, setFinalDuration] = useState<number>(0);
   const [showRestTooltip, setShowRestTooltip] = useState(false);
   const prMapRef = useRef<Map<string, number>>(new Map());
+  const prCountRef = useRef(0); // count PRs detected during this session
 
   // Load existing PRs for confetti detection
   useEffect(() => {
@@ -378,6 +379,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
             const currentPR = prMapRef.current.get(exId) || 0;
             if (weight > currentPR && currentPR > 0) {
               prMapRef.current.set(exId, weight);
+              prCountRef.current += 1;
               confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
               toast({ title: t.pr.newRecord, description: `${t.exerciseNames[exName] || exName}: ${weight} ${t.common.kg}` });
             }
@@ -517,14 +519,22 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         
         // Award XP for workout completion
         let earnedXP = 10; // base workout XP
-        // Check if any PR was set during this workout (from prMapRef)
-        const prXP = getPRXP(profile?.experience_level || null);
-        // Simple PR check: if any toast was shown for new record
-        // We'll count PRs from the ref
-        if (prMapRef.current.size > 0) {
-          // prMapRef tracks current maxes; PRs detected via toast during session
+        
+        // Award PR XP
+        const sessionPRs = prCountRef.current;
+        if (sessionPRs > 0) {
+          const prXP = getPRXP(profile?.experience_level || null);
+          earnedXP += sessionPRs * prXP;
+          console.log(`[XP] PRs detected: ${sessionPRs} × ${prXP} = +${sessionPRs * prXP} XP`);
         }
-        const result = await addXP(earnedXP);
+        
+        // Check streak and award bonus
+        const streakXP = await checkAndAwardStreak();
+        if (streakXP > 0) earnedXP += streakXP;
+        
+        console.log(`[XP] Workout complete: base=10, PR=${sessionPRs > 0 ? sessionPRs * getPRXP(profile?.experience_level || null) : 0}, streak=${streakXP}, total=${earnedXP}`);
+        
+        await addXP(earnedXP, 'workout_complete');
         setXpGained(earnedXP);
         await updateLastWorkout();
         
