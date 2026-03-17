@@ -80,7 +80,9 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { addXP, updateLastWorkout, stats: fitnessStats } = useFitnessStats();
   const isEditing = !!editData;
+  const [xpGained, setXpGained] = useState(0);
   
 
   const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
