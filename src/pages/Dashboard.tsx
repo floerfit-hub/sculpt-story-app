@@ -22,6 +22,7 @@ import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
 import NutritionSummary from "@/components/dashboard/NutritionSummary";
 import SmartInsights from "@/components/dashboard/SmartInsights";
 import PremiumGate from "@/components/subscription/PremiumGate";
+import { useFitnessStats } from "@/hooks/useFitnessStats";
 
 type ProgressEntry = Tables<"progress_entries">;
 const CHECKIN_INTERVAL = 14;
