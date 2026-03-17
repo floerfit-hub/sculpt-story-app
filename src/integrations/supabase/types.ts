@@ -116,6 +116,48 @@ export type Database = {
         }
         Relationships: []
       }
+      fitness_stats: {
+        Row: {
+          created_at: string
+          fit_score: number
+          fit_score_previous: number
+          id: string
+          last_streak_check: string | null
+          last_workout_at: string | null
+          level: number
+          streak_days: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fit_score?: number
+          fit_score_previous?: number
+          id?: string
+          last_streak_check?: string | null
+          last_workout_at?: string | null
+          level?: number
+          streak_days?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fit_score?: number
+          fit_score_previous?: number
+          id?: string
+          last_streak_check?: string | null
+          last_workout_at?: string | null
+          level?: number
+          streak_days?: number
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       muscle_recovery: {
         Row: {
           created_at: string
@@ -153,12 +195,18 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          experience_level: string | null
           full_name: string | null
           id: string
           language: string | null
           leaderboard_visible: boolean
+          onboarding_completed: boolean
+          preferred_style: string | null
           prep_buffer_seconds: number | null
+          primary_goal: string | null
+          priority_focus: string | null
           theme: string | null
+          training_frequency: number | null
           updated_at: string
           user_id: string
           weight_unit: string
@@ -166,12 +214,18 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          experience_level?: string | null
           full_name?: string | null
           id?: string
           language?: string | null
           leaderboard_visible?: boolean
+          onboarding_completed?: boolean
+          preferred_style?: string | null
           prep_buffer_seconds?: number | null
+          primary_goal?: string | null
+          priority_focus?: string | null
           theme?: string | null
+          training_frequency?: number | null
           updated_at?: string
           user_id: string
           weight_unit?: string
@@ -179,12 +233,18 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          experience_level?: string | null
           full_name?: string | null
           id?: string
           language?: string | null
           leaderboard_visible?: boolean
+          onboarding_completed?: boolean
+          preferred_style?: string | null
           prep_buffer_seconds?: number | null
+          primary_goal?: string | null
+          priority_focus?: string | null
           theme?: string | null
+          training_frequency?: number | null
           updated_at?: string
           user_id?: string
           weight_unit?: string
