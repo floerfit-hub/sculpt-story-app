@@ -190,6 +190,8 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     sessionStorage.removeItem("workout-in-progress");
     sessionStorage.removeItem("workout-view");
     sessionStorage.removeItem("workout-start-time");
+    sessionStorage.removeItem("workout-autosave-id");
+    autoSaveIdRef.current = null;
   }, []);
 
   // Keep refs in sync for auto-save on app exit
@@ -201,6 +203,11 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   savingRef.current = saving;
   const startTimeRef = useRef(startTime);
   startTimeRef.current = startTime;
+
+  // Track auto-saved workout ID to avoid duplicates
+  const autoSaveIdRef = useRef<string | null>(
+    sessionStorage.getItem("workout-autosave-id")
+  );
 
   // Auto-save workout when user leaves the app (tab hidden / close)
   useEffect(() => {
@@ -222,10 +229,21 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         const startedAt = new Date(startTimeRef.current || Date.now()).toISOString();
         const elapsedNow = startTimeRef.current ? Math.floor((Date.now() - startTimeRef.current) / 1000) : 0;
 
-        const { data: workout, error: wErr } = await supabase.from("workouts")
-          .insert({ user_id: user.id, started_at: startedAt })
-          .select("id").single();
-        if (wErr || !workout) return;
+        let workoutId = autoSaveIdRef.current;
+
+        if (workoutId) {
+          // Delete old sets for existing autosaved workout
+          await (supabase as any).from("workout_sets").delete().eq("workout_id", workoutId);
+        } else {
+          // Create new workout record
+          const { data: workout, error: wErr } = await supabase.from("workouts")
+            .insert({ user_id: user.id, started_at: startedAt })
+            .select("id").single();
+          if (wErr || !workout) return;
+          workoutId = workout.id;
+          autoSaveIdRef.current = workoutId;
+          sessionStorage.setItem("workout-autosave-id", workoutId);
+        }
 
         const setsRows: any[] = [];
         currentExercises.forEach((ex, exIdx) => {
@@ -235,7 +253,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
             .filter((s) => s.weight !== "" || s.reps !== "")
             .forEach((s, setIdx) => {
               setsRows.push({
-                workout_id: workout.id,
+                workout_id: workoutId,
                 exercise_id: exerciseId,
                 set_number: setIdx + 1,
                 weight: Number(s.weight) || 0,
@@ -254,12 +272,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         await supabase.from("workouts").update({
           finished_at: new Date().toISOString(),
           duration_seconds: elapsedNow,
-        } as any).eq("id", workout.id);
-
-        // Clear persisted data so it doesn't double-save
-        sessionStorage.removeItem("workout-in-progress");
-        sessionStorage.removeItem("workout-view");
-        sessionStorage.removeItem("workout-start-time");
+        } as any).eq("id", workoutId);
       } catch {
         // Silent fail – data is still in sessionStorage for recovery
       }
@@ -417,10 +430,19 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       } else {
         const startedAt = new Date(startTime || Date.now()).toISOString();
-        const { data: workout, error: wErr } = await supabase.from("workouts")
-          .insert({ user_id: user.id, started_at: startedAt })
-          .select("id").single();
-        if (wErr || !workout) throw wErr;
+        let workoutId = autoSaveIdRef.current;
+
+        if (workoutId) {
+          // Reuse existing autosaved workout – delete old sets
+          await (supabase as any).from("workout_sets").delete().eq("workout_id", workoutId);
+          await supabase.from("workouts").update({ started_at: startedAt } as any).eq("id", workoutId);
+        } else {
+          const { data: workout, error: wErr } = await supabase.from("workouts")
+            .insert({ user_id: user.id, started_at: startedAt })
+            .select("id").single();
+          if (wErr || !workout) throw wErr;
+          workoutId = workout.id;
+        }
 
         const setsRows: any[] = [];
         exercises.forEach((ex, exIdx) => {
@@ -430,7 +452,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
             .filter((s) => s.weight !== "" || s.reps !== "")
             .forEach((s, setIdx) => {
               setsRows.push({
-                workout_id: workout.id,
+                workout_id: workoutId,
                 exercise_id: exerciseId,
                 set_number: setIdx + 1,
                 weight: Number(s.weight) || 0,
@@ -450,7 +472,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         const { error: uErr } = await supabase.from("workouts").update({
           finished_at: new Date().toISOString(),
           duration_seconds: elapsed,
-        } as any).eq("id", workout.id);
+        } as any).eq("id", workoutId);
         if (uErr) throw uErr;
 
         clearPersistedData();
