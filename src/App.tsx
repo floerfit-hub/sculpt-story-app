@@ -33,7 +33,7 @@ import Onboarding from "@/pages/Onboarding";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, profile } = useAuth();
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -42,7 +42,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
   if (!user) return <Navigate to="/landing" replace />;
+  if (user && profile && !profile.onboarding_completed) return <Navigate to="/onboarding" replace />;
   return <AppLayout>{children}</AppLayout>;
+};
+
+const OnboardingRoute = () => {
+  const { user, loading, profile } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/landing" replace />;
+  if (profile?.onboarding_completed) return <Navigate to="/" replace />;
+  return <Onboarding />;
 };
 
 const AuthRoute = () => {
