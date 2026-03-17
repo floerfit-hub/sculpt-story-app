@@ -499,26 +499,15 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           </div>
         </div>
 
-        {/* Add exercise button at top */}
-        <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}><Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}</Button>
-
-        {/* Auto rest timer indicator */}
-        {autoRestSeconds !== null && autoRestSeconds > 0 && !isEditing && (
-          <div className="flex items-center justify-center gap-2 rounded-xl bg-accent/50 border border-border/50 px-4 py-2.5">
-            <Timer className="h-4 w-4 text-primary animate-pulse" />
-            <span className="text-sm font-display font-semibold tabular-nums">
-              {t.workouts.restTimer}: {formatTime(autoRestSeconds)}
-            </span>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[220px]">
-                <p className="text-xs">{t.recovery.restTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
+        {/* Finish button at top */}
+        {exercises.length > 0 && (
+          <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
+            <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.updatingDots : isEditing ? t.workouts.updateWorkout : t.workouts.finishSave}
+          </Button>
         )}
+
+        {/* Add exercise button */}
+        <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}><Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}</Button>
 
         {exercises.length === 0 && <div className="py-12 text-center text-muted-foreground"><p className="mb-4">{t.workouts.noExercises}</p></div>}
 
@@ -563,15 +552,27 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
                 )}
               </div>
               <Textarea placeholder={t.workouts.notesTip} value={ex.notes} onChange={(e) => updateNotes(exIdx, e.target.value)} className="min-h-[60px] text-sm" />
+
+              {/* Auto rest timer inside last exercise card */}
+              {exIdx === 0 && autoRestSeconds !== null && autoRestSeconds > 0 && !isEditing && (
+                <div className="flex items-center justify-center gap-2 rounded-xl bg-accent/50 border border-border/50 px-3 py-2">
+                  <Timer className="h-4 w-4 text-primary animate-pulse" />
+                  <span className="text-sm font-display font-semibold tabular-nums">
+                    {t.workouts.restTimer}: {formatTime(autoRestSeconds)}
+                  </span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[220px]">
+                      <p className="text-xs">{t.recovery.restTooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
-
-        {exercises.length > 0 && (
-          <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
-            <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.updatingDots : isEditing ? t.workouts.updateWorkout : t.workouts.finishSave}
-          </Button>
-        )}
 
         {showTimer && <RestTimer onClose={() => setShowTimer(false)} />}
       </div>

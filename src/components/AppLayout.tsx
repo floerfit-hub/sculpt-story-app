@@ -78,10 +78,10 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
         </div>
       </header>
 
-      <main className="px-5 py-6 pb-20 lg:pb-8 max-w-2xl mx-auto" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>{children}</main>
+      <main className="px-5 py-6 pb-16 lg:pb-8 max-w-2xl mx-auto" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>{children}</main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong safe-bottom">
-        <div className="flex justify-around py-1 max-w-lg mx-auto">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong">
+        <div className="flex justify-around pb-[20px] pt-1 max-w-lg mx-auto">
           {navItems.map((item) => {
             const active = location.pathname === item.to;
             return (
@@ -94,14 +94,14 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }
                 }}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1 text-[10px] transition-all duration-200 min-w-[48px] rounded-xl ${
+                className={`flex flex-col items-center gap-0 px-2 py-0.5 text-[10px] transition-all duration-200 min-w-[48px] rounded-xl ${
                   active
                     ? "text-primary text-glow"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <div className={`relative p-1 rounded-xl transition-all duration-200 ${active ? "bg-accent" : ""}`}>
-                  <item.icon className={`h-4.5 w-4.5 transition-transform duration-200 ${active ? "scale-110" : ""}`} />
+                <div className={`relative p-0.5 rounded-xl transition-all duration-200 ${active ? "bg-accent" : ""}`}>
+                  <item.icon className={`h-4 w-4 transition-transform duration-200 ${active ? "scale-110" : ""}`} />
                   {active && (
                     <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 w-3.5 rounded-full bg-primary" />
                   )}
