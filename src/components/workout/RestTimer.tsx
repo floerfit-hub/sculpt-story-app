@@ -58,7 +58,7 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {PRESETS.map((p) => (
-                <Button key={p} variant="outline" className="h-14 text-lg font-display" onClick={() => start(p)}>{formatTime(p)}</Button>
+                <Button key={p} variant="outline" className="h-14 text-lg font-display" onClick={() => start(p)}>{PRESET_LABELS[p] || formatTime(p)}</Button>
               ))}
             </div>
             <div className="flex gap-2">

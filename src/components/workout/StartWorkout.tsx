@@ -530,7 +530,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
                 <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
               </div>
               <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 text-xs font-bold text-foreground uppercase tracking-wide">
-                <span>{t.workouts.set}</span><span className="text-center">{profile?.weight_unit === "lb" ? t.workouts.weightLb : t.workouts.weightKg}</span><span>{t.workouts.reps}</span><span></span>
+                <span>{t.workouts.set}</span><span className="text-center">{profile?.weight_unit === "lb" ? t.workouts.weightLb : t.workouts.weightKg}</span><span className="text-center">{t.workouts.reps}</span><span></span>
               </div>
               {ex.sets.map((set, setIdx) => (
                 <div key={setIdx}>
