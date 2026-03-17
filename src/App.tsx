@@ -28,6 +28,7 @@ import Pricing from "@/pages/Pricing";
 import WelcomePro from "@/pages/WelcomePro";
 import Contact from "@/pages/Contact";
 import Index from "@/pages/Index";
+import Onboarding from "@/pages/Onboarding";
 
 const queryClient = new QueryClient();
 
