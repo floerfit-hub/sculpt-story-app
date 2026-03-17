@@ -202,72 +202,53 @@ const Dashboard = () => {
     });
   }, [workouts, perfData, exerciseMap]);
 
-  const fitnessScores = useMemo(() => {
-    const thirtyDaysAgo = subDays(new Date(), 30);
-    const recentWorkouts = workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).length;
-    const planned = (profileGoals?.training_frequency || 4) * 4;
-    const trainingConsistency = Math.min(100, Math.round((recentWorkouts / planned) * 100));
+  // Async PR detection + fit score calculation
+  const [fitnessScores, setFitnessScores] = useState({ trainingConsistency: 0, strengthProgress: 0, bodyProgress: 0, muscleBalance: 0, overall: 0 });
 
-    // Strength Progress: count PRs based on experience level
-    let strengthProgress = 50;
-    const sortedW = [...workouts].sort((a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime());
-    const wOrder = new Map(sortedW.map((w, i) => [w.id, i]));
-    const exerciseHistory: Record<string, number[]> = {};
-    perfData
-      .sort((a, b) => (wOrder.get(a.workout_id) ?? 0) - (wOrder.get(b.workout_id) ?? 0))
-      .forEach((p) => {
-        const ex = exerciseMap.get(p.exercise_id);
-        if (ex) {
-          if (!exerciseHistory[ex.name]) exerciseHistory[ex.name] = [];
-          exerciseHistory[ex.name].push(Number(p.estimated_1rm));
-        }
-      });
+  useEffect(() => {
+    if (!user || loading) return;
     
-    // Count PRs (new 1RM highs) in last 30 days
-    let prCount = 0;
-    Object.values(exerciseHistory).forEach((history) => {
-      if (history.length < 2) return;
-      let maxSoFar = history[0];
-      for (let i = 1; i < history.length; i++) {
-        if (history[i] > maxSoFar) { prCount++; maxSoFar = history[i]; }
+    const compute = async () => {
+      const thirtyDaysAgo = subDays(new Date(), 30);
+      const workoutsLast30Days = workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).length;
+      const trainedGroups = Object.keys(muscleData).length;
+
+      // Measurement recency
+      let daysSinceLastMeasurement: number | null = null;
+      if (entries.length > 0) {
+        const lastEntry = entries[entries.length - 1];
+        daysSinceLastMeasurement = differenceInDays(new Date(), new Date(lastEntry.entry_date));
       }
-    });
-    
-    const expLevel = profileGoals?.experience_level || "beginner";
-    const prThreshold = expLevel === "advanced" ? 1 : expLevel === "intermediate" ? 3 : 5;
-    strengthProgress = Math.min(100, Math.round((prCount / prThreshold) * 100));
 
-    // Muscle Balance: trained groups / 8
-    const trainedGroups = Object.keys(muscleData).length;
-    const muscleBalance = Math.min(100, Math.round((trainedGroups / 8) * 100));
+      // Detect PRs from raw sets (filtered 1-12 reps)
+      const prCount = await detectPRsLast30Days(user.id);
 
-    // Body/Measurements score based on recency
-    let bodyProgress = 50;
-    if (entries.length > 0) {
-      const lastEntry = entries[entries.length - 1];
-      const daysSince = differenceInDays(new Date(), new Date(lastEntry.entry_date));
-      if (daysSince < 7) bodyProgress = 100;
-      else if (daysSince < 14) bodyProgress = 70;
-      else if (daysSince < 30) bodyProgress = 40;
-      else bodyProgress = 10;
-    }
+      const scores = calculateFitScore({
+        workoutsLast30Days,
+        trainingFrequency: profileGoals?.training_frequency ?? null,
+        prCount,
+        experienceLevel: profileGoals?.experience_level ?? null,
+        uniqueMuscleGroups: trainedGroups,
+        daysSinceLastMeasurement,
+        primaryGoal: profileGoals?.primary_goal ?? null,
+      });
 
-    // Calculate weighted overall score based on goal
-    const weights = getWeights(profileGoals?.primary_goal || null);
-    const overall = Math.round(
-      trainingConsistency * weights.consistency +
-      strengthProgress * weights.strength +
-      muscleBalance * weights.balance +
-      bodyProgress * weights.measurements
-    );
+      setFitnessScores({
+        trainingConsistency: scores.consistency,
+        strengthProgress: scores.strength,
+        bodyProgress: scores.measurements,
+        muscleBalance: scores.balance,
+        overall: scores.overall,
+      });
 
-    // Persist score
-    if (fitnessStatsData && !coldStart && overall !== fitnessStatsData.fit_score) {
-      updateFitScore(overall);
-    }
+      // Persist score
+      if (fitnessStatsData && !coldStart && scores.overall !== fitnessStatsData.fit_score) {
+        updateFitScore(scores.overall);
+      }
+    };
 
-    return { trainingConsistency, strengthProgress, bodyProgress, muscleBalance, overall };
-  }, [workouts, perfData, exerciseMap, entries, muscleData, profileGoals, fitnessStatsData, coldStart, updateFitScore, getWeights]);
+    compute();
+  }, [user, loading, workouts, entries, muscleData, profileGoals, fitnessStatsData, coldStart, updateFitScore]);
 
   // Ensure all panel IDs are in order (handle new panels added after user saved config)
   const orderedPanels = useMemo(() => {
