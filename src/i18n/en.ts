@@ -426,6 +426,11 @@ export const en = {
     support: "Support",
     supportDesc: "Need help? Contact us",
     supportEmail: "support@fittrack.app",
+    checkForUpdates: "Check for Updates",
+    checkForUpdatesDesc: "Check for new app versions",
+    checking: "Checking...",
+    noUpdates: "You're on the latest version",
+    updateFound: "Update found! Updating...",
   },
 
   // Charts
