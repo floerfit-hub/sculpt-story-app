@@ -13,12 +13,41 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
   const [running, setRunning] = useState(false);
   const [customInput, setCustomInput] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const playBeep = () => {
+    try {
+      const ctx = audioCtxRef.current || new AudioContext();
+      audioCtxRef.current = ctx;
+      const playTone = (freq: number, start: number, dur: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = "sine";
+        gain.gain.setValueAtTime(0.5, ctx.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + dur);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + dur);
+      };
+      playTone(880, 0, 0.15);
+      playTone(880, 0.2, 0.15);
+      playTone(1320, 0.4, 0.3);
+    } catch { /* audio not available */ }
+  };
 
   useEffect(() => {
     if (!running || remaining <= 0) return;
     intervalRef.current = setInterval(() => {
       setRemaining((r) => {
-        if (r <= 1) { clearInterval(intervalRef.current); setRunning(false); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); return 0; }
+        if (r <= 1) {
+          clearInterval(intervalRef.current);
+          setRunning(false);
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          playBeep();
+          return 0;
+        }
         return r - 1;
       });
     }, 1000);
