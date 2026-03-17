@@ -47,6 +47,36 @@ const Profile = () => {
   const [isStandalone] = useState(window.matchMedia("(display-mode: standalone)").matches);
   const [isIOS] = useState(/iPad|iPhone|iPod/.test(navigator.userAgent));
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegisteredSW(_swUrl, _registration) {},
+    onRegisterError() {},
+  });
+
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    try {
+      const registrations = await navigator.serviceWorker?.getRegistrations();
+      if (registrations?.length) {
+        await Promise.all(registrations.map(r => r.update()));
+      }
+      // Give SW time to detect update
+      await new Promise(r => setTimeout(r, 2000));
+      if (needRefresh) {
+        toast({ title: t.profile.updateFound });
+        updateServiceWorker(true);
+      } else {
+        toast({ title: t.profile.noUpdates });
+      }
+    } catch {
+      toast({ title: t.profile.noUpdates });
+    }
+    setCheckingUpdate(false);
+  };
 
   useEffect(() => {
     const handler = (e: Event) => {
