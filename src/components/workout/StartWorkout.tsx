@@ -110,6 +110,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [finalDuration, setFinalDuration] = useState<number>(0);
   const [showRestTooltip, setShowRestTooltip] = useState(false);
   const prMapRef = useRef<Map<string, number>>(new Map());
+  const prCountRef = useRef(0); // count PRs detected during this session
 
   // Load existing PRs for confetti detection
   useEffect(() => {
