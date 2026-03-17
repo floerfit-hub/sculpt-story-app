@@ -78,7 +78,10 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
               <span className="text-3xl font-display font-bold">{remaining === 0 ? "🔔" : formatTime(remaining)}</span>
             </div>
             {remaining === 0 ? (
-              <Button className="w-full" onClick={onClose}>{t.workouts.continueWorkout}</Button>
+              <div className="space-y-2 w-full">
+                <p className="text-center font-display font-semibold text-primary">{t.workouts.timeToStartSet}</p>
+                <Button className="w-full" onClick={onClose}>{t.workouts.continueWorkout}</Button>
+              </div>
             ) : (
               <Button variant="outline" className="w-full" onClick={() => { clearInterval(intervalRef.current); setRunning(false); setSeconds(null); }}>{t.workouts.cancel}</Button>
             )}

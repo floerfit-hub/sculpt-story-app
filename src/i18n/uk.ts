@@ -414,6 +414,11 @@ export const uk: Translations = {
     support: "Підтримка",
     supportDesc: "Потрібна допомога? Зв'яжіться з нами",
     supportEmail: "support@fittrack.app",
+    checkForUpdates: "Перевірити оновлення",
+    checkForUpdatesDesc: "Перевірте наявність нових версій додатку",
+    checking: "Перевірка...",
+    noUpdates: "У вас найновіша версія",
+    updateFound: "Знайдено оновлення! Оновлюємо...",
   },
 
   charts: {
