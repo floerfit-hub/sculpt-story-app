@@ -20,6 +20,7 @@ const CHECKIN_INTERVAL = 14;
 
 const AddEntry = () => {
   const { user } = useAuth();
+  const { addXP } = useFitnessStats();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
