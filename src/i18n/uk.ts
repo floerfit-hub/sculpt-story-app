@@ -164,6 +164,7 @@ export const uk: Translations = {
     customSec: "Свій час (сек)",
     start: "Старт",
     done: "Готово!",
+    timeToStartSet: "⏱ Час починати підхід!",
     exercises: "вправ",
     noWorkoutsYet: "Тренувань ще немає.",
     logSameExercise: "Запишіть одну вправу 2+ разів, щоб побачити графіки прогресу.",
