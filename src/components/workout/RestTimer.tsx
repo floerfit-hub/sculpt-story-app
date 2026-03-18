@@ -85,11 +85,25 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
       <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-lg space-y-5">
-        <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
           <h3 className="font-display font-bold text-lg flex items-center gap-2">
             <Timer className="h-5 w-5 text-primary" /> {t.workouts.restTimer}
           </h3>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={notifEnabled ? "text-primary" : "text-muted-foreground"}
+              onClick={async () => {
+                const granted = await requestNotificationPermission();
+                setNotifEnabled(granted);
+              }}
+              title={notifEnabled ? "Сповіщення увімкнено" : "Увімкнути сповіщення"}
+            >
+              <Bell className={`h-4 w-4 ${notifEnabled ? "" : "opacity-40"}`} />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
+          </div>
         </div>
 
         {running || (remaining === 0 && seconds) ? (

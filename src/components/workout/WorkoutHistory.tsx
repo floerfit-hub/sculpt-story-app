@@ -234,9 +234,17 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {ex.sets.map((s, i) => (
-                          <span key={i} className="rounded-md bg-accent px-2 py-1 text-xs text-accent-foreground">
-                            {s.weight}{t.common.kg} × {s.reps}
-                          </span>
+                          <div key={i} className="flex flex-col items-center gap-0.5">
+                            <span className="rounded-md bg-accent px-2 py-1 text-xs text-accent-foreground">
+                              {s.weight}{t.common.kg} × {s.reps}
+                            </span>
+                            {s.rest_time != null && s.rest_time > 0 && (
+                              <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                <Clock className="h-2.5 w-2.5" />
+                                {s.rest_time >= 60 ? `${Math.floor(s.rest_time / 60)}:${(s.rest_time % 60).toString().padStart(2, "0")}` : `${s.rest_time}с`}
+                              </span>
+                            )}
+                          </div>
                         ))}
                       </div>
                       {ex.notes && <p className="text-xs text-muted-foreground italic">"{ex.notes}"</p>}

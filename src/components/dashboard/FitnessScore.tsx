@@ -223,6 +223,25 @@ const FitnessScore = ({
                 ? "💡 Ваги компонентів автоматично підлаштовуються під вашу ціль (сила, м'язи, схуднення тощо)."
                 : "💡 Component weights automatically adjust based on your goal (strength, muscle, fat loss, etc)."}
             </p>
+            <div className="border-t border-border pt-3 mt-3 space-y-2">
+              <p className="font-semibold text-foreground text-sm">
+                {lang === "uk" ? "⭐ Що таке XP?" : "⭐ What is XP?"}
+              </p>
+              <p className="text-xs">
+                {lang === "uk"
+                  ? "XP (досвід) — це бали, які ви збираєте за активність. Чим більше XP, тим вищий ваш рівень."
+                  : "XP (experience) are points you earn for activity. The more XP, the higher your level."}
+              </p>
+              <p className="font-semibold text-foreground text-xs mt-2">
+                {lang === "uk" ? "Як заробити XP:" : "How to earn XP:"}
+              </p>
+              <ul className="text-xs space-y-1 list-none">
+                <li>🏋️ {lang === "uk" ? "Завершити тренування → +10 XP" : "Complete a workout → +10 XP"}</li>
+                <li>🏆 {lang === "uk" ? "Побити особистий рекорд → +15–40 XP" : "Beat a personal record → +15–40 XP"}</li>
+                <li>📏 {lang === "uk" ? "Оновити виміри тіла → +5 XP" : "Update body measurements → +5 XP"}</li>
+                <li>🔥 {lang === "uk" ? "7 днів тренувань поспіль → +30 XP" : "7-day workout streak → +30 XP"}</li>
+              </ul>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
