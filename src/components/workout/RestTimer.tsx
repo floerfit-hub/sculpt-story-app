@@ -29,6 +29,7 @@ const requestNotificationPermission = async () => {
 
 const RestTimer = ({ onClose }: { onClose: () => void }) => {
   const { t } = useTranslation();
+  const { trigger: haptic } = useHaptics();
   const [seconds, setSeconds] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [running, setRunning] = useState(false);
