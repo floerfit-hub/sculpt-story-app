@@ -2,12 +2,25 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+interface ProfileData {
+  full_name: string | null;
+  weight_unit: string;
+  onboarding_completed?: boolean;
+  primary_goal?: string | null;
+  training_frequency?: number | null;
+  experience_level?: string | null;
+  haptic_feedback?: boolean;
+  timer_vibration?: boolean;
+  pr_celebration_vibration?: boolean;
+  notifications_enabled?: boolean;
+}
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   isCoach: boolean;
   isAdmin: boolean;
-  profile: { full_name: string | null; weight_unit: string; onboarding_completed?: boolean; primary_goal?: string | null; training_frequency?: number | null; experience_level?: string | null } | null;
+  profile: ProfileData | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
