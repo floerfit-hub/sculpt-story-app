@@ -529,6 +529,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         const { error: uErr } = await supabase.from("workouts").update({
           finished_at: new Date().toISOString(),
           duration_seconds: elapsed,
+          name: workoutName || null,
         } as any).eq("id", workoutId);
         if (uErr) throw uErr;
 
