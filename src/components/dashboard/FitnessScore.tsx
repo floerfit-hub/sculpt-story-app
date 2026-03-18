@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "@/i18n";
-import { getLevelTitle, getXPForNextLevel, getXPForCurrentLevel } from "@/hooks/useFitnessStats";
-import { TrendingUp, TrendingDown, Minus, Sparkles, Info, X } from "lucide-react";
+import { getLevelTitle, getXPForNextLevel, getXPForCurrentLevel, LEVEL_THRESHOLDS_EXPORT } from "@/hooks/useFitnessStats";
+import { TrendingUp, TrendingDown, Minus, Sparkles, Info, X, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 

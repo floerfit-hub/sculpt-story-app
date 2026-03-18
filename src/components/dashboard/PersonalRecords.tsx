@@ -518,8 +518,8 @@ const PersonalRecords = () => {
                 </div>
               )}
             </div>
-          ) : tab === "my" ? (
-            /* My Records Tab */
+          ) : (
+            /* Records Tab - My Records + Exercise Leaderboard */
             <>
               {/* Search input for records */}
               {records.length > 0 && (
@@ -575,101 +575,106 @@ const PersonalRecords = () => {
                   {showAllRecords ? t.pr.collapse : `+${filteredRecords.length - 6} ${t.pr.moreRecords}`}
                 </Button>
               )}
-            </>
-          ) : (
-            /* Leaderboard Tab */
-            <div className="space-y-3">
-              {/* Visibility toggle */}
-              <button
-                onClick={toggleVisibility}
-                disabled={togglingVisibility}
-                className="flex items-center gap-2 w-full rounded-lg border border-border/50 px-3 py-2 text-xs transition-colors hover:bg-accent/30"
-              >
-                {isVisible ? (
-                  <Eye className="h-3.5 w-3.5 text-primary shrink-0" />
-                ) : (
-                  <EyeOff className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                )}
-                <span className="flex-1 text-left">
-                  {isVisible ? t.pr.youAreVisible : t.pr.youAreHidden}
-                </span>
-                <Badge variant="outline" className="text-[10px] h-5">
-                  {isVisible ? t.pr.visible : t.pr.hidden}
-                </Badge>
-              </button>
 
-              {/* Exercise selector */}
-              <Select value={leaderboardExercise} onValueChange={(v) => setLeaderboardExercise(v)}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder={t.pr.selectExercise} />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(exercisesByGroup).map(([group, exs]) => (
-                    <div key={group}>
-                      <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        {muscleGroupLabel(group)}
-                      </div>
-                      {exs.map((ex) => (
-                        <SelectItem key={ex.name} value={ex.name} className="text-xs">
-                          {t.exerciseNames[ex.name] || ex.name}
-                        </SelectItem>
-                      ))}
-                    </div>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Rep filter buttons */}
-              <div className="flex gap-1">
-                {[1, 3, 8].map((reps) => (
-                  <Button
-                    key={reps}
-                    variant={leaderboardReps === reps ? "default" : "outline"}
-                    size="sm"
-                    className="flex-1 h-7 text-xs"
-                    onClick={() => setLeaderboardReps(reps)}
-                  >
-                    {reps} {lang === "uk" ? "повт" : "rep"}
-                  </Button>
-                ))}
-              </div>
-
-              {/* Leaderboard list */}
-              {leaderboardLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              {/* Exercise Leaderboard Section */}
+              <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs font-semibold">{t.pr.leaderboard}</span>
                 </div>
-              ) : leaderboard.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-3">{t.pr.noLeaderboardData}</p>
-              ) : (
-                <div className="space-y-1">
-                  {leaderboard.map((entry, i) => (
-                    <div
-                      key={i}
-                      className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs transition-colors ${
-                        entry.is_current_user ? "bg-primary/10 border border-primary/30" : "border border-border/30"
-                      }`}
+                
+                {/* Visibility toggle */}
+                <button
+                  onClick={toggleVisibility}
+                  disabled={togglingVisibility}
+                  className="flex items-center gap-2 w-full rounded-lg border border-border/50 px-3 py-2 text-xs transition-colors hover:bg-accent/30"
+                >
+                  {isVisible ? (
+                    <Eye className="h-3.5 w-3.5 text-primary shrink-0" />
+                  ) : (
+                    <EyeOff className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  )}
+                  <span className="flex-1 text-left">
+                    {isVisible ? t.pr.youAreVisible : t.pr.youAreHidden}
+                  </span>
+                  <Badge variant="outline" className="text-[10px] h-5">
+                    {isVisible ? t.pr.visible : t.pr.hidden}
+                  </Badge>
+                </button>
+
+                {/* Exercise selector */}
+                <Select value={leaderboardExercise} onValueChange={(v) => setLeaderboardExercise(v)}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder={t.pr.selectExercise} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(exercisesByGroup).map(([group, exs]) => (
+                      <div key={group}>
+                        <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                          {muscleGroupLabel(group)}
+                        </div>
+                        {exs.map((ex) => (
+                          <SelectItem key={ex.name} value={ex.name} className="text-xs">
+                            {t.exerciseNames[ex.name] || ex.name}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Rep filter buttons */}
+                <div className="flex gap-1">
+                  {[1, 3, 8].map((reps) => (
+                    <Button
+                      key={reps}
+                      variant={leaderboardReps === reps ? "default" : "outline"}
+                      size="sm"
+                      className="flex-1 h-7 text-xs"
+                      onClick={() => setLeaderboardReps(reps)}
                     >
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-display font-bold text-[11px]"
-                        style={{
-                          background: i === 0 ? "hsl(var(--primary) / 0.15)" : i === 1 ? "hsl(var(--muted))" : i === 2 ? "hsl(var(--accent))" : "transparent",
-                          color: i === 0 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-                        }}
-                      >
-                        {i === 0 ? <Medal className="h-3.5 w-3.5" /> : `#${i + 1}`}
-                      </div>
-                      <span className={`flex-1 font-medium truncate ${entry.is_current_user ? "text-primary" : ""}`}>
-                        {entry.user_name}
-                        {entry.is_current_user && <span className="text-[10px] text-muted-foreground ml-1">({t.pr.you})</span>}
-                      </span>
-                      <span className="font-display font-bold text-sm tabular-nums">
-                        {entry.max_weight} <span className="text-[10px] font-normal text-muted-foreground">{t.common.kg}</span>
-                      </span>
-                    </div>
+                      {reps} {lang === "uk" ? "повт" : "rep"}
+                    </Button>
                   ))}
                 </div>
-              )}
-            </div>
+
+                {/* Leaderboard list */}
+                {leaderboardLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  </div>
+                ) : leaderboard.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-3">{t.pr.noLeaderboardData}</p>
+                ) : (
+                  <div className="space-y-1">
+                    {leaderboard.map((entry, i) => (
+                      <div
+                        key={i}
+                        className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs transition-colors ${
+                          entry.is_current_user ? "bg-primary/10 border border-primary/30" : "border border-border/30"
+                        }`}
+                      >
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-display font-bold text-[11px]"
+                          style={{
+                            background: i === 0 ? "hsl(var(--primary) / 0.15)" : i === 1 ? "hsl(var(--muted))" : i === 2 ? "hsl(var(--accent))" : "transparent",
+                            color: i === 0 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                          }}
+                        >
+                          {i === 0 ? <Medal className="h-3.5 w-3.5" /> : `#${i + 1}`}
+                        </div>
+                        <span className={`flex-1 font-medium truncate ${entry.is_current_user ? "text-primary" : ""}`}>
+                          {entry.user_name}
+                          {entry.is_current_user && <span className="text-[10px] text-muted-foreground ml-1">({t.pr.you})</span>}
+                        </span>
+                        <span className="font-display font-bold text-sm tabular-nums">
+                          {entry.max_weight} <span className="text-[10px] font-normal text-muted-foreground">{t.common.kg}</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
