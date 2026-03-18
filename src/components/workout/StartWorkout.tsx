@@ -329,6 +329,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const addExercise = (name: string, group: string) => {
     setExercises((prev) => [{ name, muscleGroup: group, sets: [{ weight: "", reps: "", rest_time: null }], notes: "" }, ...prev]);
     setShowLibrary(false);
+    haptic("light");
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   };
 
