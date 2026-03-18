@@ -428,7 +428,7 @@ const PersonalRecords = () => {
               <Trophy className="h-4 w-4 text-yellow-500" />
               {t.pr.title}
             </CardTitle>
-            {false && tab === "my" && (
+            {tab === "records" && (
               <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowAddModal(true)}>
                 <Plus className="h-3 w-3" />
                 {t.pr.addManual}

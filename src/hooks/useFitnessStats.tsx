@@ -20,7 +20,7 @@ interface ProfileGoals {
 }
 
 // Level thresholds (cumulative XP)
-const LEVEL_THRESHOLDS = [0, 100, 300, 500, 800, 1500, 2500, 3500, 5000, 7500];
+export const LEVEL_THRESHOLDS_EXPORT = LEVEL_THRESHOLDS;
 
 export function getLevelFromXP(xp: number): number {
   for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
