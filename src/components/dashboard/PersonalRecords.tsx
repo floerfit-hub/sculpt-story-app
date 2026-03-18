@@ -438,6 +438,15 @@ const PersonalRecords = () => {
           {/* Tab switcher */}
           <div className="flex gap-1 mt-2">
             <Button
+              variant={tab === "xp" ? "default" : "outline"}
+              size="sm"
+              className="flex-1 h-7 text-xs gap-1"
+              onClick={() => { setTab("xp"); fetchXPLeaderboard(); }}
+            >
+              <Star className="h-3 w-3" />
+              XP
+            </Button>
+            <Button
               variant={tab === "my" ? "default" : "outline"}
               size="sm"
               className="flex-1 h-7 text-xs gap-1"
@@ -459,7 +468,66 @@ const PersonalRecords = () => {
         </CardHeader>
 
         <CardContent className="pt-0">
-          {tab === "my" ? (
+          {tab === "xp" ? (
+            /* XP Leaderboard Tab */
+            <div className="space-y-3">
+              {/* Visibility toggle */}
+              <button
+                onClick={toggleVisibility}
+                disabled={togglingVisibility}
+                className="flex items-center gap-2 w-full rounded-lg border border-border/50 px-3 py-2 text-xs transition-colors hover:bg-accent/30"
+              >
+                {isVisible ? (
+                  <Eye className="h-3.5 w-3.5 text-primary shrink-0" />
+                ) : (
+                  <EyeOff className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                )}
+                <span className="flex-1 text-left">
+                  {isVisible ? t.pr.youAreVisible : t.pr.youAreHidden}
+                </span>
+                <Badge variant="outline" className="text-[10px] h-5">
+                  {isVisible ? t.pr.visible : t.pr.hidden}
+                </Badge>
+              </button>
+
+              {xpLeaderboardLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              ) : xpLeaderboard.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-3">{t.pr.noLeaderboardData}</p>
+              ) : (
+                <div className="space-y-1">
+                  {xpLeaderboard.map((entry, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs transition-colors ${
+                        entry.is_current_user ? "bg-primary/10 border border-primary/30" : "border border-border/30"
+                      }`}
+                    >
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-display font-bold text-[11px]"
+                        style={{
+                          background: i === 0 ? "hsl(var(--primary) / 0.15)" : i === 1 ? "hsl(var(--muted))" : i === 2 ? "hsl(var(--accent))" : "transparent",
+                          color: i === 0 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                        }}
+                      >
+                        {i === 0 ? <Medal className="h-3.5 w-3.5" /> : `#${i + 1}`}
+                      </div>
+                      <span className={`flex-1 font-medium truncate ${entry.is_current_user ? "text-primary" : ""}`}>
+                        {entry.user_name}
+                        {entry.is_current_user && <span className="text-[10px] text-muted-foreground ml-1">({t.pr.you})</span>}
+                      </span>
+                      <div className="text-right">
+                        <span className="font-display font-bold text-sm tabular-nums">{entry.total_xp}</span>
+                        <span className="text-[10px] text-muted-foreground ml-1">XP</span>
+                        <Badge variant="outline" className="ml-1.5 text-[9px] h-4 px-1">Lv{entry.level}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : tab === "my" ? (
             /* My Records Tab */
             <>
               {/* Search input for records */}
