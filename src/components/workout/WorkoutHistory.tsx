@@ -115,7 +115,7 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
     // Fetch workout_sets for all workouts
     const { data: setsData } = await (supabase as any)
       .from("workout_sets")
-      .select("id, workout_id, exercise_id, set_number, weight, reps, sort_order, notes")
+      .select("id, workout_id, exercise_id, set_number, weight, reps, sort_order, notes, rest_time")
       .in("workout_id", wData.map((w: any) => w.id))
       .order("sort_order", { ascending: true })
       .order("set_number", { ascending: true });
