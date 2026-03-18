@@ -573,23 +573,28 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
 
   if (saved) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 animate-fade-in space-y-4">
-        <CheckCircle className="h-16 w-16 text-primary" />
-        <h2 className="text-2xl font-display font-bold">{t.workouts.workoutComplete}</h2>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Clock className="h-5 w-5" />
-          <span className="text-lg font-display font-semibold">{formatTime(finalDuration)}</span>
-        </div>
-        {xpGained > 0 && !isEditing && (
-          <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: "300ms", animationFillMode: "backwards" }}>
-            <div className="rounded-full bg-primary/15 px-4 py-2 flex items-center gap-2">
-              <span className="text-primary font-display font-bold text-lg">+{xpGained} XP</span>
-            </div>
+      <>
+        <div className="flex flex-col items-center justify-center py-20 animate-fade-in space-y-4">
+          <CheckCircle className="h-16 w-16 text-primary" />
+          <h2 className="text-2xl font-display font-bold">{t.workouts.workoutComplete}</h2>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Clock className="h-5 w-5" />
+            <span className="text-lg font-display font-semibold">{formatTime(finalDuration)}</span>
           </div>
+          {xpGained > 0 && !isEditing && (
+            <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: "300ms", animationFillMode: "backwards" }}>
+              <div className="rounded-full bg-primary/15 px-4 py-2 flex items-center gap-2">
+                <span className="text-primary font-display font-bold text-lg">+{xpGained} XP</span>
+              </div>
+            </div>
+          )}
+          <p className="text-muted-foreground text-center">{t.workouts.greatSession}</p>
+          <Button onClick={onBack} className="mt-4">{t.workouts.backToWorkouts}</Button>
+        </div>
+        {levelUpLevel && (
+          <LevelUpDialog open={!!levelUpLevel} onClose={() => setLevelUpLevel(null)} newLevel={levelUpLevel} />
         )}
-        <p className="text-muted-foreground text-center">{t.workouts.greatSession}</p>
-        <Button onClick={onBack} className="mt-4">{t.workouts.backToWorkouts}</Button>
-      </div>
+      </>
     );
   }
 
