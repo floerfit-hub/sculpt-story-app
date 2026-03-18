@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import PremiumGate from "@/components/subscription/PremiumGate";
-import { MUSCLE_GROUPS } from "@/data/exerciseLibrary";
+import { MUSCLE_GROUPS, EXERCISES } from "@/data/exerciseLibrary";
 
 interface PRRecord {
   exerciseName: string;
