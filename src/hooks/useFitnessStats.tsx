@@ -83,39 +83,94 @@ export function getPRXP(level: string | null): number {
  * Calculate the full Fit Score from raw data.
  * Returns sub-scores and final weighted score.
  */
+// Weekly set targets per muscle group for balance scoring
+export const MUSCLE_SET_TARGETS: Record<string, number> = {
+  "Legs & Glutes": 10,
+  "Back": 8,
+  "Chest": 7,
+  "Shoulders": 6,
+  "Arms": 6,
+  "Core": 3,
+};
+
+/**
+ * Calculate measurement sub-score.
+ * All 5 filled → 100, decay -10/day after 14 days without update (min 0).
+ */
+export function calculateMeasurementScore(params: {
+  hasArm: boolean;
+  hasChest: boolean;
+  hasWaist: boolean;
+  hasGlute: boolean;
+  hasThigh: boolean;
+  daysSinceLastMeasurement: number | null;
+}): number {
+  const { hasArm, hasChest, hasWaist, hasGlute, hasThigh, daysSinceLastMeasurement } = params;
+  const filled = [hasArm, hasChest, hasWaist, hasGlute, hasThigh].filter(Boolean).length;
+  const baseScore = (filled / 5) * 100;
+
+  if (daysSinceLastMeasurement === null) return 0;
+  if (daysSinceLastMeasurement <= 14) return Math.round(baseScore);
+
+  const penalty = (daysSinceLastMeasurement - 14) * 10;
+  return Math.max(0, Math.round(baseScore - penalty));
+}
+
+/**
+ * Calculate muscle balance sub-score.
+ * Each group: min(actual, target)/target × 16.6, total max 100.
+ */
+export function calculateMuscleBalanceScore(weeklySets: Record<string, number>): { score: number; undertrained: string[] } {
+  let total = 0;
+  const undertrained: string[] = [];
+
+  for (const [group, target] of Object.entries(MUSCLE_SET_TARGETS)) {
+    const actual = weeklySets[group] || 0;
+    const groupScore = (Math.min(actual, target) / target) * 16.6;
+    total += groupScore;
+    if (actual < target) undertrained.push(group);
+  }
+
+  return { score: Math.min(100, Math.round(total)), undertrained };
+}
+
+/**
+ * Calculate strength progress sub-score from PR count.
+ * Beginner: +2pts, Intermediate: +4pts, Advanced: +6pts per PR.
+ */
+export function calculateStrengthScore(prCount: number, experienceLevel: string | null): number {
+  const ptsPerPR = experienceLevel === "advanced" ? 6 : experienceLevel === "intermediate" ? 4 : 2;
+  return Math.min(100, prCount * ptsPerPR);
+}
+
+/**
+ * Calculate the full Fit Score from raw data.
+ * Returns sub-scores and final weighted score.
+ */
 export function calculateFitScore(params: {
   workoutsLast30Days: number;
   trainingFrequency: number | null;
   prCount: number;
   experienceLevel: string | null;
-  uniqueMuscleGroups: number;
+  weeklySets: Record<string, number>;
+  measurementFields: { hasArm: boolean; hasChest: boolean; hasWaist: boolean; hasGlute: boolean; hasThigh: boolean };
   daysSinceLastMeasurement: number | null;
   primaryGoal: string | null;
-}): { consistency: number; strength: number; balance: number; measurements: number; overall: number } {
-  const { workoutsLast30Days, trainingFrequency, prCount, experienceLevel, uniqueMuscleGroups, daysSinceLastMeasurement, primaryGoal } = params;
+}): { consistency: number; strength: number; balance: number; measurements: number; overall: number; undertrained: string[] } {
+  const { workoutsLast30Days, trainingFrequency, prCount, experienceLevel, weeklySets, measurementFields, daysSinceLastMeasurement, primaryGoal } = params;
 
   // A. Consistency
   const planned = (trainingFrequency || 4) * 4;
   const consistency = planned > 0 ? Math.min(100, Math.round((workoutsLast30Days / planned) * 100)) : 0;
 
-  // B. Strength Progress (PR-based)
-  const prThreshold = experienceLevel === "advanced" ? 1 : experienceLevel === "intermediate" ? 3 : 5;
-  const strength = prCount > 0 ? Math.min(100, Math.round((prCount / prThreshold) * 100)) : 0;
+  // B. Strength Progress
+  const strength = calculateStrengthScore(prCount, experienceLevel);
 
   // C. Muscle Balance
-  const muscleBalance = Math.min(100, Math.round((uniqueMuscleGroups / 8) * 100));
+  const { score: muscleBalance, undertrained } = calculateMuscleBalanceScore(weeklySets);
 
-  // D. Measurement recency
-  let measurementScore = 0;
-  if (daysSinceLastMeasurement !== null) {
-    if (daysSinceLastMeasurement < 7) measurementScore = 100;
-    else if (daysSinceLastMeasurement < 14) measurementScore = 70;
-    else if (daysSinceLastMeasurement < 30) measurementScore = 40;
-    else measurementScore = 0;
-  }
-
-  // Combined balance+measurements
-  const balanceAndBody = Math.round((muscleBalance + measurementScore) / 2);
+  // D. Body Measurements
+  const measurementScore = calculateMeasurementScore({ ...measurementFields, daysSinceLastMeasurement });
 
   // E. Goal-based weighting
   const w = getWeights(primaryGoal);
@@ -127,9 +182,9 @@ export function calculateFitScore(params: {
   );
   const clamped = Math.max(0, Math.min(100, overall));
 
-  console.log("[FitScore] Sub-scores:", { consistency, strength, muscleBalance, measurementScore, weights: w, overall: clamped });
+  console.log("[FitScore] Sub-scores:", { consistency, strength, muscleBalance, measurementScore, weights: w, overall: clamped, undertrained });
 
-  return { consistency, strength, balance: muscleBalance, measurements: measurementScore, overall: clamped };
+  return { consistency, strength, balance: muscleBalance, measurements: measurementScore, overall: clamped, undertrained };
 }
 
 /**

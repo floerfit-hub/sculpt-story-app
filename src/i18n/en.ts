@@ -528,6 +528,11 @@ export const en = {
     insightCoreNeglect: "⚠️ You haven't trained your core in the last 30 days. Add some core work!",
     insightKeepGoing: "🚀 Keep logging your workouts and progress to unlock personalized insights!",
     analyzing: "Analyzing...",
+    updateMeasurementsReminder: "📏 Update measurements to keep Fit Score accurate",
+    newPrDetected: "New PR detected — Strength Progress",
+    undertrainedGroups: "Undertrained groups",
+    weeklyTarget: "target",
+    setsPerWeek: "sets/wk",
   },
 
   // Onboarding

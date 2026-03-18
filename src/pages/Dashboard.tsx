@@ -220,7 +220,7 @@ const Dashboard = () => {
   }, [workouts, perfData, exerciseMap]);
 
   // Async PR detection + fit score calculation
-  const [fitnessScores, setFitnessScores] = useState({ trainingConsistency: 0, strengthProgress: 0, bodyProgress: 0, muscleBalance: 0, overall: 0 });
+  const [fitnessScores, setFitnessScores] = useState({ trainingConsistency: 0, strengthProgress: 0, bodyProgress: 0, muscleBalance: 0, overall: 0, undertrained: [] as string[] });
 
   useEffect(() => {
     if (!user || loading) return;
@@ -228,14 +228,32 @@ const Dashboard = () => {
     const compute = async () => {
       const thirtyDaysAgo = subDays(new Date(), 30);
       const workoutsLast30Days = workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).length;
-      const trainedGroups = Object.keys(muscleData).length;
 
-      // Measurement recency
+      // Measurement recency + field checks
       let daysSinceLastMeasurement: number | null = null;
-      if (entries.length > 0) {
-        const lastEntry = entries[entries.length - 1];
+      const lastEntry = entries.length > 0 ? entries[entries.length - 1] : null;
+      if (lastEntry) {
         daysSinceLastMeasurement = differenceInDays(new Date(), new Date(lastEntry.entry_date));
       }
+
+      const measurementFields = {
+        hasArm: lastEntry?.arm_circumference != null,
+        hasChest: lastEntry?.chest != null,
+        hasWaist: lastEntry?.waist != null,
+        hasGlute: lastEntry?.glute_circumference != null,
+        hasThigh: lastEntry?.thigh_circumference != null,
+      };
+
+      // Weekly sets per muscle group (last 7 days)
+      const sevenDaysAgo = subDays(new Date(), 7);
+      const weekWorkoutIds = new Set(workouts.filter((w) => new Date(w.started_at) >= sevenDaysAgo).map((w) => w.id));
+      const weeklySets: Record<string, number> = {};
+      perfData
+        .filter((p) => weekWorkoutIds.has(p.workout_id))
+        .forEach((p) => {
+          const ex = exerciseMap.get(p.exercise_id);
+          if (ex) weeklySets[ex.muscle_group] = (weeklySets[ex.muscle_group] || 0) + Number(p.total_sets);
+        });
 
       // Detect PRs from raw sets (filtered 1-12 reps)
       const prCount = await detectPRsLast30Days(user.id);
@@ -245,7 +263,8 @@ const Dashboard = () => {
         trainingFrequency: profileGoals?.training_frequency ?? null,
         prCount,
         experienceLevel: profileGoals?.experience_level ?? null,
-        uniqueMuscleGroups: trainedGroups,
+        weeklySets,
+        measurementFields,
         daysSinceLastMeasurement,
         primaryGoal: profileGoals?.primary_goal ?? null,
       });
@@ -256,6 +275,7 @@ const Dashboard = () => {
         bodyProgress: scores.measurements,
         muscleBalance: scores.balance,
         overall: scores.overall,
+        undertrained: scores.undertrained,
       });
 
       // Persist score — only block if truly cold start (no workouts at all AND < 7 days)
@@ -266,7 +286,7 @@ const Dashboard = () => {
     };
 
     compute();
-  }, [user, loading, workouts, entries, muscleData, profileGoals, fitnessStatsData, coldStart, updateFitScore]);
+  }, [user, loading, workouts, entries, muscleData, profileGoals, fitnessStatsData, coldStart, updateFitScore, perfData, exerciseMap]);
 
   // Ensure all panel IDs are in order (handle new panels added after user saved config)
   const orderedPanels = useMemo(() => {
@@ -333,7 +353,7 @@ const Dashboard = () => {
         </CardContent>
       </Card>
     ) : null,
-    fitnessScore: <PremiumGate feature="Fitness Score Dashboard"><FitnessScore {...fitnessScores} totalXP={fitnessStatsData?.total_xp} level={fitnessStatsData?.level} fitScore={(coldStart && workoutsThisMonth === 0 && workouts.length === 0) ? undefined : fitnessScores.overall} weeklyChange={weeklyChange} isInactive={isInactive} coldStart={coldStart && workoutsThisMonth === 0 && workouts.length === 0} /></PremiumGate>,
+    fitnessScore: <PremiumGate feature="Fitness Score Dashboard"><FitnessScore {...fitnessScores} totalXP={fitnessStatsData?.total_xp} level={fitnessStatsData?.level} fitScore={(coldStart && workoutsThisMonth === 0 && workouts.length === 0) ? undefined : fitnessScores.overall} weeklyChange={weeklyChange} isInactive={isInactive} coldStart={coldStart && workoutsThisMonth === 0 && workouts.length === 0} undertrained={fitnessScores.undertrained} showMeasurementReminder={fitnessScores.bodyProgress < 50 && entries.length > 0} /></PremiumGate>,
     weightChart: <WeightChart entries={entries} />,
     measurements: <PremiumGate feature="Body Composition Dashboard"><MeasurementsCard latest={latest} previous={previous} /></PremiumGate>,
     muscleHeatmap: <PremiumGate feature="Muscle Heatmap Analytics"><MuscleHeatmap muscleData={muscleData} /></PremiumGate>,

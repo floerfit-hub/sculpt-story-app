@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "@/i18n";
-import { getLevelTitle, getXPForNextLevel, getXPForCurrentLevel, LEVEL_THRESHOLDS_EXPORT } from "@/hooks/useFitnessStats";
-import { TrendingUp, TrendingDown, Minus, Sparkles, Info, X, ChevronRight } from "lucide-react";
+import { getLevelTitle, getXPForNextLevel, getXPForCurrentLevel, LEVEL_THRESHOLDS_EXPORT, MUSCLE_SET_TARGETS } from "@/hooks/useFitnessStats";
+import { TrendingUp, TrendingDown, Minus, Sparkles, Info, X, ChevronRight, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 interface FitnessScoreProps {
   trainingConsistency: number;
@@ -17,6 +18,8 @@ interface FitnessScoreProps {
   weeklyChange?: number;
   isInactive?: boolean;
   coldStart?: boolean;
+  undertrained?: string[];
+  showMeasurementReminder?: boolean;
 }
 
 const CircularProgress = ({ score, size = 140, strokeWidth = 10, dimmed = false }: { score: number; size?: number; strokeWidth?: number; dimmed?: boolean }) => {
@@ -69,6 +72,8 @@ const FitnessScore = ({
   weeklyChange = 0,
   isInactive = false,
   coldStart = false,
+  undertrained = [],
+  showMeasurementReminder = false,
 }: FitnessScoreProps) => {
   const { t, lang } = useTranslation();
   const [showInfo, setShowInfo] = useState(false);
@@ -161,6 +166,30 @@ const FitnessScore = ({
               />
             </div>
           </button>
+
+          {/* Measurement reminder */}
+          {showMeasurementReminder && (
+            <Link to="/add-entry" className="block rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-3 text-xs text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/10 transition-colors">
+              {t.fitScore.updateMeasurementsReminder}
+            </Link>
+          )}
+
+          {/* Undertrained muscle groups */}
+          {undertrained.length > 0 && !coldStart && (
+            <div className="rounded-xl border border-border/50 p-3 space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" />
+                <span className="text-xs font-semibold">{t.fitScore.undertrainedGroups}</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {undertrained.map((group) => (
+                  <span key={group} className="inline-flex items-center gap-1 rounded-md bg-accent px-2 py-1 text-[10px] text-muted-foreground">
+                    {group} <span className="text-foreground font-semibold">{t.fitScore.weeklyTarget}: {MUSCLE_SET_TARGETS[group]}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
