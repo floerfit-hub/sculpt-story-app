@@ -219,6 +219,9 @@ const Profile = () => {
         </CardContent>
       </Card>
 
+      {/* Notifications */}
+      <NotificationCard />
+
       {/* Training Goals */}
       <Card>
         <CardHeader>
