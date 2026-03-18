@@ -12,7 +12,7 @@ const GOALS = ["muscle_gain", "fat_loss", "strength", "maintenance", "endurance"
 const FREQUENCIES = [2, 3, 4, 5, 6] as const;
 const LEVELS = ["beginner", "intermediate", "advanced"] as const;
 const STYLES = ["gym", "bodyweight", "mixed"] as const; // kept for type but removed from flow
-const PRIORITIES = ["strength", "composition", "consistency", "balance"] as const;
+
 
 type Goal = typeof GOALS[number];
 type Level = typeof LEVELS[number];
