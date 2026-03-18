@@ -537,9 +537,26 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         
         console.log(`[XP] Workout complete: base=10, PR=${sessionPRs > 0 ? sessionPRs * getPRXP(profile?.experience_level || null) : 0}, freq=${freqXP}, total=${earnedXP}`);
         
-        await addXP(earnedXP, 'workout_complete');
+        const xpResult = await addXP(earnedXP, 'workout_complete');
         setXpGained(earnedXP);
         await updateLastWorkout();
+        
+        // Check for level up
+        if (xpResult?.leveledUp && xpResult.newLevel) {
+          setLevelUpLevel(xpResult.newLevel);
+          sendNotification(
+            lang === "uk" ? "Новий рівень! 🎉" : "Level Up! 🎉",
+            `${lang === "uk" ? "Ви досягли рівня" : "You reached level"} ${xpResult.newLevel}`
+          );
+        }
+
+        // Notify about PR
+        if (sessionPRs > 0) {
+          sendNotification(
+            lang === "uk" ? "Новий рекорд! 🏆" : "New Record! 🏆",
+            `+${sessionPRs * getPRXP(profile?.experience_level || null)} XP ${lang === "uk" ? "зараховано" : "earned"}`
+          );
+        }
         
         // Confetti for XP
         if (earnedXP > 0) {
