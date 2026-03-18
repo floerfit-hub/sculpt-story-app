@@ -18,6 +18,8 @@ interface FitnessScoreProps {
   weeklyChange?: number;
   isInactive?: boolean;
   coldStart?: boolean;
+  undertrained?: string[];
+  showMeasurementReminder?: boolean;
 }
 
 const CircularProgress = ({ score, size = 140, strokeWidth = 10, dimmed = false }: { score: number; size?: number; strokeWidth?: number; dimmed?: boolean }) => {
