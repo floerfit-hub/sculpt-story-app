@@ -51,7 +51,7 @@ const PersonalRecords = () => {
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [tab, setTab] = useState<Tab>("xp");
+  const [tab, setTab] = useState<Tab>("records");
   const [showAllRecords, setShowAllRecords] = useState(false);
 
   // Manual entry state
