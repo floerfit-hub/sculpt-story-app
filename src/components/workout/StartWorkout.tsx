@@ -528,11 +528,11 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           console.log(`[XP] PRs detected: ${sessionPRs} × ${prXP} = +${sessionPRs * prXP} XP`);
         }
         
-        // Check streak and award bonus
-        const streakXP = await checkAndAwardStreak();
-        if (streakXP > 0) earnedXP += streakXP;
+        // Check frequency bonus
+        const freqXP = await checkAndAwardFrequencyXP();
+        if (freqXP > 0) earnedXP += freqXP;
         
-        console.log(`[XP] Workout complete: base=10, PR=${sessionPRs > 0 ? sessionPRs * getPRXP(profile?.experience_level || null) : 0}, streak=${streakXP}, total=${earnedXP}`);
+        console.log(`[XP] Workout complete: base=10, PR=${sessionPRs > 0 ? sessionPRs * getPRXP(profile?.experience_level || null) : 0}, freq=${freqXP}, total=${earnedXP}`);
         
         await addXP(earnedXP, 'workout_complete');
         setXpGained(earnedXP);

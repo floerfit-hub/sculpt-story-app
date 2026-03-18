@@ -358,7 +358,7 @@ export function useFitnessStats() {
     addXP,
     updateFitScore,
     updateLastWorkout,
-    checkAndAwardStreak,
+    checkAndAwardFrequencyXP,
     fetchStats,
     getWeights: () => getWeights(profileGoals?.primary_goal || null),
   };
