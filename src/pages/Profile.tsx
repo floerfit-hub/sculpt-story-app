@@ -11,11 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Weight, LayoutDashboard, RefreshCw, Target } from "lucide-react";
+import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Weight, LayoutDashboard, RefreshCw, Target, Bell } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 import { useRegisterSW } from "virtual:pwa-register/react";
-
+import { useNotifications } from "@/hooks/useNotifications";
+import { Switch } from "@/components/ui/switch";
 const LANGUAGES: { code: Language; label: string }[] = [
   { code: "en", label: "English" },
   { code: "uk", label: "Українська" },
@@ -34,6 +35,42 @@ const COMPARISON_FEATURES = [
   { key: "customPlans" as const, free: false, pro: true },
   { key: "prioritySupport" as const, free: false, pro: true },
 ];
+
+const NotificationCard = () => {
+  const { enabled, permission, requestPermission, disableNotifications } = useNotifications();
+  const { lang } = useTranslation();
+  const isUk = lang === "uk";
+
+  const handleToggle = async (checked: boolean) => {
+    if (checked) {
+      await requestPermission();
+    } else {
+      await disableNotifications();
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-4 flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
+          <Bell className="h-5 w-5 text-primary" />
+        </div>
+        <div className="flex-1">
+          <p className="font-display font-semibold text-sm">
+            {isUk ? "Сповіщення" : "Notifications"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {isUk ? "Нагадування, рекорди, відновлення" : "Reminders, records, recovery"}
+          </p>
+        </div>
+        <Switch
+          checked={enabled && permission === "granted"}
+          onCheckedChange={handleToggle}
+        />
+      </CardContent>
+    </Card>
+  );
+};
 
 const Profile = () => {
   const { user, profile, signOut } = useAuth();
@@ -217,6 +254,9 @@ const Profile = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Notifications */}
+      <NotificationCard />
 
       {/* Training Goals */}
       <Card>

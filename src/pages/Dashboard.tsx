@@ -23,6 +23,8 @@ import NutritionSummary from "@/components/dashboard/NutritionSummary";
 import SmartInsights from "@/components/dashboard/SmartInsights";
 import PremiumGate from "@/components/subscription/PremiumGate";
 import { useFitnessStats, calculateFitScore, detectPRsLast30Days, getWeights } from "@/hooks/useFitnessStats";
+import NotificationPrompt from "@/components/NotificationPrompt";
+import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 
 type ProgressEntry = Tables<"progress_entries">;
 const CHECKIN_INTERVAL = 14;
@@ -76,6 +78,7 @@ const Dashboard = () => {
   const [perfData, setPerfData] = useState<PerfData[]>([]);
   const [exerciseMap, setExerciseMap] = useState<Map<string, ExerciseInfo>>(new Map());
   const { stats: fitnessStatsData, weeklyChange, isInactive, coldStart, updateFitScore, profileGoals, fetchStats: refetchFitnessStats } = useFitnessStats();
+  useNotificationScheduler();
 
   useEffect(() => {
     try {
@@ -463,6 +466,7 @@ const Dashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <NotificationPrompt />
     </div>
   );
 };

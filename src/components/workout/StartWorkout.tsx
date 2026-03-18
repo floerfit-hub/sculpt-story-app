@@ -12,7 +12,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import RestTimer from "./RestTimer";
+import LevelUpDialog from "@/components/LevelUpDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/useNotifications";
 import confetti from "canvas-confetti";
 
 interface SetData { weight: number | ""; reps: number | ""; rest_time: number | null }
@@ -79,11 +81,12 @@ function getRestMultiplier(restSeconds: number | null): number {
 const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { addXP, updateLastWorkout, checkAndAwardFrequencyXP, stats: fitnessStats } = useFitnessStats();
   const isEditing = !!editData;
   const [xpGained, setXpGained] = useState(0);
-  
+  const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
+  const { sendNotification } = useNotifications();
 
   const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
     if (editData) {
@@ -534,9 +537,26 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         
         console.log(`[XP] Workout complete: base=10, PR=${sessionPRs > 0 ? sessionPRs * getPRXP(profile?.experience_level || null) : 0}, freq=${freqXP}, total=${earnedXP}`);
         
-        await addXP(earnedXP, 'workout_complete');
+        const xpResult = await addXP(earnedXP, 'workout_complete');
         setXpGained(earnedXP);
         await updateLastWorkout();
+        
+        // Check for level up
+        if (xpResult?.leveledUp && xpResult.newLevel) {
+          setLevelUpLevel(xpResult.newLevel);
+          sendNotification(
+            lang === "uk" ? "Новий рівень! 🎉" : "Level Up! 🎉",
+            `${lang === "uk" ? "Ви досягли рівня" : "You reached level"} ${xpResult.newLevel}`
+          );
+        }
+
+        // Notify about PR
+        if (sessionPRs > 0) {
+          sendNotification(
+            lang === "uk" ? "Новий рекорд! 🏆" : "New Record! 🏆",
+            `+${sessionPRs * getPRXP(profile?.experience_level || null)} XP ${lang === "uk" ? "зараховано" : "earned"}`
+          );
+        }
         
         // Confetti for XP
         if (earnedXP > 0) {
@@ -553,23 +573,28 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
 
   if (saved) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 animate-fade-in space-y-4">
-        <CheckCircle className="h-16 w-16 text-primary" />
-        <h2 className="text-2xl font-display font-bold">{t.workouts.workoutComplete}</h2>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Clock className="h-5 w-5" />
-          <span className="text-lg font-display font-semibold">{formatTime(finalDuration)}</span>
-        </div>
-        {xpGained > 0 && !isEditing && (
-          <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: "300ms", animationFillMode: "backwards" }}>
-            <div className="rounded-full bg-primary/15 px-4 py-2 flex items-center gap-2">
-              <span className="text-primary font-display font-bold text-lg">+{xpGained} XP</span>
-            </div>
+      <>
+        <div className="flex flex-col items-center justify-center py-20 animate-fade-in space-y-4">
+          <CheckCircle className="h-16 w-16 text-primary" />
+          <h2 className="text-2xl font-display font-bold">{t.workouts.workoutComplete}</h2>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Clock className="h-5 w-5" />
+            <span className="text-lg font-display font-semibold">{formatTime(finalDuration)}</span>
           </div>
+          {xpGained > 0 && !isEditing && (
+            <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: "300ms", animationFillMode: "backwards" }}>
+              <div className="rounded-full bg-primary/15 px-4 py-2 flex items-center gap-2">
+                <span className="text-primary font-display font-bold text-lg">+{xpGained} XP</span>
+              </div>
+            </div>
+          )}
+          <p className="text-muted-foreground text-center">{t.workouts.greatSession}</p>
+          <Button onClick={onBack} className="mt-4">{t.workouts.backToWorkouts}</Button>
+        </div>
+        {levelUpLevel && (
+          <LevelUpDialog open={!!levelUpLevel} onClose={() => setLevelUpLevel(null)} newLevel={levelUpLevel} />
         )}
-        <p className="text-muted-foreground text-center">{t.workouts.greatSession}</p>
-        <Button onClick={onBack} className="mt-4">{t.workouts.backToWorkouts}</Button>
-      </div>
+      </>
     );
   }
 
