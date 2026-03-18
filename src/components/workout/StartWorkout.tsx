@@ -91,6 +91,12 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const { sendNotification } = useNotifications();
   const { trigger: haptic } = useHaptics();
 
+  const [workoutName, setWorkoutName] = useState<string>(() => {
+    if (editData) return editData.name || "";
+    const saved = sessionStorage.getItem("workout-name");
+    return saved || "";
+  });
+
   const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
     if (editData) {
       return editData.exercises
