@@ -217,6 +217,85 @@ const Profile = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Training Goals */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-lg flex items-center gap-2">
+            <Target className="h-5 w-5 text-primary" />
+            {t.profile.trainingGoals || "Training Goals"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>{t.onboarding.goalTitle}</Label>
+            <Select value={primaryGoal} onValueChange={setPrimaryGoal}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["muscle_gain", "fat_loss", "strength", "maintenance", "endurance"].map(g => (
+                  <SelectItem key={g} value={g}>{t.onboarding.goals[g as keyof typeof t.onboarding.goals]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>{t.onboarding.frequencyTitle}</Label>
+            <Select value={trainingFrequency} onValueChange={setTrainingFrequency}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {[2, 3, 4, 5, 6].map(f => (
+                  <SelectItem key={f} value={f.toString()}>{f}x {lang === "uk" ? "на тиждень" : "per week"}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>{t.onboarding.levelTitle}</Label>
+            <Select value={experienceLevel} onValueChange={setExperienceLevel}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["beginner", "intermediate", "advanced"].map(l => (
+                  <SelectItem key={l} value={l}>{t.onboarding.levels[l as keyof typeof t.onboarding.levels]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>{t.onboarding.priorityTitle}</Label>
+            <Select value={priorityFocus} onValueChange={setPriorityFocus}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["strength", "composition", "consistency", "balance"].map(p => (
+                  <SelectItem key={p} value={p}>{t.onboarding.priorities[p as keyof typeof t.onboarding.priorities]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            onClick={async () => {
+              if (!user) return;
+              setSavingGoals(true);
+              const { error } = await supabase.from("profiles").update({
+                primary_goal: primaryGoal || null,
+                training_frequency: Number(trainingFrequency) || null,
+                experience_level: experienceLevel || null,
+                priority_focus: priorityFocus || null,
+              } as any).eq("user_id", user.id);
+              setSavingGoals(false);
+              if (error) {
+                toast({ title: t.common.error, description: error.message, variant: "destructive" });
+              } else {
+                toast({ title: t.profile.profileUpdated });
+              }
+            }}
+            disabled={savingGoals}
+            className="w-full"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {savingGoals ? t.profile.saving : t.profile.saveChanges}
+          </Button>
+        </CardContent>
+      </Card>
       {/* Dashboard Customization */}
       <Card className="cursor-pointer transition-all hover:border-primary/40 active:scale-[0.98]" onClick={() => navigate("/?edit=true")}>
         <CardContent className="p-4 flex items-center gap-3">
