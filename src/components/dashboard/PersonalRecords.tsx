@@ -447,22 +447,13 @@ const PersonalRecords = () => {
               XP
             </Button>
             <Button
-              variant={tab === "my" ? "default" : "outline"}
+              variant={tab === "records" ? "default" : "outline"}
               size="sm"
               className="flex-1 h-7 text-xs gap-1"
-              onClick={() => setTab("my")}
+              onClick={() => setTab("records")}
             >
               <Trophy className="h-3 w-3" />
               {t.pr.myRecords}
-            </Button>
-            <Button
-              variant={tab === "leaderboard" ? "default" : "outline"}
-              size="sm"
-              className="flex-1 h-7 text-xs gap-1"
-              onClick={() => setTab("leaderboard")}
-            >
-              <Users className="h-3 w-3" />
-              {t.pr.leaderboard}
             </Button>
           </div>
         </CardHeader>
