@@ -72,7 +72,7 @@ const FitnessScore = ({
 }: FitnessScoreProps) => {
   const { t, lang } = useTranslation();
   const [showInfo, setShowInfo] = useState(false);
-  
+  const [showLevels, setShowLevels] = useState(false);
   const overall = useMemo(
     () => fitScore ?? Math.round(trainingConsistency * 0.3 + strengthProgress * 0.25 + bodyProgress * 0.25 + muscleBalance * 0.2),
     [fitScore, trainingConsistency, strengthProgress, bodyProgress, muscleBalance]
