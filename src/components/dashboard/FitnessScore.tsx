@@ -132,8 +132,11 @@ const FitnessScore = ({
             </div>
           </div>
 
-          {/* XP & Level bar */}
-          <div className="rounded-xl border border-border p-3 space-y-2">
+          {/* XP & Level bar - tappable */}
+          <button
+            onClick={() => setShowLevels(true)}
+            className="w-full rounded-xl border border-border p-3 space-y-2 text-left transition-colors hover:bg-accent/30 active:scale-[0.99]"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className={`flex h-8 w-8 items-center justify-center rounded-lg font-display font-bold text-sm ${isInactive ? "bg-muted text-muted-foreground" : "bg-primary/15 text-primary"}`}>
@@ -144,9 +147,12 @@ const FitnessScore = ({
                   <p className="text-[10px] text-muted-foreground mt-0.5">{totalXP} XP</p>
                 </div>
               </div>
-              <span className="text-[10px] text-muted-foreground tabular-nums">
-                {xpInLevel} / {xpNeeded} XP
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-muted-foreground tabular-nums">
+                  {xpInLevel} / {xpNeeded} XP
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
             </div>
             <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
               <div
@@ -154,7 +160,7 @@ const FitnessScore = ({
                 style={{ width: `${xpProgress}%` }}
               />
             </div>
-          </div>
+          </button>
         </CardContent>
       </Card>
 
