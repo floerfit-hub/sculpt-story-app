@@ -197,16 +197,19 @@ export type Database = {
           created_at: string
           experience_level: string | null
           full_name: string | null
+          haptic_feedback: boolean
           id: string
           language: string | null
           leaderboard_visible: boolean
           notifications_enabled: boolean
           onboarding_completed: boolean
+          pr_celebration_vibration: boolean
           preferred_style: string | null
           prep_buffer_seconds: number | null
           primary_goal: string | null
           priority_focus: string | null
           theme: string | null
+          timer_vibration: boolean
           training_frequency: number | null
           updated_at: string
           user_id: string
@@ -217,16 +220,19 @@ export type Database = {
           created_at?: string
           experience_level?: string | null
           full_name?: string | null
+          haptic_feedback?: boolean
           id?: string
           language?: string | null
           leaderboard_visible?: boolean
           notifications_enabled?: boolean
           onboarding_completed?: boolean
+          pr_celebration_vibration?: boolean
           preferred_style?: string | null
           prep_buffer_seconds?: number | null
           primary_goal?: string | null
           priority_focus?: string | null
           theme?: string | null
+          timer_vibration?: boolean
           training_frequency?: number | null
           updated_at?: string
           user_id: string
@@ -237,16 +243,19 @@ export type Database = {
           created_at?: string
           experience_level?: string | null
           full_name?: string | null
+          haptic_feedback?: boolean
           id?: string
           language?: string | null
           leaderboard_visible?: boolean
           notifications_enabled?: boolean
           onboarding_completed?: boolean
+          pr_celebration_vibration?: boolean
           preferred_style?: string | null
           prep_buffer_seconds?: number | null
           primary_goal?: string | null
           priority_focus?: string | null
           theme?: string | null
+          timer_vibration?: boolean
           training_frequency?: number | null
           updated_at?: string
           user_id?: string

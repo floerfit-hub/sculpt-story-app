@@ -432,6 +432,12 @@ export const en = {
     noUpdates: "You're on the latest version",
     updateFound: "Update found! Updating...",
     trainingGoals: "Training Goals",
+    hapticFeedback: "Haptic Feedback",
+    hapticFeedbackDesc: "Vibration on actions",
+    timerVibration: "Timer Vibration",
+    timerVibrationDesc: "Countdown vibration",
+    prVibration: "PR Celebration",
+    prVibrationDesc: "Vibration on new records",
   },
 
   // Charts

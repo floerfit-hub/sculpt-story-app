@@ -16,6 +16,7 @@ import LevelUpDialog from "@/components/LevelUpDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import confetti from "canvas-confetti";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface SetData { weight: number | ""; reps: number | ""; rest_time: number | null }
 interface WorkoutExercise { name: string; muscleGroup: string; sets: SetData[]; notes: string }
@@ -87,6 +88,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [xpGained, setXpGained] = useState(0);
   const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
   const { sendNotification } = useNotifications();
+  const { trigger: haptic } = useHaptics();
 
   const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
     if (editData) {
@@ -327,6 +329,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const addExercise = (name: string, group: string) => {
     setExercises((prev) => [{ name, muscleGroup: group, sets: [{ weight: "", reps: "", rest_time: null }], notes: "" }, ...prev]);
     setShowLibrary(false);
+    haptic("light");
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   };
 
@@ -342,6 +345,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     });
     lastSetTimeRef.current = Date.now();
     setAutoRestSeconds(0);
+    haptic("light");
   };
 
   const copySet = (idx: number) => {
@@ -384,6 +388,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
               prMapRef.current.set(exId, weight);
               prCountRef.current += 1;
               confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+              haptic("prCelebration");
               toast({ title: t.pr.newRecord, description: `${t.exerciseNames[exName] || exName}: ${weight} ${t.common.kg}` });
             }
           }
@@ -558,7 +563,8 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           );
         }
         
-        // Confetti for XP
+        // Haptic + Confetti for workout complete
+        haptic("workoutComplete");
         if (earnedXP > 0) {
           confetti({ particleCount: 100 + earnedXP * 3, spread: 80, origin: { y: 0.5 } });
         }

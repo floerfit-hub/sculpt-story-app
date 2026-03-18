@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Timer, X, Bell } from "lucide-react";
+import { useHaptics } from "@/hooks/useHaptics";
 
 const PRESETS = [30, 60, 120, 180];
 const PRESET_LABELS: Record<number, string> = { 30: "0:30", 60: "1:00", 120: "2:00", 180: "3:00" };
@@ -28,6 +29,7 @@ const requestNotificationPermission = async () => {
 
 const RestTimer = ({ onClose }: { onClose: () => void }) => {
   const { t } = useTranslation();
+  const { trigger: haptic } = useHaptics();
   const [seconds, setSeconds] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [running, setRunning] = useState(false);
@@ -67,10 +69,14 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
         if (r <= 1) {
           clearInterval(intervalRef.current);
           setRunning(false);
-          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          haptic("medium");
           playBeep();
           sendTimerNotification();
           return 0;
+        }
+        // Countdown haptic for last 5 seconds
+        if (r <= 6) {
+          haptic("countdown");
         }
         return r - 1;
       });
@@ -78,7 +84,7 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
     return () => clearInterval(intervalRef.current);
   }, [running, remaining]);
 
-  const start = (s: number) => { setSeconds(s); setRemaining(s); setRunning(true); };
+  const start = (s: number) => { setSeconds(s); setRemaining(s); setRunning(true); haptic("light"); };
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
   const pct = seconds ? ((seconds - remaining) / seconds) * 100 : 0;
 
