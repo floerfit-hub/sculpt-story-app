@@ -39,6 +39,7 @@ interface WorkoutSetRow {
   reps: number;
   sort_order: number;
   notes: string | null;
+  rest_time: number | null;
 }
 
 interface ExerciseRow {
