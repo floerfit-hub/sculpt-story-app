@@ -54,6 +54,7 @@ interface WorkoutRow {
   finished_at: string | null;
   notes: string | null;
   duration_seconds: number | null;
+  name: string | null;
 }
 
 interface GroupedExercise {
