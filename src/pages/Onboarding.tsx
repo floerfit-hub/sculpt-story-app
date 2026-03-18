@@ -12,12 +12,12 @@ const GOALS = ["muscle_gain", "fat_loss", "strength", "maintenance", "endurance"
 const FREQUENCIES = [2, 3, 4, 5, 6] as const;
 const LEVELS = ["beginner", "intermediate", "advanced"] as const;
 const STYLES = ["gym", "bodyweight", "mixed"] as const; // kept for type but removed from flow
-const PRIORITIES = ["strength", "composition", "consistency", "balance"] as const;
+
 
 type Goal = typeof GOALS[number];
 type Level = typeof LEVELS[number];
 type Style = typeof STYLES[number];
-type Priority = typeof PRIORITIES[number];
+
 
 const goalIcons: Record<Goal, React.ReactNode> = {
   muscle_gain: <Dumbbell className="h-5 w-5" />,
@@ -39,7 +39,6 @@ const Onboarding = () => {
   const [frequency, setFrequency] = useState<number>(4);
   const [level, setLevel] = useState<Level | null>(null);
   const [style, setStyle] = useState<Style>("gym"); // default, no longer asked
-  const [priority, setPriority] = useState<Priority | null>(null);
 
   const ob = t.onboarding;
 
@@ -110,26 +109,6 @@ const Onboarding = () => {
       ),
       valid: !!level,
     },
-    {
-      title: ob.priorityTitle,
-      subtitle: ob.prioritySubtitle,
-      content: (
-        <div className="grid gap-3">
-          {PRIORITIES.map((p) => (
-            <button
-              key={p}
-              onClick={() => setPriority(p)}
-              className={`rounded-xl border-2 p-4 text-left transition-all ${
-                priority === p ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"
-              }`}
-            >
-              <p className="font-display font-semibold">{ob.priorities[p]}</p>
-            </button>
-          ))}
-        </div>
-      ),
-      valid: !!priority,
-    },
   ];
 
   const handleFinish = async () => {
@@ -140,7 +119,6 @@ const Onboarding = () => {
       training_frequency: frequency,
       experience_level: level,
       preferred_style: style,
-      priority_focus: priority,
       onboarding_completed: true,
     }).eq("user_id", user.id);
 
