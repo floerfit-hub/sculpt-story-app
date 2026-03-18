@@ -435,100 +435,40 @@ const PersonalRecords = () => {
               <Trophy className="h-4 w-4 text-yellow-500" />
               {t.pr.title}
             </CardTitle>
-            {tab === "records" && (
+            {topLevel === "records" && (
               <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowAddModal(true)}>
                 <Plus className="h-3 w-3" />
                 {t.pr.addManual}
               </Button>
             )}
           </div>
-          {/* Tab switcher */}
+          {/* Top-level toggle */}
           <div className="flex gap-1 mt-2">
             <Button
-              variant={tab === "records" ? "default" : "outline"}
+              variant={topLevel === "records" ? "default" : "outline"}
               size="sm"
               className="flex-1 h-7 text-xs gap-1"
-              onClick={() => setTab("records")}
+              onClick={() => setTopLevel("records")}
             >
               <Trophy className="h-3 w-3" />
               {t.pr.myRecords}
             </Button>
             <Button
-              variant={tab === "xp" ? "default" : "outline"}
+              variant={topLevel === "leaderboard" ? "default" : "outline"}
               size="sm"
               className="flex-1 h-7 text-xs gap-1"
-              onClick={() => { setTab("xp"); fetchXPLeaderboard(); }}
+              onClick={() => setTopLevel("leaderboard")}
             >
-              <Star className="h-3 w-3" />
-              XP
+              <Users className="h-3 w-3" />
+              {t.pr.leaderboard}
             </Button>
           </div>
         </CardHeader>
 
         <CardContent className="pt-0">
-          {tab === "xp" ? (
-            /* XP Leaderboard Tab */
-            <div className="space-y-3">
-              {/* Visibility toggle */}
-              <button
-                onClick={toggleVisibility}
-                disabled={togglingVisibility}
-                className="flex items-center gap-2 w-full rounded-lg border border-border/50 px-3 py-2 text-xs transition-colors hover:bg-accent/30"
-              >
-                {isVisible ? (
-                  <Eye className="h-3.5 w-3.5 text-primary shrink-0" />
-                ) : (
-                  <EyeOff className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                )}
-                <span className="flex-1 text-left">
-                  {isVisible ? t.pr.youAreVisible : t.pr.youAreHidden}
-                </span>
-                <Badge variant="outline" className="text-[10px] h-5">
-                  {isVisible ? t.pr.visible : t.pr.hidden}
-                </Badge>
-              </button>
-
-              {xpLeaderboardLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                </div>
-              ) : xpLeaderboard.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-3">{t.pr.noLeaderboardData}</p>
-              ) : (
-                <div className="space-y-1">
-                  {xpLeaderboard.map((entry, i) => (
-                    <div
-                      key={i}
-                      className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs transition-colors ${
-                        entry.is_current_user ? "bg-primary/10 border border-primary/30" : "border border-border/30"
-                      }`}
-                    >
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-display font-bold text-[11px]"
-                        style={{
-                          background: i === 0 ? "hsl(var(--primary) / 0.15)" : i === 1 ? "hsl(var(--muted))" : i === 2 ? "hsl(var(--accent))" : "transparent",
-                          color: i === 0 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-                        }}
-                      >
-                        {i === 0 ? <Medal className="h-3.5 w-3.5" /> : `#${i + 1}`}
-                      </div>
-                      <span className={`flex-1 font-medium truncate ${entry.is_current_user ? "text-primary" : ""}`}>
-                        {entry.user_name}
-                        {entry.is_current_user && <span className="text-[10px] text-muted-foreground ml-1">({t.pr.you})</span>}
-                      </span>
-                      <div className="text-right">
-                        <span className="font-display font-bold text-sm tabular-nums">{entry.total_xp}</span>
-                        <span className="text-[10px] text-muted-foreground ml-1">XP</span>
-                        <Badge variant="outline" className="ml-1.5 text-[9px] h-4 px-1">Lv{entry.level}</Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            /* Records Tab - My Records + Exercise Leaderboard */
+          {topLevel === "records" ? (
+            /* === My Records === */
             <>
-              {/* Search input for records */}
               {records.length > 0 && (
                 <div className="relative mb-2">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -582,106 +522,165 @@ const PersonalRecords = () => {
                   {showAllRecords ? t.pr.collapse : `+${filteredRecords.length - 6} ${t.pr.moreRecords}`}
                 </Button>
               )}
-
-              {/* Exercise Leaderboard Section */}
-              <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs font-semibold">{t.pr.leaderboard}</span>
-                </div>
-                
-                {/* Visibility toggle */}
-                <button
-                  onClick={toggleVisibility}
-                  disabled={togglingVisibility}
-                  className="flex items-center gap-2 w-full rounded-lg border border-border/50 px-3 py-2 text-xs transition-colors hover:bg-accent/30"
-                >
-                  {isVisible ? (
-                    <Eye className="h-3.5 w-3.5 text-primary shrink-0" />
-                  ) : (
-                    <EyeOff className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  )}
-                  <span className="flex-1 text-left">
-                    {isVisible ? t.pr.youAreVisible : t.pr.youAreHidden}
-                  </span>
-                  <Badge variant="outline" className="text-[10px] h-5">
-                    {isVisible ? t.pr.visible : t.pr.hidden}
-                  </Badge>
-                </button>
-
-                {/* Exercise selector */}
-                <Select value={leaderboardExercise} onValueChange={(v) => setLeaderboardExercise(v)}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder={t.pr.selectExercise} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(exercisesByGroup).map(([group, exs]) => (
-                      <div key={group}>
-                        <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                          {muscleGroupLabel(group)}
-                        </div>
-                        {exs.map((ex) => (
-                          <SelectItem key={ex.name} value={ex.name} className="text-xs">
-                            {t.exerciseNames[ex.name] || ex.name}
-                          </SelectItem>
-                        ))}
-                      </div>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Rep filter buttons */}
-                <div className="flex gap-1">
-                  {[1, 3, 8].map((reps) => (
-                    <Button
-                      key={reps}
-                      variant={leaderboardReps === reps ? "default" : "outline"}
-                      size="sm"
-                      className="flex-1 h-7 text-xs"
-                      onClick={() => setLeaderboardReps(reps)}
-                    >
-                      {reps} {lang === "uk" ? "повт" : "rep"}
-                    </Button>
-                  ))}
-                </div>
-
-                {/* Leaderboard list */}
-                {leaderboardLoading ? (
-                  <div className="flex items-center justify-center py-4">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                  </div>
-                ) : leaderboard.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-3">{t.pr.noLeaderboardData}</p>
-                ) : (
-                  <div className="space-y-1">
-                    {leaderboard.map((entry, i) => (
-                      <div
-                        key={i}
-                        className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs transition-colors ${
-                          entry.is_current_user ? "bg-primary/10 border border-primary/30" : "border border-border/30"
-                        }`}
-                      >
-                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-display font-bold text-[11px]"
-                          style={{
-                            background: i === 0 ? "hsl(var(--primary) / 0.15)" : i === 1 ? "hsl(var(--muted))" : i === 2 ? "hsl(var(--accent))" : "transparent",
-                            color: i === 0 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-                          }}
-                        >
-                          {i === 0 ? <Medal className="h-3.5 w-3.5" /> : `#${i + 1}`}
-                        </div>
-                        <span className={`flex-1 font-medium truncate ${entry.is_current_user ? "text-primary" : ""}`}>
-                          {entry.user_name}
-                          {entry.is_current_user && <span className="text-[10px] text-muted-foreground ml-1">({t.pr.you})</span>}
-                        </span>
-                        <span className="font-display font-bold text-sm tabular-nums">
-                          {entry.max_weight} <span className="text-[10px] font-normal text-muted-foreground">{t.common.kg}</span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
             </>
+          ) : (
+            /* === Leaderboard === */
+            <div className="space-y-3">
+              {/* Nested sub-tabs: XP | Exercises */}
+              <div className="flex gap-1">
+                <Button
+                  variant={leaderboardTab === "xp" ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1 h-7 text-xs gap-1"
+                  onClick={() => setLeaderboardTab("xp")}
+                >
+                  <Star className="h-3 w-3" />
+                  XP
+                </Button>
+                <Button
+                  variant={leaderboardTab === "exercises" ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1 h-7 text-xs gap-1"
+                  onClick={() => setLeaderboardTab("exercises")}
+                >
+                  <Trophy className="h-3 w-3" />
+                  {lang === "uk" ? "Рекорди у вправах" : "Exercise Records"}
+                </Button>
+              </div>
+
+              {/* Visibility toggle (shared) */}
+              <button
+                onClick={toggleVisibility}
+                disabled={togglingVisibility}
+                className="flex items-center gap-2 w-full rounded-lg border border-border/50 px-3 py-2 text-xs transition-colors hover:bg-accent/30"
+              >
+                {isVisible ? (
+                  <Eye className="h-3.5 w-3.5 text-primary shrink-0" />
+                ) : (
+                  <EyeOff className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                )}
+                <span className="flex-1 text-left">
+                  {isVisible ? t.pr.youAreVisible : t.pr.youAreHidden}
+                </span>
+                <Badge variant="outline" className="text-[10px] h-5">
+                  {isVisible ? t.pr.visible : t.pr.hidden}
+                </Badge>
+              </button>
+
+              {leaderboardTab === "xp" ? (
+                /* XP Leaderboard */
+                <>
+                  {xpLeaderboardLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    </div>
+                  ) : xpLeaderboard.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-3">{t.pr.noLeaderboardData}</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {xpLeaderboard.map((entry, i) => (
+                        <div
+                          key={i}
+                          className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs transition-colors ${
+                            entry.is_current_user ? "bg-primary/10 border border-primary/30" : "border border-border/30"
+                          }`}
+                        >
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-display font-bold text-[11px]"
+                            style={{
+                              background: i === 0 ? "hsl(var(--primary) / 0.15)" : i === 1 ? "hsl(var(--muted))" : i === 2 ? "hsl(var(--accent))" : "transparent",
+                              color: i === 0 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                            }}
+                          >
+                            {i === 0 ? <Medal className="h-3.5 w-3.5" /> : `#${i + 1}`}
+                          </div>
+                          <span className={`flex-1 font-medium truncate ${entry.is_current_user ? "text-primary" : ""}`}>
+                            {entry.user_name}
+                            {entry.is_current_user && <span className="text-[10px] text-muted-foreground ml-1">({t.pr.you})</span>}
+                          </span>
+                          <div className="text-right">
+                            <span className="font-display font-bold text-sm tabular-nums">{entry.total_xp}</span>
+                            <span className="text-[10px] text-muted-foreground ml-1">XP</span>
+                            <Badge variant="outline" className="ml-1.5 text-[9px] h-4 px-1">Lv{entry.level}</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* Exercise Records Leaderboard */
+                <>
+                  <Select value={leaderboardExercise} onValueChange={(v) => setLeaderboardExercise(v)}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder={t.pr.selectExercise} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(exercisesByGroup).map(([group, exs]) => (
+                        <div key={group}>
+                          <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            {muscleGroupLabel(group)}
+                          </div>
+                          {exs.map((ex) => (
+                            <SelectItem key={ex.name} value={ex.name} className="text-xs">
+                              {t.exerciseNames[ex.name] || ex.name}
+                            </SelectItem>
+                          ))}
+                        </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <div className="flex gap-1">
+                    {[1, 3, 8].map((reps) => (
+                      <Button
+                        key={reps}
+                        variant={leaderboardReps === reps ? "default" : "outline"}
+                        size="sm"
+                        className="flex-1 h-7 text-xs"
+                        onClick={() => setLeaderboardReps(reps)}
+                      >
+                        {reps} {lang === "uk" ? "повт" : "rep"}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {leaderboardLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    </div>
+                  ) : leaderboard.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-3">{t.pr.noLeaderboardData}</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {leaderboard.map((entry, i) => (
+                        <div
+                          key={i}
+                          className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs transition-colors ${
+                            entry.is_current_user ? "bg-primary/10 border border-primary/30" : "border border-border/30"
+                          }`}
+                        >
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-display font-bold text-[11px]"
+                            style={{
+                              background: i === 0 ? "hsl(var(--primary) / 0.15)" : i === 1 ? "hsl(var(--muted))" : i === 2 ? "hsl(var(--accent))" : "transparent",
+                              color: i === 0 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                            }}
+                          >
+                            {i === 0 ? <Medal className="h-3.5 w-3.5" /> : `#${i + 1}`}
+                          </div>
+                          <span className={`flex-1 font-medium truncate ${entry.is_current_user ? "text-primary" : ""}`}>
+                            {entry.user_name}
+                            {entry.is_current_user && <span className="text-[10px] text-muted-foreground ml-1">({t.pr.you})</span>}
+                          </span>
+                          <span className="font-display font-bold text-sm tabular-nums">
+                            {entry.max_weight} <span className="text-[10px] font-normal text-muted-foreground">{t.common.kg}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
