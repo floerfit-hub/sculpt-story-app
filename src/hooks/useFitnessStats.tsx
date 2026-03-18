@@ -174,7 +174,9 @@ export async function detectPRsLast30Days(userId: string): Promise<number> {
   let prCount = 0;
   for (const exId of Object.keys(exerciseData)) {
     const { before, recent } = exerciseData[exId];
-    if (recent > before && recent > 0) prCount++;
+    // Only count as PR if there IS a previous record to compare against (before > 0)
+    // and the recent 1RM strictly exceeds it
+    if (before > 0 && recent > before) prCount++;
   }
 
   console.log("[FitScore] PR count last 30 days:", prCount);

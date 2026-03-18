@@ -3,7 +3,7 @@ export const en = {
   nav: {
     home: "Home",
     workouts: "Workouts",
-    track: "Track",
+    track: "Measurements",
     macros: "Calculator",
     profile: "Profile",
     insights: "Insights",

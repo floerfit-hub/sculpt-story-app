@@ -267,6 +267,7 @@ const AddEntry = () => {
 
   return (
     <div className="max-w-2xl animate-fade-in space-y-4">
+      <NutritionSummary nutrition={nutrition} />
       {previousEntry && !isEditing && (
         <MeasurementsCard latest={previousEntry} previous={secondPreviousEntry ?? undefined} />
       )}
