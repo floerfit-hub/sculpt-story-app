@@ -561,7 +561,8 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           );
         }
         
-        // Confetti for XP
+        // Haptic + Confetti for workout complete
+        haptic("workoutComplete");
         if (earnedXP > 0) {
           confetti({ particleCount: 100 + earnedXP * 3, spread: 80, origin: { y: 0.5 } });
         }
