@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Weight, LayoutDashboard, RefreshCw, Target } from "lucide-react";
+import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Weight, LayoutDashboard, RefreshCw, Target, Bell } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 import { useRegisterSW } from "virtual:pwa-register/react";

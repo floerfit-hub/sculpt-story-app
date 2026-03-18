@@ -466,6 +466,7 @@ const Dashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <NotificationPrompt />
     </div>
   );
 };
