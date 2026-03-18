@@ -241,8 +241,9 @@ const Dashboard = () => {
         overall: scores.overall,
       });
 
-      // Persist score
-      if (fitnessStatsData && !coldStart && scores.overall !== fitnessStatsData.fit_score) {
+      // Persist score — only block if truly cold start (no workouts at all AND < 7 days)
+      const shouldBlock = coldStart && workoutsLast30Days === 0;
+      if (fitnessStatsData && !shouldBlock && scores.overall !== fitnessStatsData.fit_score) {
         updateFitScore(scores.overall);
       }
     };
