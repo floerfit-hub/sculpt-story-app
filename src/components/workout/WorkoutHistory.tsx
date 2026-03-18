@@ -107,7 +107,7 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
 
     const { data: wData } = await supabase
       .from("workouts")
-      .select("id, started_at, finished_at, notes, duration_seconds" as any)
+      .select("id, started_at, finished_at, notes, duration_seconds, name" as any)
       .eq("user_id", user.id)
       .order("started_at", { ascending: false });
 
