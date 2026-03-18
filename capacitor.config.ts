@@ -25,6 +25,10 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
   },
+  android: {
+    permissions: ['android.permission.VIBRATE'],
+  },
+  },
 };
 
 export default config;
