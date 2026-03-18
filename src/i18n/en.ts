@@ -431,6 +431,7 @@ export const en = {
     checking: "Checking...",
     noUpdates: "You're on the latest version",
     updateFound: "Update found! Updating...",
+    trainingGoals: "Training Goals",
   },
 
   // Charts
