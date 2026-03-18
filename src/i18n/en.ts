@@ -512,6 +512,7 @@ export const en = {
     setsMonth: "Total Sets",
     streak: "Streak",
     streakDays: "days",
+    lastWorkout: "Last Workout",
     smartInsights: "Smart Insights",
     insightUpperHeavy: "💡 You are training your upper body much more than your lower body. Consider adding more leg exercises.",
     insightLowerHeavy: "💡 You are training your lower body much more than your upper body. Consider adding more upper body exercises.",
