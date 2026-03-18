@@ -244,14 +244,17 @@ const PersonalRecords = () => {
   }, [exercises, searchQuery, t]);
 
   // Group exercises for leaderboard selector
+  // Only show exercises that exist in the exercise library
+  const libraryExerciseNames = useMemo(() => new Set(EXERCISES.map(e => e.name)), []);
+
   const exercisesByGroup = useMemo(() => {
     const groups: Record<string, typeof exercises> = {};
     for (const mg of MUSCLE_GROUPS) {
-      const filtered = exercises.filter((ex) => ex.muscle_group === mg);
+      const filtered = exercises.filter((ex) => ex.muscle_group === mg && libraryExerciseNames.has(ex.name));
       if (filtered.length > 0) groups[mg] = filtered;
     }
     return groups;
-  }, [exercises]);
+  }, [exercises, libraryExerciseNames]);
 
   const filteredRecords = useMemo(() => {
     const q = recordsSearch.toLowerCase().trim();
