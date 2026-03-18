@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             const { data: prof } = await supabase
               .from("profiles")
-              .select("full_name, weight_unit, onboarding_completed, primary_goal, training_frequency, experience_level")
+              .select("full_name, weight_unit, onboarding_completed, primary_goal, training_frequency, experience_level, haptic_feedback, timer_vibration, pr_celebration_vibration, notifications_enabled")
               .eq("user_id", session.user.id)
               .single();
             setProfile(prof);
