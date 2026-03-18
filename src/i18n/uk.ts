@@ -512,6 +512,11 @@ export const uk: Translations = {
     insightCoreNeglect: "⚠️ Ви не тренували кор за останні 30 днів. Додайте вправи на кор!",
     insightKeepGoing: "🚀 Продовжуйте записувати тренування та прогрес для персоналізованих порад!",
     analyzing: "Аналізуємо...",
+    updateMeasurementsReminder: "📏 Оновіть заміри, щоб Fit Score був точним",
+    newPrDetected: "Новий PR — Прогрес сили",
+    undertrainedGroups: "Недотреновані групи",
+    weeklyTarget: "ціль",
+    setsPerWeek: "підх/тиж",
   },
 
   onboarding: {
