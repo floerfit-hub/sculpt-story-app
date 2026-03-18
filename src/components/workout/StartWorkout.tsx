@@ -85,7 +85,8 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const { addXP, updateLastWorkout, checkAndAwardFrequencyXP, stats: fitnessStats } = useFitnessStats();
   const isEditing = !!editData;
   const [xpGained, setXpGained] = useState(0);
-  
+  const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
+  const { sendNotification } = useNotifications();
 
   const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
     if (editData) {
