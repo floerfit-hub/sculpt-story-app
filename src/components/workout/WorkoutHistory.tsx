@@ -222,7 +222,35 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="font-display font-semibold">{format(new Date(w.started_at), "EEEE, d MMM yyyy", { locale: ukLocale })}</p>
+                  {editingNameId === w.id ? (
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <Input
+                        value={editNameValue}
+                        onChange={(e) => setEditNameValue(e.target.value)}
+                        placeholder={t.workouts.workoutNamePlaceholder}
+                        className="h-8 text-sm"
+                        autoFocus
+                        onKeyDown={(e) => { if (e.key === "Enter") handleSaveName(w.id); if (e.key === "Escape") setEditingNameId(null); }}
+                      />
+                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => handleSaveName(w.id)}><Check className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setEditingNameId(null)}><X className="h-3.5 w-3.5" /></Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <div>
+                        {w.name && <p className="font-display font-semibold">{w.name}</p>}
+                        <p className={`${w.name ? "text-xs text-muted-foreground" : "font-display font-semibold"}`}>{format(new Date(w.started_at), "EEEE, d MMM yyyy", { locale: ukLocale })}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 shrink-0"
+                        onClick={(e) => { e.stopPropagation(); setEditingNameId(w.id); setEditNameValue(w.name || ""); }}
+                      >
+                        <Pencil className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>{w.exercises.length} {t.workouts.exercises}</span>
                     {duration && (
