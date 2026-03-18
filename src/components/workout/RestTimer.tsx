@@ -69,6 +69,7 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
           setRunning(false);
           if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
           playBeep();
+          sendTimerNotification();
           return 0;
         }
         return r - 1;
