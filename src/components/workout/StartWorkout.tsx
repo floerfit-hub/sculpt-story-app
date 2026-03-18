@@ -386,6 +386,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
               prMapRef.current.set(exId, weight);
               prCountRef.current += 1;
               confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+              haptic("prCelebration");
               toast({ title: t.pr.newRecord, description: `${t.exerciseNames[exName] || exName}: ${weight} ${t.common.kg}` });
             }
           }
