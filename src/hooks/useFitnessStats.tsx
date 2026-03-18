@@ -60,14 +60,8 @@ export function getLevelTitle(level: number, lang: string): string {
 
 // Goal-based weights
 export function getWeights(goal: string | null) {
-  switch (goal) {
-    case "muscle_gain": return { consistency: 0.35, strength: 0.40, balance: 0.15, measurements: 0.10 };
-    case "fat_loss": return { consistency: 0.40, strength: 0.20, balance: 0.10, measurements: 0.30 };
-    case "strength": return { consistency: 0.35, strength: 0.45, balance: 0.15, measurements: 0.05 };
-    case "endurance":
-    case "maintenance": return { consistency: 0.45, strength: 0.25, balance: 0.10, measurements: 0.20 };
-    default: return { consistency: 0.35, strength: 0.30, balance: 0.15, measurements: 0.20 };
-  }
+  // Equal weights for all goals: each component contributes 25%
+  return { consistency: 0.25, strength: 0.25, balance: 0.25, measurements: 0.25 };
 }
 
 // XP for PR based on experience level
