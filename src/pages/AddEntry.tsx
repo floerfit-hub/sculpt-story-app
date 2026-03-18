@@ -256,7 +256,7 @@ const AddEntry = () => {
     { key: "weight", label: t.addEntry.weightKg, placeholder: "75" },
     { key: "waist", label: t.addEntry.waistCm, placeholder: "80" },
     { key: "chest", label: t.addEntry.chestCm, placeholder: "95" },
-    { key: "hips", label: t.addEntry.hipsCm, placeholder: "90" },
+    
     { key: "arm_circumference", label: t.addEntry.armCm, placeholder: "35" },
     { key: "glute_circumference", label: t.addEntry.gluteCm, placeholder: "100" },
     { key: "thigh_circumference", label: t.addEntry.thighCm, placeholder: "55" },
