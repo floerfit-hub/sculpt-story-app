@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
-import { Timer, X } from "lucide-react";
+import { Timer, X, Bell } from "lucide-react";
 
 const PRESETS = [30, 60, 120, 180];
 const PRESET_LABELS: Record<number, string> = { 30: "0:30", 60: "1:00", 120: "2:00", 180: "3:00" };
