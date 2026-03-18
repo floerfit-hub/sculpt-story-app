@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "@/i18n";
-import { getLevelTitle, getXPForNextLevel, getXPForCurrentLevel } from "@/hooks/useFitnessStats";
-import { TrendingUp, TrendingDown, Minus, Sparkles, Info, X } from "lucide-react";
+import { getLevelTitle, getXPForNextLevel, getXPForCurrentLevel, LEVEL_THRESHOLDS_EXPORT } from "@/hooks/useFitnessStats";
+import { TrendingUp, TrendingDown, Minus, Sparkles, Info, X, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -72,7 +72,7 @@ const FitnessScore = ({
 }: FitnessScoreProps) => {
   const { t, lang } = useTranslation();
   const [showInfo, setShowInfo] = useState(false);
-  
+  const [showLevels, setShowLevels] = useState(false);
   const overall = useMemo(
     () => fitScore ?? Math.round(trainingConsistency * 0.3 + strengthProgress * 0.25 + bodyProgress * 0.25 + muscleBalance * 0.2),
     [fitScore, trainingConsistency, strengthProgress, bodyProgress, muscleBalance]
@@ -132,8 +132,11 @@ const FitnessScore = ({
             </div>
           </div>
 
-          {/* XP & Level bar */}
-          <div className="rounded-xl border border-border p-3 space-y-2">
+          {/* XP & Level bar - tappable */}
+          <button
+            onClick={() => setShowLevels(true)}
+            className="w-full rounded-xl border border-border p-3 space-y-2 text-left transition-colors hover:bg-accent/30 active:scale-[0.99]"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className={`flex h-8 w-8 items-center justify-center rounded-lg font-display font-bold text-sm ${isInactive ? "bg-muted text-muted-foreground" : "bg-primary/15 text-primary"}`}>
@@ -144,9 +147,12 @@ const FitnessScore = ({
                   <p className="text-[10px] text-muted-foreground mt-0.5">{totalXP} XP</p>
                 </div>
               </div>
-              <span className="text-[10px] text-muted-foreground tabular-nums">
-                {xpInLevel} / {xpNeeded} XP
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-muted-foreground tabular-nums">
+                  {xpInLevel} / {xpNeeded} XP
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
             </div>
             <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
               <div
@@ -154,7 +160,7 @@ const FitnessScore = ({
                 style={{ width: `${xpProgress}%` }}
               />
             </div>
-          </div>
+          </button>
         </CardContent>
       </Card>
 
@@ -243,6 +249,68 @@ const FitnessScore = ({
                 <li>🏅 {lang === "uk" ? "Виконати місячний план тренувань → +50 XP" : "Hit monthly training plan → +50 XP"}</li>
               </ul>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Level Hierarchy Dialog */}
+      <Dialog open={showLevels} onOpenChange={setShowLevels}>
+        <DialogContent className="rounded-2xl max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-base">
+              {lang === "uk" ? "Ієрархія рівнів" : "Level Hierarchy"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            {LEVEL_THRESHOLDS_EXPORT.map((threshold, i) => {
+              const lvl = i + 1;
+              const title = getLevelTitle(lvl, lang);
+              const nextThreshold = LEVEL_THRESHOLDS_EXPORT[i + 1];
+              const isCurrent = lvl === level;
+              const isCompleted = lvl < level;
+              const xpRange = nextThreshold
+                ? `${threshold} — ${nextThreshold} XP`
+                : `${threshold}+ XP`;
+
+              return (
+                <div
+                  key={lvl}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                    isCurrent
+                      ? "bg-primary/10 border border-primary/30"
+                      : isCompleted
+                        ? "opacity-60"
+                        : "border border-border/30"
+                  }`}
+                >
+                  <div
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-display font-bold text-sm ${
+                      isCurrent
+                        ? "bg-primary text-primary-foreground"
+                        : isCompleted
+                          ? "bg-primary/15 text-primary"
+                          : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {lvl}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-display font-bold text-sm leading-none ${isCurrent ? "text-primary" : ""}`}>
+                      {title}
+                      {isCurrent && (
+                        <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">
+                          ← {lang === "uk" ? "ви тут" : "you are here"}
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">{xpRange}</p>
+                  </div>
+                  {isCompleted && (
+                    <span className="text-primary text-xs">✓</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </DialogContent>
       </Dialog>
