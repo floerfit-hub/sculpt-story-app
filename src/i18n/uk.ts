@@ -419,6 +419,7 @@ export const uk: Translations = {
     checking: "Перевірка...",
     noUpdates: "У вас найновіша версія",
     updateFound: "Знайдено оновлення! Оновлюємо...",
+    trainingGoals: "Цілі тренувань",
   },
 
   charts: {
