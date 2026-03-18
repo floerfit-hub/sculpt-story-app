@@ -207,7 +207,7 @@ const AddEntry = () => {
       { label: t.dashboard.weight, unit: t.common.kg, current: savedEntry.weight, prev: previousEntry?.weight },
       { label: t.addEntry.waistCm, unit: t.common.cm, current: savedEntry.waist, prev: previousEntry?.waist },
       { label: t.addEntry.chest, unit: t.common.cm, current: savedEntry.chest, prev: previousEntry?.chest },
-      { label: t.addEntry.hips, unit: t.common.cm, current: savedEntry.hips, prev: previousEntry?.hips },
+      
     ];
 
     return (
