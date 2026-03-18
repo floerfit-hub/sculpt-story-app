@@ -201,8 +201,9 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
       sessionStorage.setItem("workout-edit-in-progress", JSON.stringify(exercises));
     } else {
       sessionStorage.setItem("workout-in-progress", JSON.stringify(exercises));
+      sessionStorage.setItem("workout-name", workoutName);
     }
-  }, [exercises, isEditing]);
+  }, [exercises, isEditing, workoutName]);
 
   const clearPersistedData = useCallback(() => {
     sessionStorage.removeItem("workout-in-progress");
