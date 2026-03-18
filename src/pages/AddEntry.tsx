@@ -45,7 +45,7 @@ const AddEntry = () => {
     weight: editEntry?.weight?.toString() || "",
     waist: editEntry?.waist?.toString() || "",
     chest: editEntry?.chest?.toString() || "",
-    hips: editEntry?.hips?.toString() || "",
+    
     body_fat: editEntry?.body_fat?.toString() || "",
     arm_circumference: (editEntry as any)?.arm_circumference?.toString() || "",
     glute_circumference: (editEntry as any)?.glute_circumference?.toString() || "",
