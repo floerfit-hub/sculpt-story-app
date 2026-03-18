@@ -200,6 +200,7 @@ export type Database = {
           id: string
           language: string | null
           leaderboard_visible: boolean
+          notifications_enabled: boolean
           onboarding_completed: boolean
           preferred_style: string | null
           prep_buffer_seconds: number | null
@@ -219,6 +220,7 @@ export type Database = {
           id?: string
           language?: string | null
           leaderboard_visible?: boolean
+          notifications_enabled?: boolean
           onboarding_completed?: boolean
           preferred_style?: string | null
           prep_buffer_seconds?: number | null
@@ -238,6 +240,7 @@ export type Database = {
           id?: string
           language?: string | null
           leaderboard_visible?: boolean
+          notifications_enabled?: boolean
           onboarding_completed?: boolean
           preferred_style?: string | null
           prep_buffer_seconds?: number | null
