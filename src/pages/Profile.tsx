@@ -36,6 +36,42 @@ const COMPARISON_FEATURES = [
   { key: "prioritySupport" as const, free: false, pro: true },
 ];
 
+const NotificationCard = () => {
+  const { enabled, permission, requestPermission, disableNotifications } = useNotifications();
+  const { lang } = useTranslation();
+  const isUk = lang === "uk";
+
+  const handleToggle = async (checked: boolean) => {
+    if (checked) {
+      await requestPermission();
+    } else {
+      await disableNotifications();
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-4 flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
+          <Bell className="h-5 w-5 text-primary" />
+        </div>
+        <div className="flex-1">
+          <p className="font-display font-semibold text-sm">
+            {isUk ? "Сповіщення" : "Notifications"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {isUk ? "Нагадування, рекорди, відновлення" : "Reminders, records, recovery"}
+          </p>
+        </div>
+        <Switch
+          checked={enabled && permission === "granted"}
+          onCheckedChange={handleToggle}
+        />
+      </CardContent>
+    </Card>
+  );
+};
+
 const Profile = () => {
   const { user, profile, signOut } = useAuth();
   const { isPremium } = usePremium();
