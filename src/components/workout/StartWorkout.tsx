@@ -92,7 +92,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         .map((ex) => ({
           name: ex.exercise_name,
           muscleGroup: ex.muscle_group,
-          sets: ex.sets.map((s) => ({ weight: s.weight as number | "", reps: s.reps as number | "", rest_time: null })),
+          sets: ex.sets.map((s) => ({ weight: s.weight as number | "", reps: s.reps as number | "", rest_time: s.rest_time ?? null })),
           notes: ex.notes || "",
         }));
     }
