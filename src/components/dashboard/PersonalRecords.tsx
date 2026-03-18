@@ -37,7 +37,7 @@ interface LeaderboardEntry {
   is_current_user: boolean;
 }
 
-type Tab = "xp" | "my" | "leaderboard";
+type Tab = "xp" | "records";
 
 const PersonalRecords = () => {
   const { user, profile } = useAuth();
