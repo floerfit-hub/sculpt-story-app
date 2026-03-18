@@ -438,15 +438,6 @@ const PersonalRecords = () => {
           {/* Tab switcher */}
           <div className="flex gap-1 mt-2">
             <Button
-              variant={tab === "xp" ? "default" : "outline"}
-              size="sm"
-              className="flex-1 h-7 text-xs gap-1"
-              onClick={() => { setTab("xp"); fetchXPLeaderboard(); }}
-            >
-              <Star className="h-3 w-3" />
-              XP
-            </Button>
-            <Button
               variant={tab === "records" ? "default" : "outline"}
               size="sm"
               className="flex-1 h-7 text-xs gap-1"
@@ -454,6 +445,15 @@ const PersonalRecords = () => {
             >
               <Trophy className="h-3 w-3" />
               {t.pr.myRecords}
+            </Button>
+            <Button
+              variant={tab === "xp" ? "default" : "outline"}
+              size="sm"
+              className="flex-1 h-7 text-xs gap-1"
+              onClick={() => { setTab("xp"); fetchXPLeaderboard(); }}
+            >
+              <Star className="h-3 w-3" />
+              XP
             </Button>
           </div>
         </CardHeader>

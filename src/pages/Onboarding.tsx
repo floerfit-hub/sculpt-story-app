@@ -119,7 +119,6 @@ const Onboarding = () => {
       training_frequency: frequency,
       experience_level: level,
       preferred_style: style,
-      priority_focus: priority,
       onboarding_completed: true,
     }).eq("user_id", user.id);
 

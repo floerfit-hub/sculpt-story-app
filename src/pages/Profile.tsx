@@ -324,7 +324,7 @@ const Profile = () => {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>{t.onboarding.goalTitle}</Label>
-            <Select value={primaryGoal} onValueChange={setPrimaryGoal}>
+            <Select value={primaryGoal} onValueChange={(v) => { setPrimaryGoal(v); autoSaveGoal("primary_goal", v); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {["muscle_gain", "fat_loss", "strength", "maintenance", "endurance"].map(g => (
@@ -335,7 +335,7 @@ const Profile = () => {
           </div>
           <div className="space-y-2">
             <Label>{t.onboarding.frequencyTitle}</Label>
-            <Select value={trainingFrequency} onValueChange={setTrainingFrequency}>
+            <Select value={trainingFrequency} onValueChange={(v) => { setTrainingFrequency(v); autoSaveGoal("training_frequency", Number(v)); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {[2, 3, 4, 5, 6].map(f => (
@@ -346,7 +346,7 @@ const Profile = () => {
           </div>
           <div className="space-y-2">
             <Label>{t.onboarding.levelTitle}</Label>
-            <Select value={experienceLevel} onValueChange={setExperienceLevel}>
+            <Select value={experienceLevel} onValueChange={(v) => { setExperienceLevel(v); autoSaveGoal("experience_level", v); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {["beginner", "intermediate", "advanced"].map(l => (
@@ -355,40 +355,6 @@ const Profile = () => {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label>{t.onboarding.priorityTitle}</Label>
-            <Select value={priorityFocus} onValueChange={setPriorityFocus}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {["strength", "composition", "consistency", "balance"].map(p => (
-                  <SelectItem key={p} value={p}>{t.onboarding.priorities[p as keyof typeof t.onboarding.priorities]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button
-            onClick={async () => {
-              if (!user) return;
-              setSavingGoals(true);
-              const { error } = await supabase.from("profiles").update({
-                primary_goal: primaryGoal || null,
-                training_frequency: Number(trainingFrequency) || null,
-                experience_level: experienceLevel || null,
-                priority_focus: priorityFocus || null,
-              } as any).eq("user_id", user.id);
-              setSavingGoals(false);
-              if (error) {
-                toast({ title: t.common.error, description: error.message, variant: "destructive" });
-              } else {
-                toast({ title: t.profile.profileUpdated });
-              }
-            }}
-            disabled={savingGoals}
-            className="w-full"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            {savingGoals ? t.profile.saving : t.profile.saveChanges}
-          </Button>
         </CardContent>
       </Card>
       {/* Dashboard Customization */}
