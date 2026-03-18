@@ -80,6 +80,15 @@ const HapticSettingsCard = () => {
   const [timer, setTimer] = useState(p?.timer_vibration ?? true);
   const [pr, setPr] = useState(p?.pr_celebration_vibration ?? true);
 
+  // Sync from profile when it loads/changes
+  useEffect(() => {
+    if (p) {
+      setHaptic(p.haptic_feedback ?? true);
+      setTimer(p.timer_vibration ?? true);
+      setPr(p.pr_celebration_vibration ?? true);
+    }
+  }, [p?.haptic_feedback, p?.timer_vibration, p?.pr_celebration_vibration]);
+
   const update = async (field: string, value: boolean) => {
     if (!user) return;
     await supabase.from("profiles").update({ [field]: value } as any).eq("user_id", user.id);
@@ -134,6 +143,17 @@ const Profile = () => {
   const [trainingFrequency, setTrainingFrequency] = useState(profile?.training_frequency?.toString() || "4");
   const [experienceLevel, setExperienceLevel] = useState(profile?.experience_level || "");
   const [saving, setSaving] = useState(false);
+
+  // Sync local state from profile when it loads/changes
+  useEffect(() => {
+    if (profile) {
+      setName(profile.full_name || "");
+      setWeightUnit(profile.weight_unit || "kg");
+      setPrimaryGoal(profile.primary_goal || "");
+      setTrainingFrequency(profile.training_frequency?.toString() || "4");
+      setExperienceLevel(profile.experience_level || "");
+    }
+  }, [profile]);
 
   const autoSaveGoal = async (field: string, value: any) => {
     if (!user) return;
