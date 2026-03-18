@@ -211,6 +211,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     sessionStorage.removeItem("workout-view");
     sessionStorage.removeItem("workout-start-time");
     sessionStorage.removeItem("workout-autosave-id");
+    sessionStorage.removeItem("workout-name");
     autoSaveIdRef.current = null;
   }, []);
 
