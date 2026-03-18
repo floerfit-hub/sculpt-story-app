@@ -420,6 +420,12 @@ export const uk: Translations = {
     noUpdates: "У вас найновіша версія",
     updateFound: "Знайдено оновлення! Оновлюємо...",
     trainingGoals: "Цілі тренувань",
+    hapticFeedback: "Тактильний відгук",
+    hapticFeedbackDesc: "Вібрація при діях",
+    timerVibration: "Вібрація таймера",
+    timerVibrationDesc: "Відлік вібрацією",
+    prVibration: "Святкування рекорду",
+    prVibrationDesc: "Вібрація при нових рекордах",
   },
 
   charts: {
