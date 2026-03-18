@@ -72,6 +72,55 @@ const NotificationCard = () => {
   );
 };
 
+const HapticSettingsCard = () => {
+  const { user, profile } = useAuth();
+  const { t } = useTranslation();
+  const p = profile as any;
+  const [haptic, setHaptic] = useState(p?.haptic_feedback ?? true);
+  const [timer, setTimer] = useState(p?.timer_vibration ?? true);
+  const [pr, setPr] = useState(p?.pr_celebration_vibration ?? true);
+
+  const update = async (field: string, value: boolean) => {
+    if (!user) return;
+    await supabase.from("profiles").update({ [field]: value } as any).eq("user_id", user.id);
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
+            <Smartphone className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="font-display font-semibold text-sm">{t.profile.hapticFeedback}</p>
+            <p className="text-xs text-muted-foreground">{t.profile.hapticFeedbackDesc}</p>
+          </div>
+          <Switch checked={haptic} onCheckedChange={(v) => { setHaptic(v); update("haptic_feedback", v); }} />
+        </div>
+        {haptic && (
+          <>
+            <div className="flex items-center gap-3 pl-[52px]">
+              <div className="flex-1">
+                <p className="text-sm">{t.profile.timerVibration}</p>
+                <p className="text-xs text-muted-foreground">{t.profile.timerVibrationDesc}</p>
+              </div>
+              <Switch checked={timer} onCheckedChange={(v) => { setTimer(v); update("timer_vibration", v); }} />
+            </div>
+            <div className="flex items-center gap-3 pl-[52px]">
+              <div className="flex-1">
+                <p className="text-sm">{t.profile.prVibration}</p>
+                <p className="text-xs text-muted-foreground">{t.profile.prVibrationDesc}</p>
+              </div>
+              <Switch checked={pr} onCheckedChange={(v) => { setPr(v); update("pr_celebration_vibration", v); }} />
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 const Profile = () => {
   const { user, profile, signOut } = useAuth();
   const { isPremium } = usePremium();
