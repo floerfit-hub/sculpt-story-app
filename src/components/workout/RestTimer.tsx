@@ -84,7 +84,7 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
     return () => clearInterval(intervalRef.current);
   }, [running, remaining]);
 
-  const start = (s: number) => { setSeconds(s); setRemaining(s); setRunning(true); };
+  const start = (s: number) => { setSeconds(s); setRemaining(s); setRunning(true); haptic("light"); };
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
   const pct = seconds ? ((seconds - remaining) / seconds) * 100 : 0;
 
