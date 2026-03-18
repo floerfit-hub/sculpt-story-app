@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "@/i18n";
 import { Dumbbell } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { isToday, isYesterday, format } from "date-fns";
 import { uk as ukLocale } from "date-fns/locale";
 
 interface WorkoutActivityProps {
@@ -13,9 +13,15 @@ interface WorkoutActivityProps {
 const WorkoutActivity = ({ workoutsThisMonth, totalSetsThisMonth, lastWorkoutAt }: WorkoutActivityProps) => {
   const { t, lang } = useTranslation();
 
-  const lastWorkoutLabel = lastWorkoutAt
-    ? formatDistanceToNow(new Date(lastWorkoutAt), { addSuffix: true, locale: lang === "uk" ? ukLocale : undefined })
-    : "—";
+  const getLastWorkoutLabel = (): string => {
+    if (!lastWorkoutAt) return "—";
+    const date = new Date(lastWorkoutAt);
+    if (isToday(date)) return lang === "uk" ? "Сьогодні" : "Today";
+    if (isYesterday(date)) return lang === "uk" ? "Вчора" : "Yesterday";
+    return format(date, "d MMM", { locale: lang === "uk" ? ukLocale : undefined });
+  };
+
+  const lastWorkoutLabel = getLastWorkoutLabel();
 
   const stats = [
     { label: t.fitScore.workoutsMonth, value: workoutsThisMonth },

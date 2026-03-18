@@ -521,7 +521,7 @@ const PersonalRecords = () => {
 
               {/* Rep filter buttons */}
               <div className="flex gap-1">
-                {[1, 5, 10].map((reps) => (
+                {[1, 3, 8].map((reps) => (
                   <Button
                     key={reps}
                     variant={leaderboardReps === reps ? "default" : "outline"}
@@ -529,7 +529,7 @@ const PersonalRecords = () => {
                     className="flex-1 h-7 text-xs"
                     onClick={() => setLeaderboardReps(reps)}
                   >
-                    {reps} повт
+                    {reps} {lang === "uk" ? "повт" : "rep"}
                   </Button>
                 ))}
               </div>
