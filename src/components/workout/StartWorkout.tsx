@@ -283,7 +283,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
             await (supabase as any).from("workout_sets").delete().eq("workout_id", workoutId);
           } else {
             const { data: workout, error: wErr } = await supabase.from("workouts")
-              .insert({ user_id: user.id, started_at: startedAt })
+              .insert({ user_id: user.id, started_at: startedAt, name: workoutName || null } as any)
               .select("id").single();
             if (wErr || !workout) return;
             workoutId = workout.id;
