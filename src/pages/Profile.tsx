@@ -144,6 +144,17 @@ const Profile = () => {
   const [experienceLevel, setExperienceLevel] = useState(profile?.experience_level || "");
   const [saving, setSaving] = useState(false);
 
+  // Sync local state from profile when it loads/changes
+  useEffect(() => {
+    if (profile) {
+      setName(profile.full_name || "");
+      setWeightUnit(profile.weight_unit || "kg");
+      setPrimaryGoal(profile.primary_goal || "");
+      setTrainingFrequency(profile.training_frequency?.toString() || "4");
+      setExperienceLevel(profile.experience_level || "");
+    }
+  }, [profile]);
+
   const autoSaveGoal = async (field: string, value: any) => {
     if (!user) return;
     await supabase.from("profiles").update({ [field]: value } as any).eq("user_id", user.id);
