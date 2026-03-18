@@ -42,7 +42,7 @@ type Tab = "my" | "leaderboard";
 const PersonalRecords = () => {
   const { user, profile } = useAuth();
   const { isPremium } = usePremium();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { toast } = useToast();
 
   const [records, setRecords] = useState<PRRecord[]>([]);
