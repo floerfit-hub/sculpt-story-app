@@ -111,26 +111,6 @@ const Onboarding = () => {
       valid: !!level,
     },
     {
-      title: ob.styleTitle,
-      subtitle: ob.styleSubtitle,
-      content: (
-        <div className="grid gap-3">
-          {STYLES.map((s) => (
-            <button
-              key={s}
-              onClick={() => setStyle(s)}
-              className={`rounded-xl border-2 p-4 text-left transition-all ${
-                style === s ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"
-              }`}
-            >
-              <p className="font-display font-semibold">{ob.styles[s]}</p>
-            </button>
-          ))}
-        </div>
-      ),
-      valid: !!style,
-    },
-    {
       title: ob.priorityTitle,
       subtitle: ob.prioritySubtitle,
       content: (

@@ -538,6 +538,11 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         setXpGained(earnedXP);
         await updateLastWorkout();
         
+        // Confetti for XP
+        if (earnedXP > 0) {
+          confetti({ particleCount: 100 + earnedXP * 3, spread: 80, origin: { y: 0.5 } });
+        }
+        
         setSaved(true);
         toast({ title: t.workouts.workoutSaved, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       }
