@@ -228,9 +228,11 @@ export function useFitnessStats() {
 
   const addXP = useCallback(async (amount: number, reason?: string) => {
     if (!user || !stats) return;
+    const oldLevel = stats.level;
     const newXP = stats.total_xp + amount;
     const newLevel = getLevelFromXP(newXP);
-    console.log(`[XP] +${amount} XP (${reason || 'unknown'}). Total: ${newXP}, Level: ${newLevel}`);
+    const leveledUp = newLevel > oldLevel;
+    console.log(`[XP] +${amount} XP (${reason || 'unknown'}). Total: ${newXP}, Level: ${newLevel}${leveledUp ? ' 🆙 LEVEL UP!' : ''}`);
     
     const { error } = await supabase.from("fitness_stats").update({
       total_xp: newXP,
@@ -243,7 +245,7 @@ export function useFitnessStats() {
       return;
     }
     setStats(prev => prev ? { ...prev, total_xp: newXP, level: newLevel } : prev);
-    return { newXP, newLevel, xpGained: amount };
+    return { newXP, newLevel, oldLevel, xpGained: amount, leveledUp };
   }, [user, stats]);
 
   const updateFitScore = useCallback(async (score: number) => {

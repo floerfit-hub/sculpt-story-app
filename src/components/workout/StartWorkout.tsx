@@ -12,7 +12,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import RestTimer from "./RestTimer";
+import LevelUpDialog from "@/components/LevelUpDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/useNotifications";
 import confetti from "canvas-confetti";
 
 interface SetData { weight: number | ""; reps: number | ""; rest_time: number | null }
