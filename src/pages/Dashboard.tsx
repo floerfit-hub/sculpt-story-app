@@ -241,8 +241,9 @@ const Dashboard = () => {
         overall: scores.overall,
       });
 
-      // Persist score
-      if (fitnessStatsData && !coldStart && scores.overall !== fitnessStatsData.fit_score) {
+      // Persist score — only block if truly cold start (no workouts at all AND < 7 days)
+      const shouldBlock = coldStart && workoutsLast30Days === 0;
+      if (fitnessStatsData && !shouldBlock && scores.overall !== fitnessStatsData.fit_score) {
         updateFitScore(scores.overall);
       }
     };
@@ -315,11 +316,11 @@ const Dashboard = () => {
         </CardContent>
       </Card>
     ) : null,
-    fitnessScore: <PremiumGate feature="Fitness Score Dashboard"><FitnessScore {...fitnessScores} totalXP={fitnessStatsData?.total_xp} level={fitnessStatsData?.level} fitScore={coldStart ? undefined : fitnessScores.overall} weeklyChange={weeklyChange} isInactive={isInactive} coldStart={coldStart} /></PremiumGate>,
+    fitnessScore: <PremiumGate feature="Fitness Score Dashboard"><FitnessScore {...fitnessScores} totalXP={fitnessStatsData?.total_xp} level={fitnessStatsData?.level} fitScore={(coldStart && workoutsThisMonth === 0 && workouts.length === 0) ? undefined : fitnessScores.overall} weeklyChange={weeklyChange} isInactive={isInactive} coldStart={coldStart && workoutsThisMonth === 0 && workouts.length === 0} /></PremiumGate>,
     weightChart: <WeightChart entries={entries} />,
     measurements: <PremiumGate feature="Body Composition Dashboard"><MeasurementsCard latest={latest} previous={previous} /></PremiumGate>,
     muscleHeatmap: <PremiumGate feature="Muscle Heatmap Analytics"><MuscleHeatmap muscleData={muscleData} /></PremiumGate>,
-    workoutActivity: <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} currentStreak={currentStreak} />,
+    workoutActivity: <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} lastWorkoutAt={fitnessStatsData?.last_workout_at || (workouts.length > 0 ? workouts[workouts.length - 1].started_at : null)} />,
     personalRecords: <PersonalRecords />,
     nutrition: <NutritionSummary nutrition={nutrition} />,
     insights: <PremiumGate feature="AI Training Insights"><SmartInsights entries={entries} muscleData={muscleData} strengthTrending={strengthTrending} /></PremiumGate>,

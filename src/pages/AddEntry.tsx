@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, X, Save, Clock, PartyPopper, TrendingDown, TrendingUp, Minus } from "lucide-react";
 import MeasurementsCard from "@/components/dashboard/MeasurementsCard";
+import NutritionSummary from "@/components/dashboard/NutritionSummary";
 import { differenceInDays, addDays, format } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -53,6 +54,14 @@ const AddEntry = () => {
   });
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [nutrition, setNutrition] = useState<{ calories: number; protein: number; fat: number; carbs: number } | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("nutrition_results");
+      if (saved) setNutrition(JSON.parse(saved));
+    } catch {}
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -258,6 +267,7 @@ const AddEntry = () => {
 
   return (
     <div className="max-w-2xl animate-fade-in space-y-4">
+      <NutritionSummary nutrition={nutrition} />
       {previousEntry && !isEditing && (
         <MeasurementsCard latest={previousEntry} previous={secondPreviousEntry ?? undefined} />
       )}

@@ -4,7 +4,7 @@ export const uk: Translations = {
   nav: {
     home: "Головна",
     workouts: "Тренування",
-    track: "Виміри",
+    track: "Заміри",
     macros: "Калькулятор",
     profile: "Профіль",
     insights: "Аналітика",
@@ -496,6 +496,7 @@ export const uk: Translations = {
     setsMonth: "Всього підходів",
     streak: "Серія",
     streakDays: "днів",
+    lastWorkout: "Останнє тренування",
     smartInsights: "Розумні поради",
     insightUpperHeavy: "💡 Ви тренуєте верхню частину тіла значно більше, ніж нижню. Додайте більше вправ на ноги.",
     insightLowerHeavy: "💡 Ви тренуєте нижню частину тіла значно більше, ніж верхню. Додайте більше вправ на верх.",
