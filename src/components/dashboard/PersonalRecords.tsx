@@ -6,7 +6,7 @@ import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Plus, TrendingUp, ArrowLeft, Search, Users, Medal, Eye, EyeOff } from "lucide-react";
+import { Trophy, Plus, TrendingUp, ArrowLeft, Search, Users, Medal, Eye, EyeOff, Star } from "lucide-react";
 import { format } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
