@@ -69,10 +69,14 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
         if (r <= 1) {
           clearInterval(intervalRef.current);
           setRunning(false);
-          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          haptic("medium");
           playBeep();
           sendTimerNotification();
           return 0;
+        }
+        // Countdown haptic for last 5 seconds
+        if (r <= 6) {
+          haptic("countdown");
         }
         return r - 1;
       });
