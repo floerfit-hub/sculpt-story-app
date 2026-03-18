@@ -27,7 +27,7 @@ export interface EditWorkoutData {
     exercise_id: string;
     exercise_name: string;
     muscle_group: string;
-    sets: { weight: number; reps: number }[];
+    sets: { weight: number; reps: number; rest_time?: number | null }[];
     notes: string | null;
     sort_order: number;
   }[];
