@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import PremiumGate from "@/components/subscription/PremiumGate";
-import { MUSCLE_GROUPS } from "@/data/exerciseLibrary";
+import { MUSCLE_GROUPS, EXERCISES } from "@/data/exerciseLibrary";
 
 interface PRRecord {
   exerciseName: string;
@@ -42,7 +42,7 @@ type Tab = "my" | "leaderboard";
 const PersonalRecords = () => {
   const { user, profile } = useAuth();
   const { isPremium } = usePremium();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { toast } = useToast();
 
   const [records, setRecords] = useState<PRRecord[]>([]);
@@ -244,14 +244,17 @@ const PersonalRecords = () => {
   }, [exercises, searchQuery, t]);
 
   // Group exercises for leaderboard selector
+  // Only show exercises that exist in the exercise library
+  const libraryExerciseNames = useMemo(() => new Set(EXERCISES.map(e => e.name)), []);
+
   const exercisesByGroup = useMemo(() => {
     const groups: Record<string, typeof exercises> = {};
     for (const mg of MUSCLE_GROUPS) {
-      const filtered = exercises.filter((ex) => ex.muscle_group === mg);
+      const filtered = exercises.filter((ex) => ex.muscle_group === mg && libraryExerciseNames.has(ex.name));
       if (filtered.length > 0) groups[mg] = filtered;
     }
     return groups;
-  }, [exercises]);
+  }, [exercises, libraryExerciseNames]);
 
   const filteredRecords = useMemo(() => {
     const q = recordsSearch.toLowerCase().trim();
@@ -518,7 +521,7 @@ const PersonalRecords = () => {
 
               {/* Rep filter buttons */}
               <div className="flex gap-1">
-                {[1, 5, 10].map((reps) => (
+                {[1, 3, 8].map((reps) => (
                   <Button
                     key={reps}
                     variant={leaderboardReps === reps ? "default" : "outline"}
@@ -526,7 +529,7 @@ const PersonalRecords = () => {
                     className="flex-1 h-7 text-xs"
                     onClick={() => setLeaderboardReps(reps)}
                   >
-                    {reps} повт
+                    {reps} {lang === "uk" ? "повт" : "rep"}
                   </Button>
                 ))}
               </div>
