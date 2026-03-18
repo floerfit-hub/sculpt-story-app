@@ -150,7 +150,7 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
           exercise_id: exerciseId,
           exercise_name: ex?.name || '',
           muscle_group: ex?.muscle_group || '',
-          sets: sets.map(s => ({ weight: Number(s.weight), reps: Number(s.reps) })),
+          sets: sets.map(s => ({ weight: Number(s.weight), reps: Number(s.reps), rest_time: s.rest_time })),
           notes: sets[0]?.notes || null,
           sort_order: sets[0]?.sort_order || 0,
         };
