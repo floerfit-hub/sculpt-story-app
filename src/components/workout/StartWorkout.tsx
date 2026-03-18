@@ -26,6 +26,7 @@ export interface EditWorkoutData {
   started_at: string;
   finished_at: string | null;
   notes: string | null;
+  name: string | null;
   exercises: {
     exercise_id: string;
     exercise_name: string;
