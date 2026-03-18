@@ -1,10 +1,30 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
-import { Timer, X } from "lucide-react";
+import { Timer, X, Bell } from "lucide-react";
 
 const PRESETS = [30, 60, 120, 180];
 const PRESET_LABELS: Record<number, string> = { 30: "0:30", 60: "1:00", 120: "2:00", 180: "3:00" };
+
+const sendTimerNotification = () => {
+  if ("Notification" in window && Notification.permission === "granted") {
+    try {
+      new Notification("FitTrack", {
+        body: "⏱️ Час відпочинку закінчився! Час починати підхід.",
+        icon: "/pwa-icon-192.png",
+        tag: "rest-timer",
+      });
+    } catch { /* SW notification fallback not needed for simple case */ }
+  }
+};
+
+const requestNotificationPermission = async () => {
+  if (!("Notification" in window)) return false;
+  if (Notification.permission === "granted") return true;
+  if (Notification.permission === "denied") return false;
+  const result = await Notification.requestPermission();
+  return result === "granted";
+};
 
 const RestTimer = ({ onClose }: { onClose: () => void }) => {
   const { t } = useTranslation();
@@ -12,6 +32,9 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
   const [remaining, setRemaining] = useState(0);
   const [running, setRunning] = useState(false);
   const [customInput, setCustomInput] = useState("");
+  const [notifEnabled, setNotifEnabled] = useState(() => 
+    "Notification" in window && Notification.permission === "granted"
+  );
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const audioCtxRef = useRef<AudioContext | null>(null);
 
@@ -46,6 +69,7 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
           setRunning(false);
           if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
           playBeep();
+          sendTimerNotification();
           return 0;
         }
         return r - 1;
@@ -61,11 +85,25 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
       <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-lg space-y-5">
-        <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
           <h3 className="font-display font-bold text-lg flex items-center gap-2">
             <Timer className="h-5 w-5 text-primary" /> {t.workouts.restTimer}
           </h3>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={notifEnabled ? "text-primary" : "text-muted-foreground"}
+              onClick={async () => {
+                const granted = await requestNotificationPermission();
+                setNotifEnabled(granted);
+              }}
+              title={notifEnabled ? "Сповіщення увімкнено" : "Увімкнути сповіщення"}
+            >
+              <Bell className={`h-4 w-4 ${notifEnabled ? "" : "opacity-40"}`} />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
+          </div>
         </div>
 
         {running || (remaining === 0 && seconds) ? (

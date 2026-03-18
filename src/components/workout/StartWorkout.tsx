@@ -27,7 +27,7 @@ export interface EditWorkoutData {
     exercise_id: string;
     exercise_name: string;
     muscle_group: string;
-    sets: { weight: number; reps: number }[];
+    sets: { weight: number; reps: number; rest_time?: number | null }[];
     notes: string | null;
     sort_order: number;
   }[];
@@ -92,7 +92,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         .map((ex) => ({
           name: ex.exercise_name,
           muscleGroup: ex.muscle_group,
-          sets: ex.sets.map((s) => ({ weight: s.weight as number | "", reps: s.reps as number | "", rest_time: null })),
+          sets: ex.sets.map((s) => ({ weight: s.weight as number | "", reps: s.reps as number | "", rest_time: s.rest_time ?? null })),
           notes: ex.notes || "",
         }));
     }
