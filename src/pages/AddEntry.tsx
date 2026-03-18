@@ -119,7 +119,7 @@ const AddEntry = () => {
       weight: form.weight ? Number(form.weight) : null,
       waist: form.waist ? Number(form.waist) : null,
       chest: form.chest ? Number(form.chest) : null,
-      hips: form.hips ? Number(form.hips) : null,
+      
       body_fat: form.body_fat ? Number(form.body_fat) : null,
       arm_circumference: form.arm_circumference ? Number(form.arm_circumference) : null,
       glute_circumference: form.glute_circumference ? Number(form.glute_circumference) : null,
