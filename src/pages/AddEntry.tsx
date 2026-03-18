@@ -45,7 +45,7 @@ const AddEntry = () => {
     weight: editEntry?.weight?.toString() || "",
     waist: editEntry?.waist?.toString() || "",
     chest: editEntry?.chest?.toString() || "",
-    hips: editEntry?.hips?.toString() || "",
+    
     body_fat: editEntry?.body_fat?.toString() || "",
     arm_circumference: (editEntry as any)?.arm_circumference?.toString() || "",
     glute_circumference: (editEntry as any)?.glute_circumference?.toString() || "",
@@ -119,7 +119,7 @@ const AddEntry = () => {
       weight: form.weight ? Number(form.weight) : null,
       waist: form.waist ? Number(form.waist) : null,
       chest: form.chest ? Number(form.chest) : null,
-      hips: form.hips ? Number(form.hips) : null,
+      
       body_fat: form.body_fat ? Number(form.body_fat) : null,
       arm_circumference: form.arm_circumference ? Number(form.arm_circumference) : null,
       glute_circumference: form.glute_circumference ? Number(form.glute_circumference) : null,
@@ -207,7 +207,7 @@ const AddEntry = () => {
       { label: t.dashboard.weight, unit: t.common.kg, current: savedEntry.weight, prev: previousEntry?.weight },
       { label: t.addEntry.waistCm, unit: t.common.cm, current: savedEntry.waist, prev: previousEntry?.waist },
       { label: t.addEntry.chest, unit: t.common.cm, current: savedEntry.chest, prev: previousEntry?.chest },
-      { label: t.addEntry.hips, unit: t.common.cm, current: savedEntry.hips, prev: previousEntry?.hips },
+      
     ];
 
     return (
@@ -256,7 +256,7 @@ const AddEntry = () => {
     { key: "weight", label: t.addEntry.weightKg, placeholder: "75" },
     { key: "waist", label: t.addEntry.waistCm, placeholder: "80" },
     { key: "chest", label: t.addEntry.chestCm, placeholder: "95" },
-    { key: "hips", label: t.addEntry.hipsCm, placeholder: "90" },
+    
     { key: "arm_circumference", label: t.addEntry.armCm, placeholder: "35" },
     { key: "glute_circumference", label: t.addEntry.gluteCm, placeholder: "100" },
     { key: "thigh_circumference", label: t.addEntry.thighCm, placeholder: "55" },
