@@ -88,6 +88,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [xpGained, setXpGained] = useState(0);
   const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
   const { sendNotification } = useNotifications();
+  const { trigger: haptic } = useHaptics();
 
   const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
     if (editData) {
