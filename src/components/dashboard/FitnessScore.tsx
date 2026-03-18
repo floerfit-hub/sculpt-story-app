@@ -252,6 +252,68 @@ const FitnessScore = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Level Hierarchy Dialog */}
+      <Dialog open={showLevels} onOpenChange={setShowLevels}>
+        <DialogContent className="rounded-2xl max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-base">
+              {lang === "uk" ? "Ієрархія рівнів" : "Level Hierarchy"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            {LEVEL_THRESHOLDS_EXPORT.map((threshold, i) => {
+              const lvl = i + 1;
+              const title = getLevelTitle(lvl, lang);
+              const nextThreshold = LEVEL_THRESHOLDS_EXPORT[i + 1];
+              const isCurrent = lvl === level;
+              const isCompleted = lvl < level;
+              const xpRange = nextThreshold
+                ? `${threshold} — ${nextThreshold} XP`
+                : `${threshold}+ XP`;
+
+              return (
+                <div
+                  key={lvl}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                    isCurrent
+                      ? "bg-primary/10 border border-primary/30"
+                      : isCompleted
+                        ? "opacity-60"
+                        : "border border-border/30"
+                  }`}
+                >
+                  <div
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-display font-bold text-sm ${
+                      isCurrent
+                        ? "bg-primary text-primary-foreground"
+                        : isCompleted
+                          ? "bg-primary/15 text-primary"
+                          : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {lvl}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-display font-bold text-sm leading-none ${isCurrent ? "text-primary" : ""}`}>
+                      {title}
+                      {isCurrent && (
+                        <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">
+                          ← {lang === "uk" ? "ви тут" : "you are here"}
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">{xpRange}</p>
+                  </div>
+                  {isCompleted && (
+                    <span className="text-primary text-xs">✓</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
