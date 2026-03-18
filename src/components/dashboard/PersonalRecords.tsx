@@ -70,6 +70,10 @@ const PersonalRecords = () => {
   const [leaderboardReps, setLeaderboardReps] = useState<number>(1);
   const [isVisible, setIsVisible] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
+  
+  // XP Leaderboard state
+  const [xpLeaderboard, setXpLeaderboard] = useState<{ user_name: string; total_xp: number; level: number; is_current_user: boolean }[]>([]);
+  const [xpLeaderboardLoading, setXpLeaderboardLoading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
