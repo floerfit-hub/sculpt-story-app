@@ -47,7 +47,7 @@ const Profile = () => {
   const [primaryGoal, setPrimaryGoal] = useState(profile?.primary_goal || "");
   const [trainingFrequency, setTrainingFrequency] = useState(profile?.training_frequency?.toString() || "4");
   const [experienceLevel, setExperienceLevel] = useState(profile?.experience_level || "");
-  const [priorityFocus, setPriorityFocus] = useState(profile?.priority_focus || "");
+  const [priorityFocus, setPriorityFocus] = useState((profile as any)?.priority_focus || "");
   const [saving, setSaving] = useState(false);
   const [savingGoals, setSavingGoals] = useState(false);
   const [isStandalone] = useState(window.matchMedia("(display-mode: standalone)").matches);
