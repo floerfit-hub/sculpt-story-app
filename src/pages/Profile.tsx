@@ -307,6 +307,9 @@ const Profile = () => {
       {/* Notifications */}
       <NotificationCard />
 
+      {/* Haptic Feedback */}
+      <HapticSettingsCard />
+
       {/* Training Goals */}
       <Card>
         <CardHeader>
