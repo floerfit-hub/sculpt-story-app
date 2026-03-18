@@ -6,12 +6,35 @@ import { Timer, X, Bell } from "lucide-react";
 const PRESETS = [30, 60, 120, 180];
 const PRESET_LABELS: Record<number, string> = { 30: "0:30", 60: "1:00", 120: "2:00", 180: "3:00" };
 
+const sendTimerNotification = () => {
+  if ("Notification" in window && Notification.permission === "granted") {
+    try {
+      new Notification("FitTrack", {
+        body: "⏱️ Час відпочинку закінчився! Час починати підхід.",
+        icon: "/pwa-icon-192.png",
+        tag: "rest-timer",
+      });
+    } catch { /* SW notification fallback not needed for simple case */ }
+  }
+};
+
+const requestNotificationPermission = async () => {
+  if (!("Notification" in window)) return false;
+  if (Notification.permission === "granted") return true;
+  if (Notification.permission === "denied") return false;
+  const result = await Notification.requestPermission();
+  return result === "granted";
+};
+
 const RestTimer = ({ onClose }: { onClose: () => void }) => {
   const { t } = useTranslation();
   const [seconds, setSeconds] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [running, setRunning] = useState(false);
   const [customInput, setCustomInput] = useState("");
+  const [notifEnabled, setNotifEnabled] = useState(() => 
+    "Notification" in window && Notification.permission === "granted"
+  );
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const audioCtxRef = useRef<AudioContext | null>(null);
 
