@@ -80,6 +80,15 @@ const HapticSettingsCard = () => {
   const [timer, setTimer] = useState(p?.timer_vibration ?? true);
   const [pr, setPr] = useState(p?.pr_celebration_vibration ?? true);
 
+  // Sync from profile when it loads/changes
+  useEffect(() => {
+    if (p) {
+      setHaptic(p.haptic_feedback ?? true);
+      setTimer(p.timer_vibration ?? true);
+      setPr(p.pr_celebration_vibration ?? true);
+    }
+  }, [p?.haptic_feedback, p?.timer_vibration, p?.pr_celebration_vibration]);
+
   const update = async (field: string, value: boolean) => {
     if (!user) return;
     await supabase.from("profiles").update({ [field]: value } as any).eq("user_id", user.id);
