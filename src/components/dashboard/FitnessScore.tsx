@@ -239,7 +239,8 @@ const FitnessScore = ({
                 <li>🏋️ {lang === "uk" ? "Завершити тренування → +10 XP" : "Complete a workout → +10 XP"}</li>
                 <li>🏆 {lang === "uk" ? "Побити особистий рекорд → +15–40 XP" : "Beat a personal record → +15–40 XP"}</li>
                 <li>📏 {lang === "uk" ? "Оновити виміри тіла → +5 XP" : "Update body measurements → +5 XP"}</li>
-                <li>🔥 {lang === "uk" ? "7 днів тренувань поспіль → +30 XP" : "7-day workout streak → +30 XP"}</li>
+                <li>🎯 {lang === "uk" ? "Виконати тижневий план тренувань → +20 XP" : "Hit weekly training plan → +20 XP"}</li>
+                <li>🏅 {lang === "uk" ? "Виконати місячний план тренувань → +50 XP" : "Hit monthly training plan → +50 XP"}</li>
               </ul>
             </div>
           </div>
