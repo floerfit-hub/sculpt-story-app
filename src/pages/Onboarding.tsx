@@ -17,7 +17,7 @@ const STYLES = ["gym", "bodyweight", "mixed"] as const; // kept for type but rem
 type Goal = typeof GOALS[number];
 type Level = typeof LEVELS[number];
 type Style = typeof STYLES[number];
-type Priority = typeof PRIORITIES[number];
+
 
 const goalIcons: Record<Goal, React.ReactNode> = {
   muscle_gain: <Dumbbell className="h-5 w-5" />,
