@@ -636,6 +636,14 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           </div>
         </div>
 
+        {/* Workout name input */}
+        <Input
+          placeholder={t.workouts.workoutNamePlaceholder}
+          value={workoutName}
+          onChange={(e) => setWorkoutName(e.target.value)}
+          className="h-11"
+        />
+
         {/* Finish button at top */}
         {exercises.length > 0 && (
           <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
