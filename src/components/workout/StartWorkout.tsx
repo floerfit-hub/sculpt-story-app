@@ -80,7 +80,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { addXP, updateLastWorkout, checkAndAwardStreak, stats: fitnessStats } = useFitnessStats();
+  const { addXP, updateLastWorkout, checkAndAwardFrequencyXP, stats: fitnessStats } = useFitnessStats();
   const isEditing = !!editData;
   const [xpGained, setXpGained] = useState(0);
   
@@ -528,15 +528,20 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           console.log(`[XP] PRs detected: ${sessionPRs} × ${prXP} = +${sessionPRs * prXP} XP`);
         }
         
-        // Check streak and award bonus
-        const streakXP = await checkAndAwardStreak();
-        if (streakXP > 0) earnedXP += streakXP;
+        // Check frequency bonus
+        const freqXP = await checkAndAwardFrequencyXP();
+        if (freqXP > 0) earnedXP += freqXP;
         
-        console.log(`[XP] Workout complete: base=10, PR=${sessionPRs > 0 ? sessionPRs * getPRXP(profile?.experience_level || null) : 0}, streak=${streakXP}, total=${earnedXP}`);
+        console.log(`[XP] Workout complete: base=10, PR=${sessionPRs > 0 ? sessionPRs * getPRXP(profile?.experience_level || null) : 0}, freq=${freqXP}, total=${earnedXP}`);
         
         await addXP(earnedXP, 'workout_complete');
         setXpGained(earnedXP);
         await updateLastWorkout();
+        
+        // Confetti for XP
+        if (earnedXP > 0) {
+          confetti({ particleCount: 100 + earnedXP * 3, spread: 80, origin: { y: 0.5 } });
+        }
         
         setSaved(true);
         toast({ title: t.workouts.workoutSaved, description: `${exercises.length} ${t.workouts.exercisesLogged}` });

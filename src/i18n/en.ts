@@ -431,6 +431,7 @@ export const en = {
     checking: "Checking...",
     noUpdates: "You're on the latest version",
     updateFound: "Update found! Updating...",
+    trainingGoals: "Training Goals",
   },
 
   // Charts
@@ -576,7 +577,8 @@ export const en = {
     workout: "Workout completed",
     pr: "Personal Record",
     bodyUpdate: "Body update",
-    streak: "7-day streak",
+    weeklyPlan: "Weekly plan completed",
+    monthlyPlan: "Monthly plan completed",
     levelUp: "Level Up!",
     newLevel: "You reached level",
   },

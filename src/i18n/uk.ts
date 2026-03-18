@@ -419,6 +419,7 @@ export const uk: Translations = {
     checking: "Перевірка...",
     noUpdates: "У вас найновіша версія",
     updateFound: "Знайдено оновлення! Оновлюємо...",
+    trainingGoals: "Цілі тренувань",
   },
 
   charts: {
@@ -558,7 +559,8 @@ export const uk: Translations = {
     workout: "Тренування завершено",
     pr: "Особистий рекорд",
     bodyUpdate: "Оновлення вимірів",
-    streak: "Серія 7 днів",
+    weeklyPlan: "Тижневий план виконано",
+    monthlyPlan: "Місячний план виконано",
     levelUp: "Новий рівень!",
     newLevel: "Ви досягли рівня",
   },

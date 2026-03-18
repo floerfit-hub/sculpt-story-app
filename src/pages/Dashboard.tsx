@@ -115,6 +115,20 @@ const Dashboard = () => {
             .in("id", exerciseIds);
           setExerciseMap(new Map((exercises || []).map((e: any) => [e.id, { name: e.name, muscle_group: e.muscle_group }])));
         }
+
+        // Auto-update training tenure (experience_level)
+        const firstWorkout = new Date(allWorkouts[0].started_at);
+        const monthsTraining = differenceInDays(new Date(), firstWorkout) / 30;
+        let autoLevel: string | null = null;
+        if (monthsTraining >= 36) autoLevel = "advanced";
+        else if (monthsTraining >= 12) autoLevel = "intermediate";
+        else autoLevel = "beginner";
+        
+        const currentLevel = (profile as any)?.experience_level;
+        if (autoLevel && autoLevel !== currentLevel) {
+          await supabase.from("profiles").update({ experience_level: autoLevel } as any).eq("user_id", user.id);
+          console.log(`[Tenure] Auto-updated experience: ${currentLevel} → ${autoLevel} (${Math.round(monthsTraining)} months)`);
+        }
       }
 
       setLoading(false);

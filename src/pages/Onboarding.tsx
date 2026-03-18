@@ -11,7 +11,7 @@ import { Target, Dumbbell, Zap, Flame, Heart, ChevronRight, ChevronLeft, Check }
 const GOALS = ["muscle_gain", "fat_loss", "strength", "maintenance", "endurance"] as const;
 const FREQUENCIES = [2, 3, 4, 5, 6] as const;
 const LEVELS = ["beginner", "intermediate", "advanced"] as const;
-const STYLES = ["gym", "bodyweight", "mixed"] as const;
+const STYLES = ["gym", "bodyweight", "mixed"] as const; // kept for type but removed from flow
 const PRIORITIES = ["strength", "composition", "consistency", "balance"] as const;
 
 type Goal = typeof GOALS[number];
@@ -38,7 +38,7 @@ const Onboarding = () => {
   const [goal, setGoal] = useState<Goal | null>(null);
   const [frequency, setFrequency] = useState<number>(4);
   const [level, setLevel] = useState<Level | null>(null);
-  const [style, setStyle] = useState<Style | null>(null);
+  const [style, setStyle] = useState<Style>("gym"); // default, no longer asked
   const [priority, setPriority] = useState<Priority | null>(null);
 
   const ob = t.onboarding;
@@ -109,26 +109,6 @@ const Onboarding = () => {
         </div>
       ),
       valid: !!level,
-    },
-    {
-      title: ob.styleTitle,
-      subtitle: ob.styleSubtitle,
-      content: (
-        <div className="grid gap-3">
-          {STYLES.map((s) => (
-            <button
-              key={s}
-              onClick={() => setStyle(s)}
-              className={`rounded-xl border-2 p-4 text-left transition-all ${
-                style === s ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"
-              }`}
-            >
-              <p className="font-display font-semibold">{ob.styles[s]}</p>
-            </button>
-          ))}
-        </div>
-      ),
-      valid: !!style,
     },
     {
       title: ob.priorityTitle,
