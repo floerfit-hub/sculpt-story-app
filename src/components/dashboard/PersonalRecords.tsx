@@ -203,14 +203,14 @@ const PersonalRecords = () => {
   }, []);
 
   useEffect(() => {
-    if (tab === "leaderboard" && leaderboardExercise) {
+    if (tab === "records" && leaderboardExercise) {
       fetchLeaderboard(leaderboardExercise, leaderboardReps);
     }
   }, [tab, leaderboardExercise, leaderboardReps, fetchLeaderboard]);
 
-  // Auto-select first exercise when switching to leaderboard
+  // Auto-select first exercise when switching to records tab
   useEffect(() => {
-    if (tab === "leaderboard" && !leaderboardExercise && records.length > 0) {
+    if (tab === "records" && !leaderboardExercise && records.length > 0) {
       setLeaderboardExercise(records[0].exerciseName);
     }
   }, [tab, records, leaderboardExercise]);
