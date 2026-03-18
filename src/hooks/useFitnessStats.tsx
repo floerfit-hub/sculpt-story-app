@@ -273,57 +273,70 @@ export function useFitnessStats() {
   }, [user]);
 
   /**
-   * Check and award streak XP (+30 for 7-day streak).
-   * Call after saving a workout.
+   * Check and award frequency-based XP bonuses.
+   * +20 XP for hitting planned weekly frequency
+   * +50 XP for hitting planned monthly frequency (frequency × 4)
    */
-  const checkAndAwardStreak = useCallback(async (): Promise<number> => {
-    if (!user || !stats) return 0;
+  const checkAndAwardFrequencyXP = useCallback(async (): Promise<number> => {
+    if (!user || !stats || !profileGoals?.training_frequency) return 0;
 
     const today = format(new Date(), "yyyy-MM-dd");
-    // Don't check streak twice on same day
     if (stats.last_streak_check === today) return 0;
 
-    // Count consecutive days with workouts ending today
-    const { data: workouts } = await supabase
+    const freq = profileGoals.training_frequency;
+
+    // Count workouts this week (Mon-Sun)
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const weekStart = subDays(now, mondayOffset);
+    weekStart.setHours(0, 0, 0, 0);
+
+    const { data: weekWorkouts } = await supabase
       .from("workouts")
       .select("started_at")
       .eq("user_id", user.id)
-      .order("started_at", { ascending: false })
-      .limit(30);
+      .gte("started_at", weekStart.toISOString())
+      .not("finished_at", "is", null);
 
-    if (!workouts || workouts.length === 0) return 0;
+    const weekCount = weekWorkouts?.length || 0;
 
-    const workoutDays = new Set(workouts.map(w => format(new Date(w.started_at), "yyyy-MM-dd")));
-    let streak = 0;
-    let day = new Date();
-    for (let i = 0; i < 30; i++) {
-      if (workoutDays.has(format(day, "yyyy-MM-dd"))) {
-        streak++;
-        day = subDays(day, 1);
-      } else {
-        break;
-      }
-    }
+    // Count workouts last 30 days
+    const thirtyAgo = subDays(now, 30).toISOString();
+    const { data: monthWorkouts } = await supabase
+      .from("workouts")
+      .select("started_at")
+      .eq("user_id", user.id)
+      .gte("started_at", thirtyAgo)
+      .not("finished_at", "is", null);
 
-    console.log("[Streak] Current streak:", streak, "days");
+    const monthCount = monthWorkouts?.length || 0;
+    const monthTarget = freq * 4;
 
-    // Update streak in DB
+    // Update last check date
     await supabase.from("fitness_stats").update({
-      streak_days: streak,
       last_streak_check: today,
       updated_at: new Date().toISOString(),
     } as any).eq("user_id", user.id);
 
-    setStats(prev => prev ? { ...prev, streak_days: streak, last_streak_check: today } : prev);
+    setStats(prev => prev ? { ...prev, last_streak_check: today } : prev);
 
-    // Award 30 XP on hitting exactly 7
-    if (streak >= 7 && (stats.streak_days || 0) < 7) {
-      console.log("[Streak] 🎉 7-day streak bonus! +30 XP");
-      return 30;
+    let bonusXP = 0;
+
+    // Weekly bonus: exactly hit target this workout
+    if (weekCount === freq) {
+      bonusXP += 20;
+      console.log(`[XP] 🎯 Weekly frequency hit (${weekCount}/${freq})! +20 XP`);
     }
 
-    return 0;
-  }, [user, stats]);
+    // Monthly bonus: exactly hit target this workout
+    if (monthCount === monthTarget) {
+      bonusXP += 50;
+      console.log(`[XP] 🏅 Monthly frequency hit (${monthCount}/${monthTarget})! +50 XP`);
+    }
+
+    return bonusXP;
+  }, [user, stats, profileGoals]);
 
   const isInactive = useMemo(() => {
     if (!stats?.last_workout_at) return false;
