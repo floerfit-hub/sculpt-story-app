@@ -205,17 +205,22 @@ const PersonalRecords = () => {
   }, []);
 
   useEffect(() => {
-    if (tab === "records" && leaderboardExercise) {
+    if (topLevel === "leaderboard" && leaderboardTab === "exercises" && leaderboardExercise) {
       fetchLeaderboard(leaderboardExercise, leaderboardReps);
     }
-  }, [tab, leaderboardExercise, leaderboardReps, fetchLeaderboard]);
+  }, [topLevel, leaderboardTab, leaderboardExercise, leaderboardReps, fetchLeaderboard]);
 
-  // Auto-select first exercise when switching to records tab
   useEffect(() => {
-    if (tab === "records" && !leaderboardExercise && records.length > 0) {
+    if (topLevel === "leaderboard" && leaderboardTab === "exercises" && !leaderboardExercise && records.length > 0) {
       setLeaderboardExercise(records[0].exerciseName);
     }
-  }, [tab, records, leaderboardExercise]);
+  }, [topLevel, leaderboardTab, records, leaderboardExercise]);
+
+  useEffect(() => {
+    if (topLevel === "leaderboard" && leaderboardTab === "xp") {
+      fetchXPLeaderboard();
+    }
+  }, [topLevel, leaderboardTab]);
 
   const fetchHistory = async (exerciseId: string) => {
     if (!user) return;
