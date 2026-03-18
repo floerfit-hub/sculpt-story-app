@@ -93,6 +93,42 @@ const PersonalRecords = () => {
     if (data) setIsVisible((data as any).leaderboard_visible ?? false);
   };
 
+  const fetchXPLeaderboard = async () => {
+    if (!user) return;
+    setXpLeaderboardLoading(true);
+    const { data, error } = await supabase
+      .from("fitness_stats")
+      .select("user_id, total_xp, level")
+      .order("total_xp", { ascending: false })
+      .limit(20);
+    
+    if (!error && data) {
+      // Get profile names for visible users
+      const userIds = data.map((d: any) => d.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, leaderboard_visible")
+        .in("user_id", userIds);
+      
+      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+      
+      const entries = data
+        .filter((d: any) => {
+          const prof = profileMap.get(d.user_id);
+          return prof?.leaderboard_visible || d.user_id === user.id;
+        })
+        .map((d: any) => ({
+          user_name: profileMap.get(d.user_id)?.full_name || "Анонім",
+          total_xp: d.total_xp,
+          level: d.level,
+          is_current_user: d.user_id === user.id,
+        }));
+      
+      setXpLeaderboard(entries);
+    }
+    setXpLeaderboardLoading(false);
+  };
+
   const toggleVisibility = async () => {
     if (!user) return;
     setTogglingVisibility(true);
