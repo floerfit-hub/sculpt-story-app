@@ -39,7 +39,6 @@ const Onboarding = () => {
   const [frequency, setFrequency] = useState<number>(4);
   const [level, setLevel] = useState<Level | null>(null);
   const [style, setStyle] = useState<Style>("gym"); // default, no longer asked
-  const [priority, setPriority] = useState<Priority | null>(null);
 
   const ob = t.onboarding;
 
