@@ -2,12 +2,25 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+interface ProfileData {
+  full_name: string | null;
+  weight_unit: string;
+  onboarding_completed?: boolean;
+  primary_goal?: string | null;
+  training_frequency?: number | null;
+  experience_level?: string | null;
+  haptic_feedback?: boolean;
+  timer_vibration?: boolean;
+  pr_celebration_vibration?: boolean;
+  notifications_enabled?: boolean;
+}
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   isCoach: boolean;
   isAdmin: boolean;
-  profile: { full_name: string | null; weight_unit: string; onboarding_completed?: boolean; primary_goal?: string | null; training_frequency?: number | null; experience_level?: string | null } | null;
+  profile: ProfileData | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -27,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isCoach, setIsCoach] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [profile, setProfile] = useState<{ full_name: string | null; weight_unit: string; onboarding_completed?: boolean; primary_goal?: string | null; training_frequency?: number | null; experience_level?: string | null } | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             const { data: prof } = await supabase
               .from("profiles")
-              .select("full_name, weight_unit, onboarding_completed, primary_goal, training_frequency, experience_level")
+              .select("full_name, weight_unit, onboarding_completed, primary_goal, training_frequency, experience_level, haptic_feedback, timer_vibration, pr_celebration_vibration, notifications_enabled")
               .eq("user_id", session.user.id)
               .single();
             setProfile(prof);
