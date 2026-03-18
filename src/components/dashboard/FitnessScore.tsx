@@ -166,6 +166,30 @@ const FitnessScore = ({
               />
             </div>
           </button>
+
+          {/* Measurement reminder */}
+          {showMeasurementReminder && (
+            <Link to="/add-entry" className="block rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-3 text-xs text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/10 transition-colors">
+              {t.fitScore.updateMeasurementsReminder}
+            </Link>
+          )}
+
+          {/* Undertrained muscle groups */}
+          {undertrained.length > 0 && !coldStart && (
+            <div className="rounded-xl border border-border/50 p-3 space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" />
+                <span className="text-xs font-semibold">{t.fitScore.undertrainedGroups}</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {undertrained.map((group) => (
+                  <span key={group} className="inline-flex items-center gap-1 rounded-md bg-accent px-2 py-1 text-[10px] text-muted-foreground">
+                    {group} <span className="text-foreground font-semibold">{t.fitScore.weeklyTarget}: {MUSCLE_SET_TARGETS[group]}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
