@@ -345,6 +345,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     });
     lastSetTimeRef.current = Date.now();
     setAutoRestSeconds(0);
+    haptic("light");
   };
 
   const copySet = (idx: number) => {
