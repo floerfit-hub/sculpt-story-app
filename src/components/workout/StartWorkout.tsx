@@ -16,6 +16,7 @@ import LevelUpDialog from "@/components/LevelUpDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import confetti from "canvas-confetti";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface SetData { weight: number | ""; reps: number | ""; rest_time: number | null }
 interface WorkoutExercise { name: string; muscleGroup: string; sets: SetData[]; notes: string }
