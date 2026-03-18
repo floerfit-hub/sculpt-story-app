@@ -26,6 +26,7 @@ export interface EditWorkoutData {
   started_at: string;
   finished_at: string | null;
   notes: string | null;
+  name: string | null;
   exercises: {
     exercise_id: string;
     exercise_name: string;
@@ -89,6 +90,12 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
   const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
   const { sendNotification } = useNotifications();
   const { trigger: haptic } = useHaptics();
+
+  const [workoutName, setWorkoutName] = useState<string>(() => {
+    if (editData) return editData.name || "";
+    const saved = sessionStorage.getItem("workout-name");
+    return saved || "";
+  });
 
   const [exercises, setExercises] = useState<WorkoutExercise[]>(() => {
     if (editData) {
@@ -194,8 +201,9 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
       sessionStorage.setItem("workout-edit-in-progress", JSON.stringify(exercises));
     } else {
       sessionStorage.setItem("workout-in-progress", JSON.stringify(exercises));
+      sessionStorage.setItem("workout-name", workoutName);
     }
-  }, [exercises, isEditing]);
+  }, [exercises, isEditing, workoutName]);
 
   const clearPersistedData = useCallback(() => {
     sessionStorage.removeItem("workout-in-progress");
@@ -203,6 +211,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
     sessionStorage.removeItem("workout-view");
     sessionStorage.removeItem("workout-start-time");
     sessionStorage.removeItem("workout-autosave-id");
+    sessionStorage.removeItem("workout-name");
     autoSaveIdRef.current = null;
   }, []);
 
@@ -274,7 +283,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
             await (supabase as any).from("workout_sets").delete().eq("workout_id", workoutId);
           } else {
             const { data: workout, error: wErr } = await supabase.from("workouts")
-              .insert({ user_id: user.id, started_at: startedAt })
+              .insert({ user_id: user.id, started_at: startedAt, name: workoutName || null } as any)
               .select("id").single();
             if (wErr || !workout) return;
             workoutId = workout.id;
@@ -463,8 +472,9 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
 
         const { error: wErr } = await supabase.from("workouts").update({
           notes: null,
+          name: workoutName || null,
           finished_at: editData.finished_at || new Date().toISOString(),
-        }).eq("id", editData.id);
+        } as any).eq("id", editData.id);
         if (wErr) throw wErr;
 
         clearPersistedData();
@@ -519,6 +529,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
         const { error: uErr } = await supabase.from("workouts").update({
           finished_at: new Date().toISOString(),
           duration_seconds: elapsed,
+          name: workoutName || null,
         } as any).eq("id", workoutId);
         if (uErr) throw uErr;
 
@@ -624,6 +635,14 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
             <Button variant="ghost" size="icon" onClick={() => setShowTimer(true)}><Timer className="h-5 w-5" /></Button>
           </div>
         </div>
+
+        {/* Workout name input */}
+        <Input
+          placeholder={t.workouts.workoutNamePlaceholder}
+          value={workoutName}
+          onChange={(e) => setWorkoutName(e.target.value)}
+          className="h-11"
+        />
 
         {/* Finish button at top */}
         {exercises.length > 0 && (

@@ -192,6 +192,9 @@ export const uk: Translations = {
     editCustomExercise: "Редагувати вправу",
     saveExercise: "Зберегти",
     exerciseUpdated: "Вправу оновлено!",
+    workoutName: "Назва тренування",
+    workoutNamePlaceholder: "напр. День ніг, Жим...",
+    editName: "Змінити назву",
   },
 
   muscleGroups: {

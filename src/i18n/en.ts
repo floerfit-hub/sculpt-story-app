@@ -196,6 +196,9 @@ export const en = {
     editCustomExercise: "Edit Exercise",
     saveExercise: "Save",
     exerciseUpdated: "Exercise updated!",
+    workoutName: "Workout name",
+    workoutNamePlaceholder: "e.g. Leg Day, Push Day...",
+    editName: "Edit name",
   },
 
   // Muscle groups (6 unified)

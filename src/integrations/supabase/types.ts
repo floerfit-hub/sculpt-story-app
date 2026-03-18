@@ -481,6 +481,7 @@ export type Database = {
           duration_seconds: number | null
           finished_at: string | null
           id: string
+          name: string | null
           notes: string | null
           started_at: string
           user_id: string
@@ -490,6 +491,7 @@ export type Database = {
           duration_seconds?: number | null
           finished_at?: string | null
           id?: string
+          name?: string | null
           notes?: string | null
           started_at?: string
           user_id: string
@@ -499,6 +501,7 @@ export type Database = {
           duration_seconds?: number | null
           finished_at?: string | null
           id?: string
+          name?: string | null
           notes?: string | null
           started_at?: string
           user_id?: string
