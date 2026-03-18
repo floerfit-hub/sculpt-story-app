@@ -78,6 +78,7 @@ const Dashboard = () => {
   const [perfData, setPerfData] = useState<PerfData[]>([]);
   const [exerciseMap, setExerciseMap] = useState<Map<string, ExerciseInfo>>(new Map());
   const { stats: fitnessStatsData, weeklyChange, isInactive, coldStart, updateFitScore, profileGoals, fetchStats: refetchFitnessStats } = useFitnessStats();
+  useNotificationScheduler();
 
   useEffect(() => {
     try {
