@@ -181,8 +181,21 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
       started_at: w.started_at,
       finished_at: w.finished_at,
       notes: w.notes,
+      name: w.name,
       exercises: w.exercises,
     });
+  };
+
+  const [editingNameId, setEditingNameId] = useState<string | null>(null);
+  const [editNameValue, setEditNameValue] = useState("");
+
+  const handleSaveName = async (workoutId: string) => {
+    const { error } = await supabase.from("workouts").update({ name: editNameValue || null } as any).eq("id", workoutId);
+    if (!error) {
+      setWorkouts(prev => prev.map(w => w.id === workoutId ? { ...w, name: editNameValue || null } : w));
+      toast({ title: t.workouts.workoutUpdated });
+    }
+    setEditingNameId(null);
   };
 
   return (
