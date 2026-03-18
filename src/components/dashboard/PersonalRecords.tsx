@@ -80,6 +80,7 @@ const PersonalRecords = () => {
     fetchRecords();
     fetchExercises();
     fetchVisibility();
+    if (tab === "xp") fetchXPLeaderboard();
   }, [user]);
 
   const fetchVisibility = async () => {
