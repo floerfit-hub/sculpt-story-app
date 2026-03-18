@@ -15,7 +15,8 @@ import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 import { useRegisterSW } from "virtual:pwa-register/react";
-
+import { useNotifications } from "@/hooks/useNotifications";
+import { Switch } from "@/components/ui/switch";
 const LANGUAGES: { code: Language; label: string }[] = [
   { code: "en", label: "English" },
   { code: "uk", label: "Українська" },
