@@ -81,6 +81,7 @@ export const uk: Translations = {
       muscleHeatmap: "Карта м'язів",
       workoutActivity: "Активність тренувань",
       personalRecords: "Особисті рекорди",
+      nutritionTracker: "Трекер харчування",
       nutrition: "План харчування",
       insights: "ШІ поради",
       recentEntries: "Останні записи",

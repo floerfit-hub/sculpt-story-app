@@ -82,6 +82,7 @@ export const en = {
       muscleHeatmap: "Muscle Heatmap",
       workoutActivity: "Workout Activity",
       personalRecords: "Personal Records",
+      nutritionTracker: "Nutrition Tracker",
       nutrition: "Nutrition Plan",
       insights: "AI Insights",
       recentEntries: "Recent Entries",
