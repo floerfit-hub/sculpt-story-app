@@ -82,6 +82,7 @@ export const en = {
       muscleHeatmap: "Muscle Heatmap",
       workoutActivity: "Workout Activity",
       personalRecords: "Personal Records",
+      nutritionTracker: "Nutrition Tracker",
       nutrition: "Nutrition Plan",
       insights: "AI Insights",
       recentEntries: "Recent Entries",
@@ -761,6 +762,18 @@ export const en = {
     hidden: "Hidden",
     you: "you",
     noLeaderboardData: "No one has shared results for this exercise yet",
+  },
+
+  nutrition: {
+    title: "Nutrition Today",
+    scanMeal: "Scan",
+    calories: "Kcal",
+    protein: "Protein",
+    fat: "Fat",
+    carbs: "Carbs",
+    scanError: "Scan error",
+    noMeals: "Take a photo of your meal to start tracking",
+    analyzing: "AI is analyzing the meal...",
   },
 
   // Common

@@ -158,6 +158,45 @@ export type Database = {
         }
         Relationships: []
       }
+      food_logs: {
+        Row: {
+          carbs: number
+          coach_advice: string | null
+          created_at: string
+          fat: number
+          food_name: string
+          id: string
+          image_url: string | null
+          kcal: number
+          protein: number
+          user_id: string
+        }
+        Insert: {
+          carbs?: number
+          coach_advice?: string | null
+          created_at?: string
+          fat?: number
+          food_name: string
+          id?: string
+          image_url?: string | null
+          kcal?: number
+          protein?: number
+          user_id: string
+        }
+        Update: {
+          carbs?: number
+          coach_advice?: string | null
+          created_at?: string
+          fat?: number
+          food_name?: string
+          id?: string
+          image_url?: string | null
+          kcal?: number
+          protein?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       muscle_recovery: {
         Row: {
           created_at: string
@@ -195,6 +234,10 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          daily_calories: number | null
+          daily_carbs: number | null
+          daily_fat: number | null
+          daily_protein: number | null
           experience_level: string | null
           full_name: string | null
           haptic_feedback: boolean
@@ -218,6 +261,10 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          daily_calories?: number | null
+          daily_carbs?: number | null
+          daily_fat?: number | null
+          daily_protein?: number | null
           experience_level?: string | null
           full_name?: string | null
           haptic_feedback?: boolean
@@ -241,6 +288,10 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          daily_calories?: number | null
+          daily_carbs?: number | null
+          daily_fat?: number | null
+          daily_protein?: number | null
           experience_level?: string | null
           full_name?: string | null
           haptic_feedback?: boolean

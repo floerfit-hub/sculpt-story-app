@@ -20,6 +20,7 @@ import MeasurementsCard from "@/components/dashboard/MeasurementsCard";
 import MuscleHeatmap from "@/components/dashboard/MuscleHeatmap";
 import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
 import NutritionSummary from "@/components/dashboard/NutritionSummary";
+import NutritionTracker from "@/components/dashboard/NutritionTracker";
 import SmartInsights from "@/components/dashboard/SmartInsights";
 import PremiumGate from "@/components/subscription/PremiumGate";
 import { useFitnessStats, calculateFitScore, detectPRsLast30Days, getWeights } from "@/hooks/useFitnessStats";
@@ -45,7 +46,7 @@ interface ExerciseInfo {
   muscle_group: string;
 }
 
-const PANEL_IDS = ["checkin", "fitnessScore", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutrition", "insights", "recentEntries"] as const;
+const PANEL_IDS = ["checkin", "fitnessScore", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutritionTracker", "nutrition", "insights", "recentEntries"] as const;
 type PanelId = typeof PANEL_IDS[number];
 
 interface PanelConfig { order: PanelId[]; hidden: PanelId[] }
@@ -359,6 +360,7 @@ const Dashboard = () => {
     muscleHeatmap: <PremiumGate feature="Muscle Heatmap Analytics"><MuscleHeatmap muscleData={muscleData} /></PremiumGate>,
     workoutActivity: <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} lastWorkoutAt={fitnessStatsData?.last_workout_at || (workouts.length > 0 ? workouts[workouts.length - 1].started_at : null)} />,
     personalRecords: <PersonalRecords />,
+    nutritionTracker: <NutritionTracker />,
     nutrition: <NutritionSummary nutrition={nutrition} />,
     insights: <PremiumGate feature="AI Training Insights"><SmartInsights entries={entries} muscleData={muscleData} strengthTrending={strengthTrending} /></PremiumGate>,
     recentEntries: (

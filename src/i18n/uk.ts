@@ -81,6 +81,7 @@ export const uk: Translations = {
       muscleHeatmap: "Карта м'язів",
       workoutActivity: "Активність тренувань",
       personalRecords: "Особисті рекорди",
+      nutritionTracker: "Трекер харчування",
       nutrition: "План харчування",
       insights: "ШІ поради",
       recentEntries: "Останні записи",
@@ -738,6 +739,18 @@ export const uk: Translations = {
     hidden: "Прихований",
     you: "ви",
     noLeaderboardData: "Поки ніхто не поділився результатами для цієї вправи",
+  },
+
+  nutrition: {
+    title: "Харчування сьогодні",
+    scanMeal: "Сканувати",
+    calories: "Kcal",
+    protein: "Білок",
+    fat: "Жири",
+    carbs: "Вугл",
+    scanError: "Помилка сканування",
+    noMeals: "Сфотографуйте страву щоб почати відстежувати",
+    analyzing: "AI аналізує страву...",
   },
 
   common: {
