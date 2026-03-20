@@ -763,6 +763,18 @@ export const en = {
     noLeaderboardData: "No one has shared results for this exercise yet",
   },
 
+  nutrition: {
+    title: "Nutrition Today",
+    scanMeal: "Scan",
+    calories: "Kcal",
+    protein: "Protein",
+    fat: "Fat",
+    carbs: "Carbs",
+    scanError: "Scan error",
+    noMeals: "Take a photo of your meal to start tracking",
+    analyzing: "AI is analyzing the meal...",
+  },
+
   // Common
   common: {
     error: "Error",

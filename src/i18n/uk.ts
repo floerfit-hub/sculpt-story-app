@@ -740,6 +740,18 @@ export const uk: Translations = {
     noLeaderboardData: "Поки ніхто не поділився результатами для цієї вправи",
   },
 
+  nutrition: {
+    title: "Харчування сьогодні",
+    scanMeal: "Сканувати",
+    calories: "Kcal",
+    protein: "Білок",
+    fat: "Жири",
+    carbs: "Вугл",
+    scanError: "Помилка сканування",
+    noMeals: "Сфотографуйте страву щоб почати відстежувати",
+    analyzing: "AI аналізує страву...",
+  },
+
   common: {
     error: "Помилка",
     kg: "кг",
