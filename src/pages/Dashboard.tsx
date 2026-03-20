@@ -46,7 +46,7 @@ interface ExerciseInfo {
   muscle_group: string;
 }
 
-const PANEL_IDS = ["checkin", "fitnessScore", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutrition", "insights", "recentEntries"] as const;
+const PANEL_IDS = ["checkin", "fitnessScore", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutritionTracker", "nutrition", "insights", "recentEntries"] as const;
 type PanelId = typeof PANEL_IDS[number];
 
 interface PanelConfig { order: PanelId[]; hidden: PanelId[] }
