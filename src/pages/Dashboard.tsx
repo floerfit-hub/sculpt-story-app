@@ -360,6 +360,7 @@ const Dashboard = () => {
     muscleHeatmap: <PremiumGate feature="Muscle Heatmap Analytics"><MuscleHeatmap muscleData={muscleData} /></PremiumGate>,
     workoutActivity: <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} lastWorkoutAt={fitnessStatsData?.last_workout_at || (workouts.length > 0 ? workouts[workouts.length - 1].started_at : null)} />,
     personalRecords: <PersonalRecords />,
+    nutritionTracker: <NutritionTracker />,
     nutrition: <NutritionSummary nutrition={nutrition} />,
     insights: <PremiumGate feature="AI Training Insights"><SmartInsights entries={entries} muscleData={muscleData} strengthTrending={strengthTrending} /></PremiumGate>,
     recentEntries: (
