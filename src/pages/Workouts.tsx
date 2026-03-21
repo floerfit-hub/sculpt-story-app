@@ -88,7 +88,7 @@ const Workouts = () => {
       .select("id, name, muscle_group")
       .in("id", exerciseIds);
 
-    const exMap = new Map((exercises || []).map((e: any) => [e.id, e]));
+    const exMap = new Map((exercises || []).map((e: any) => [e.id, e as { id: string; name: string; muscle_group: string }]));
 
     // Group sets by exercise (by sort_order)
     const grouped = new Map<number, typeof sets>();
