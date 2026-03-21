@@ -41,6 +41,8 @@ export interface EditWorkoutData {
 interface StartWorkoutProps {
   onBack: () => void;
   editData?: EditWorkoutData;
+  initialExercises?: { name: string; muscleGroup: string; sets: { weight: number | ""; reps: number | ""; rest_time: null }[] }[];
+  initialName?: string;
 }
 
 async function resolveExerciseIds(
