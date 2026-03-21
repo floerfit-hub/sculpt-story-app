@@ -720,6 +720,9 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           </Card>
         ))}
 
+        {/* Add exercise button at bottom */}
+        <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}><Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}</Button>
+
         {showTimer && <RestTimer onClose={() => setShowTimer(false)} />}
       </div>
     </TooltipProvider>
