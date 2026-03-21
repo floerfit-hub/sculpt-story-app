@@ -1,0 +1,147 @@
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Info, X } from "lucide-react";
+
+interface PrevData {
+  sets: number;
+  maxWeight: number;
+  maxReps: number;
+  avgWeight: number;
+  date: string;
+}
+
+interface Props {
+  exerciseName: string;
+  muscleGroup: string;
+}
+
+const PreviousWorkoutInfo = ({ exerciseName, muscleGroup }: Props) => {
+  const { user } = useAuth();
+  const { t } = useTranslation();
+  const [data, setData] = useState<PrevData | null>(null);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const load = async () => {
+    if (!user || data !== null) return;
+    setLoading(true);
+    try {
+      // Find the exercise ID
+      const { data: exercises } = await (supabase as any)
+        .from("exercises")
+        .select("id")
+        .eq("name", exerciseName)
+        .limit(1);
+
+      if (!exercises?.length) { setData(null); setLoading(false); return; }
+      const exerciseId = exercises[0].id;
+
+      // Find the most recent completed workout with this exercise
+      const { data: sets } = await supabase
+        .from("workout_sets")
+        .select("weight, reps, workout_id, created_at")
+        .eq("exercise_id", exerciseId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (!sets?.length) { setLoading(false); return; }
+
+      // Group by workout_id and find the latest workout
+      const byWorkout = new Map<string, typeof sets>();
+      for (const s of sets) {
+        const arr = byWorkout.get(s.workout_id) || [];
+        arr.push(s);
+        byWorkout.set(s.workout_id, arr);
+      }
+
+      // Get the first (most recent) workout's sets
+      const firstWorkoutId = sets[0].workout_id;
+      const workoutSets = byWorkout.get(firstWorkoutId) || [];
+
+      // Get workout date
+      const { data: workout } = await supabase
+        .from("workouts")
+        .select("started_at")
+        .eq("id", firstWorkoutId)
+        .single();
+
+      const maxWeight = Math.max(...workoutSets.map(s => s.weight));
+      const maxReps = Math.max(...workoutSets.map(s => s.reps));
+      const avgWeight = Math.round((workoutSets.reduce((sum, s) => sum + s.weight, 0) / workoutSets.length) * 10) / 10;
+
+      setData({
+        sets: workoutSets.length,
+        maxWeight,
+        maxReps,
+        avgWeight,
+        date: workout?.started_at || sets[0].created_at,
+      });
+    } catch {
+      // ignore
+    }
+    setLoading(false);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffDays = Math.floor(diffMs / 86400000);
+    if (diffDays === 0) return "Сьогодні";
+    if (diffDays === 1) return "Вчора";
+    return d.toLocaleDateString();
+  };
+
+  const handleToggle = () => {
+    if (!open) load();
+    setOpen(!open);
+  };
+
+  return (
+    <div className="relative">
+      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleToggle}>
+        <Info className="h-4 w-4 text-primary" />
+      </Button>
+      {open && (
+        <div className="absolute right-0 top-9 z-50 w-56 rounded-xl border border-border bg-card shadow-lg p-3 space-y-1.5 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-foreground">{t.templates.prevWorkout}</span>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setOpen(false)}>
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+          {loading && <p className="text-xs text-muted-foreground">{t.workouts.savingDots}</p>}
+          {!loading && !data && <p className="text-xs text-muted-foreground">{t.templates.noPrevData}</p>}
+          {!loading && data && (
+            <>
+              <p className="text-[11px] text-muted-foreground">{formatDate(data.date)}</p>
+              <div className="grid grid-cols-2 gap-1.5 text-xs">
+                <div className="rounded-lg bg-accent/50 px-2 py-1.5 text-center">
+                  <p className="font-bold text-foreground">{data.sets}</p>
+                  <p className="text-[10px] text-muted-foreground">{t.workouts.set}</p>
+                </div>
+                <div className="rounded-lg bg-accent/50 px-2 py-1.5 text-center">
+                  <p className="font-bold text-foreground">{data.maxWeight} {t.common.kg}</p>
+                  <p className="text-[10px] text-muted-foreground">{t.templates.maxWeight}</p>
+                </div>
+                <div className="rounded-lg bg-accent/50 px-2 py-1.5 text-center">
+                  <p className="font-bold text-foreground">{data.maxReps}</p>
+                  <p className="text-[10px] text-muted-foreground">{t.templates.maxReps}</p>
+                </div>
+                <div className="rounded-lg bg-accent/50 px-2 py-1.5 text-center">
+                  <p className="font-bold text-foreground">{data.avgWeight} {t.common.kg}</p>
+                  <p className="text-[10px] text-muted-foreground">{t.templates.avgWeight}</p>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default PreviousWorkoutInfo;

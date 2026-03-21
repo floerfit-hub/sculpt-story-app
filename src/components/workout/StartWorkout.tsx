@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
+import PreviousWorkoutInfo from "./PreviousWorkoutInfo";
 import RestTimer from "./RestTimer";
 import LevelUpDialog from "@/components/LevelUpDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -40,6 +41,8 @@ export interface EditWorkoutData {
 interface StartWorkoutProps {
   onBack: () => void;
   editData?: EditWorkoutData;
+  initialExercises?: { name: string; muscleGroup: string; sets: { weight: number | ""; reps: number | ""; rest_time: null }[] }[];
+  initialName?: string;
 }
 
 async function resolveExerciseIds(
@@ -80,7 +83,7 @@ function getRestMultiplier(restSeconds: number | null): number {
   return 0.8;
 }
 
-const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
+const StartWorkout = ({ onBack, editData, initialExercises, initialName }: StartWorkoutProps) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const { t, lang } = useTranslation();
@@ -93,6 +96,7 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
 
   const [workoutName, setWorkoutName] = useState<string>(() => {
     if (editData) return editData.name || "";
+    if (initialName) return initialName;
     const saved = sessionStorage.getItem("workout-name");
     return saved || "";
   });
@@ -107,6 +111,14 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           sets: ex.sets.map((s) => ({ weight: s.weight as number | "", reps: s.reps as number | "", rest_time: s.rest_time ?? null })),
           notes: ex.notes || "",
         }));
+    }
+    if (initialExercises) {
+      return initialExercises.map((ex) => ({
+        name: ex.name,
+        muscleGroup: ex.muscleGroup,
+        sets: ex.sets.map(s => ({ ...s, rest_time: s.rest_time ?? null })),
+        notes: "",
+      }));
     }
     const saved = sessionStorage.getItem("workout-in-progress");
     if (saved) {
@@ -651,9 +663,6 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           </Button>
         )}
 
-        {/* Add exercise button */}
-        <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}><Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}</Button>
-
         {exercises.length === 0 && <div className="py-12 text-center text-muted-foreground"><p className="mb-4">{t.workouts.noExercises}</p></div>}
 
         {exercises.map((ex, exIdx) => (
@@ -661,7 +670,10 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div><p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p><p className="text-xs text-muted-foreground">{(() => { const keyMap: Record<string, string> = { "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest", "Shoulders": "shoulders", "Arms": "arms", "Core": "core" }; const k = keyMap[ex.muscleGroup] as keyof typeof t.muscleGroups; return k ? t.muscleGroups[k] : ex.muscleGroup; })()}</p></div>
-                <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                <div className="flex items-center gap-1">
+                  <PreviousWorkoutInfo exerciseName={ex.name} muscleGroup={ex.muscleGroup} />
+                  <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
               </div>
               <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 text-xs font-bold text-foreground uppercase tracking-wide">
                 <span>{t.workouts.set}</span><span className="text-center">{profile?.weight_unit === "lb" ? t.workouts.weightLb : t.workouts.weightKg}</span><span className="text-center">{t.workouts.reps}</span><span></span>
@@ -718,6 +730,9 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
             </CardContent>
           </Card>
         ))}
+
+        {/* Add exercise button at bottom */}
+        <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}><Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}</Button>
 
         {showTimer && <RestTimer onClose={() => setShowTimer(false)} />}
       </div>

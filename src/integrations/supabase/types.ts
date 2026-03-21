@@ -526,6 +526,74 @@ export type Database = {
           },
         ]
       }
+      workout_template_exercises: {
+        Row: {
+          created_at: string
+          default_reps: number
+          default_sets: number
+          default_weight: number
+          exercise_name: string
+          id: string
+          muscle_group: string
+          sort_order: number
+          template_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_reps?: number
+          default_sets?: number
+          default_weight?: number
+          exercise_name: string
+          id?: string
+          muscle_group: string
+          sort_order?: number
+          template_id: string
+        }
+        Update: {
+          created_at?: string
+          default_reps?: number
+          default_sets?: number
+          default_weight?: number
+          exercise_name?: string
+          id?: string
+          muscle_group?: string
+          sort_order?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_template_exercises_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_templates: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       workouts: {
         Row: {
           created_at: string
