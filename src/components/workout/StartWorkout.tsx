@@ -96,6 +96,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
 
   const [workoutName, setWorkoutName] = useState<string>(() => {
     if (editData) return editData.name || "";
+    if (initialName) return initialName;
     const saved = sessionStorage.getItem("workout-name");
     return saved || "";
   });
