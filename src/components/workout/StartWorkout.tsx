@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
+import PreviousWorkoutInfo from "./PreviousWorkoutInfo";
 import RestTimer from "./RestTimer";
 import LevelUpDialog from "@/components/LevelUpDialog";
 import { useToast } from "@/hooks/use-toast";
