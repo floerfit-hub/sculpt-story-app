@@ -83,7 +83,7 @@ function getRestMultiplier(restSeconds: number | null): number {
   return 0.8;
 }
 
-const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
+const StartWorkout = ({ onBack, editData, initialExercises, initialName }: StartWorkoutProps) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const { t, lang } = useTranslation();
