@@ -101,7 +101,7 @@ const Workouts = () => {
     const templateExercises = [...grouped.entries()]
       .sort(([a], [b]) => a - b)
       .map(([_, groupSets]) => {
-        const ex = exMap.get(groupSets[0].exercise_id);
+        const ex = exMap.get(groupSets[0].exercise_id) as { id: string; name: string; muscle_group: string } | undefined;
         return {
           name: ex?.name || "Unknown",
           muscleGroup: ex?.muscle_group || "Other",
