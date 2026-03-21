@@ -281,15 +281,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           <h2 className="text-xl font-display font-bold flex-1">{getGroupLabel(activeGroup)}</h2>
         </div>
 
-        {/* Add custom exercise button/form at top */}
-        {showAddForm ? (
-          renderAddForm(activeGroup)
-        ) : (
-          <Button variant="outline" className="w-full border-dashed" onClick={() => { setShowAddForm(true); setNewGroup(activeGroup); }}>
-            <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
-          </Button>
-        )}
-
         <div className="grid gap-2">
           {builtIn.map((ex) => {
             const img = EXERCISE_IMAGES[ex.name];
@@ -312,6 +303,15 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           })}
           {customInGroup.map((ex) => renderCustomExerciseCard(ex, false))}
         </div>
+
+        {/* Add custom exercise button at bottom */}
+        {showAddForm ? (
+          renderAddForm(activeGroup)
+        ) : (
+          <Button variant="outline" className="w-full border-dashed" onClick={() => { setShowAddForm(true); setNewGroup(activeGroup); }}>
+            <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
+          </Button>
+        )}
       </div>
     );
   }
