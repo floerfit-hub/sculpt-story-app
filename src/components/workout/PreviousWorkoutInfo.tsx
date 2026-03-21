@@ -90,8 +90,8 @@ const PreviousWorkoutInfo = ({ exerciseName, muscleGroup }: Props) => {
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
     const diffDays = Math.floor(diffMs / 86400000);
-    if (diffDays === 0) return t.dashboard.today || "Сьогодні";
-    if (diffDays === 1) return t.dashboard.yesterday || "Вчора";
+    if (diffDays === 0) return "Сьогодні";
+    if (diffDays === 1) return "Вчора";
     return d.toLocaleDateString();
   };
 
