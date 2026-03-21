@@ -776,6 +776,31 @@ export const en = {
     analyzing: "AI is analyzing the meal...",
   },
 
+  templates: {
+    title: "Workout Templates",
+    create: "Create",
+    createTemplate: "Create Template",
+    editTemplate: "Edit Template",
+    templateNamePlaceholder: "e.g. Back + Biceps, Push Day...",
+    saveTemplate: "Save Template",
+    updateTemplate: "Update Template",
+    saveAndStart: "Save & Start Workout",
+    startWorkout: "Start Workout",
+    templateSaved: "Template saved! 📋",
+    templateUpdated: "Template updated!",
+    templateDeleted: "Template deleted",
+    templateDuplicated: "Template duplicated!",
+    noTemplates: "No templates yet. Create one to start workouts faster!",
+    copy: "copy",
+    duplicateLastWorkout: "Repeat Last Workout",
+    noLastWorkout: "No previous workout to repeat",
+    prevWorkout: "Previous workout",
+    noPrevData: "No previous data",
+    maxWeight: "Max weight",
+    maxReps: "Max reps",
+    avgWeight: "Avg weight",
+  },
+
   // Common
   common: {
     error: "Error",
