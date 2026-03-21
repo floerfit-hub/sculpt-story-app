@@ -261,7 +261,19 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
 
         {view === "create" && templateExercises.length > 0 && templateName.trim() && (
           <Button variant="outline" className="w-full" onClick={async () => {
+            // Save first, then start from the exercises we have
+            const exercisesToStart = templateExercises.map((ex) => ({
+              name: ex.exercise_name,
+              muscleGroup: ex.muscle_group,
+              sets: Array.from({ length: ex.default_sets }, () => ({
+                weight: ex.default_weight > 0 ? ex.default_weight : ("" as number | ""),
+                reps: ex.default_reps > 0 ? ex.default_reps : ("" as number | ""),
+                rest_time: null,
+              })),
+            }));
+            const nameToStart = templateName.trim();
             await saveTemplate();
+            onStartFromTemplate(exercisesToStart, nameToStart);
           }}>
             <Play className="h-4 w-4 mr-2" /> {t.templates.saveAndStart}
           </Button>

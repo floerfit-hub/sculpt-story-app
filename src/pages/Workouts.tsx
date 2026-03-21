@@ -159,11 +159,6 @@ const Workouts = () => {
         ))}
       </div>
 
-      {/* Duplicate last workout button */}
-      <Button variant="outline" className="w-full h-11" onClick={duplicateLastWorkout}>
-        <RotateCcw className="h-4 w-4 mr-2" /> {t.templates.duplicateLastWorkout}
-      </Button>
-
       {/* Workout Templates */}
       <WorkoutTemplates onStartFromTemplate={handleStartFromTemplate} />
     </div>

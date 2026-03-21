@@ -656,12 +656,10 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           className="h-11"
         />
 
-        {/* Finish button at top */}
-        {exercises.length > 0 && (
-          <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
-            <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.updatingDots : isEditing ? t.workouts.updateWorkout : t.workouts.finishSave}
-          </Button>
-        )}
+        {/* Add exercise button at top */}
+        <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}>
+          <Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}
+        </Button>
 
         {exercises.length === 0 && <div className="py-12 text-center text-muted-foreground"><p className="mb-4">{t.workouts.noExercises}</p></div>}
 
@@ -731,8 +729,12 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           </Card>
         ))}
 
-        {/* Add exercise button at bottom */}
-        <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}><Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}</Button>
+        {/* Finish button at bottom */}
+        {exercises.length > 0 && (
+          <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
+            <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.updatingDots : isEditing ? t.workouts.updateWorkout : t.workouts.finishSave}
+          </Button>
+        )}
 
         {showTimer && <RestTimer onClose={() => setShowTimer(false)} />}
       </div>
