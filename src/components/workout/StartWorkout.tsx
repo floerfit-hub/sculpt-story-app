@@ -652,9 +652,6 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
           </Button>
         )}
 
-        {/* Add exercise button */}
-        <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}><Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}</Button>
-
         {exercises.length === 0 && <div className="py-12 text-center text-muted-foreground"><p className="mb-4">{t.workouts.noExercises}</p></div>}
 
         {exercises.map((ex, exIdx) => (
