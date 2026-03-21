@@ -112,6 +112,14 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           notes: ex.notes || "",
         }));
     }
+    if (initialExercises) {
+      return initialExercises.map((ex) => ({
+        name: ex.name,
+        muscleGroup: ex.muscleGroup,
+        sets: ex.sets.map(s => ({ ...s, rest_time: s.rest_time ?? null })),
+        notes: "",
+      }));
+    }
     const saved = sessionStorage.getItem("workout-in-progress");
     if (saved) {
       try { return JSON.parse(saved); } catch { /* ignore */ }
