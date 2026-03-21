@@ -659,7 +659,10 @@ const StartWorkout = ({ onBack, editData }: StartWorkoutProps) => {
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div><p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p><p className="text-xs text-muted-foreground">{(() => { const keyMap: Record<string, string> = { "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest", "Shoulders": "shoulders", "Arms": "arms", "Core": "core" }; const k = keyMap[ex.muscleGroup] as keyof typeof t.muscleGroups; return k ? t.muscleGroups[k] : ex.muscleGroup; })()}</p></div>
-                <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                <div className="flex items-center gap-1">
+                  <PreviousWorkoutInfo exerciseName={ex.name} muscleGroup={ex.muscleGroup} />
+                  <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
               </div>
               <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 text-xs font-bold text-foreground uppercase tracking-wide">
                 <span>{t.workouts.set}</span><span className="text-center">{profile?.weight_unit === "lb" ? t.workouts.weightLb : t.workouts.weightKg}</span><span className="text-center">{t.workouts.reps}</span><span></span>
