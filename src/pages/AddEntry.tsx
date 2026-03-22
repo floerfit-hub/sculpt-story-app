@@ -53,14 +53,8 @@ const AddEntry = () => {
   });
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
-  const [nutrition, setNutrition] = useState<{ calories: number; protein: number; fat: number; carbs: number } | null>(null);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("nutrition_results");
-      if (saved) setNutrition(JSON.parse(saved));
-    } catch {}
-  }, []);
+
 
   useEffect(() => {
     if (!user) return;
