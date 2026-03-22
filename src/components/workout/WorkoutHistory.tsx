@@ -74,6 +74,7 @@ interface WorkoutWithExercises extends WorkoutRow {
 interface WorkoutHistoryProps {
   onBack: () => void;
   onEdit?: (data: EditWorkoutData) => void;
+  onRepeat?: (exercises: { name: string; muscleGroup: string; sets: { weight: number | ""; reps: number | ""; rest_time: null }[] }[], name: string) => void;
 }
 
 const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
