@@ -344,7 +344,7 @@ const Profile = () => {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>{t.onboarding.goalTitle}</Label>
-            <Select value={primaryGoal} onValueChange={(v) => { setPrimaryGoal(v); autoSaveGoal("primary_goal", v); }}>
+            <Select value={primaryGoal} onValueChange={(v) => { setPrimaryGoal(v); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {["muscle_gain", "fat_loss", "strength", "maintenance", "endurance"].map(g => (
@@ -355,7 +355,7 @@ const Profile = () => {
           </div>
           <div className="space-y-2">
             <Label>{t.onboarding.frequencyTitle}</Label>
-            <Select value={trainingFrequency} onValueChange={(v) => { setTrainingFrequency(v); autoSaveGoal("training_frequency", Number(v)); }}>
+            <Select value={trainingFrequency} onValueChange={(v) => { setTrainingFrequency(v); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {[2, 3, 4, 5, 6].map(f => (
@@ -366,7 +366,7 @@ const Profile = () => {
           </div>
           <div className="space-y-2">
             <Label>{t.onboarding.levelTitle}</Label>
-            <Select value={experienceLevel} onValueChange={(v) => { setExperienceLevel(v); autoSaveGoal("experience_level", v); }}>
+            <Select value={experienceLevel} onValueChange={(v) => { setExperienceLevel(v); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {["beginner", "intermediate", "advanced"].map(l => (
@@ -375,6 +375,24 @@ const Profile = () => {
               </SelectContent>
             </Select>
           </div>
+          <Button
+            className="w-full"
+            onClick={async () => {
+              if (!user) return;
+              setSaving(true);
+              await supabase.from("profiles").update({
+                primary_goal: primaryGoal,
+                training_frequency: Number(trainingFrequency),
+                experience_level: experienceLevel,
+              } as any).eq("user_id", user.id);
+              setSaving(false);
+              toast({ title: t.profile.profileUpdated });
+            }}
+            disabled={saving}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {saving ? t.profile.saving : (lang === "uk" ? "Зберегти цілі" : "Save Goals")}
+          </Button>
         </CardContent>
       </Card>
       {/* Dashboard Customization */}

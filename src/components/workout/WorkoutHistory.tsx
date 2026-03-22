@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ChevronRight, Clock, Pencil, Trash2, Check, X } from "lucide-react";
+import { ArrowLeft, ChevronRight, Clock, Pencil, Trash2, Check, X, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
 import { uk as ukLocale } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -74,9 +74,10 @@ interface WorkoutWithExercises extends WorkoutRow {
 interface WorkoutHistoryProps {
   onBack: () => void;
   onEdit?: (data: EditWorkoutData) => void;
+  onRepeat?: (exercises: { name: string; muscleGroup: string; sets: { weight: number | ""; reps: number | ""; rest_time: null }[] }[], name: string) => void;
 }
 
-const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
+const WorkoutHistory = ({ onBack, onEdit, onRepeat }: WorkoutHistoryProps) => {
   
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -294,6 +295,29 @@ const WorkoutHistory = ({ onBack, onEdit }: WorkoutHistoryProps) => {
                     </div>
                   ))}
                   <div className="flex gap-2 pt-2">
+                    {onRepeat && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 min-w-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const mapped = w.exercises.map(ex => ({
+                            name: ex.exercise_name,
+                            muscleGroup: ex.muscle_group,
+                            sets: ex.sets.map(s => ({
+                              weight: s.weight as number | "",
+                              reps: s.reps as number | "",
+                              rest_time: null as null,
+                            })),
+                          }));
+                          onRepeat(mapped, w.name || "");
+                        }}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{t.templates.duplicateLastWorkout}</span>
+                      </Button>
+                    )}
                     {onEdit && (
                       <Button
                         variant="outline"

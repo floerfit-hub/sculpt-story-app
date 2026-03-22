@@ -4,18 +4,16 @@ import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, BookOpen, History, BarChart3, RotateCcw } from "lucide-react";
+import { Play, BookOpen, History, BarChart3 } from "lucide-react";
 import StartWorkout from "@/components/workout/StartWorkout";
 import type { EditWorkoutData } from "@/components/workout/StartWorkout";
 import ExerciseLibrary from "@/components/workout/ExerciseLibrary";
 import WorkoutHistory from "@/components/workout/WorkoutHistory";
 import WorkoutProgressCharts from "@/components/workout/WorkoutProgressCharts";
-import WorkoutTemplates from "@/components/workout/WorkoutTemplates";
-import { useToast } from "@/hooks/use-toast";
 
 type WorkoutView = "hub" | "start" | "library" | "history" | "charts" | "edit";
 
-interface TemplateStartData {
+interface RepeatData {
   exercises: { name: string; muscleGroup: string; sets: { weight: number | ""; reps: number | ""; rest_time: null }[] }[];
   name: string;
 }
@@ -23,14 +21,13 @@ interface TemplateStartData {
 const Workouts = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { toast } = useToast();
   const [view, setView] = useState<WorkoutView>(() => {
     const saved = sessionStorage.getItem("workout-view");
     return (saved as WorkoutView) || "hub";
   });
   const [workoutCount, setWorkoutCount] = useState(0);
   const [editData, setEditData] = useState<EditWorkoutData | undefined>();
-  const [templateStartData, setTemplateStartData] = useState<TemplateStartData | null>(null);
+  const [repeatData, setRepeatData] = useState<RepeatData | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -50,78 +47,16 @@ const Workouts = () => {
     setView("edit");
   };
 
-  const handleStartFromTemplate = (exercises: TemplateStartData["exercises"], name: string) => {
-    setTemplateStartData({ exercises, name });
-    setView("start");
-  };
-
-  const duplicateLastWorkout = async () => {
-    if (!user) return;
-    const { data: lastWorkout } = await supabase
-      .from("workouts")
-      .select("id, name")
-      .eq("user_id", user.id)
-      .order("started_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    if (!lastWorkout) {
-      toast({ title: t.templates.noLastWorkout, variant: "destructive" });
-      return;
-    }
-
-    const { data: sets } = await supabase
-      .from("workout_sets")
-      .select("exercise_id, weight, reps, sort_order")
-      .eq("workout_id", lastWorkout.id)
-      .order("sort_order", { ascending: true });
-
-    if (!sets?.length) {
-      toast({ title: t.templates.noLastWorkout, variant: "destructive" });
-      return;
-    }
-
-    // Get exercise names
-    const exerciseIds = [...new Set(sets.map(s => s.exercise_id))];
-    const { data: exercises } = await (supabase as any)
-      .from("exercises")
-      .select("id, name, muscle_group")
-      .in("id", exerciseIds);
-
-    const exMap = new Map((exercises || []).map((e: any) => [e.id, e as { id: string; name: string; muscle_group: string }]));
-
-    // Group sets by exercise (by sort_order)
-    const grouped = new Map<number, typeof sets>();
-    for (const s of sets) {
-      const arr = grouped.get(s.sort_order) || [];
-      arr.push(s);
-      grouped.set(s.sort_order, arr);
-    }
-
-    const templateExercises = [...grouped.entries()]
-      .sort(([a], [b]) => a - b)
-      .map(([_, groupSets]) => {
-        const ex = exMap.get(groupSets[0].exercise_id) as { id: string; name: string; muscle_group: string } | undefined;
-        return {
-          name: ex?.name || "Unknown",
-          muscleGroup: ex?.muscle_group || "Other",
-          sets: groupSets.map(s => ({
-            weight: s.weight as number | "",
-            reps: s.reps as number | "",
-            rest_time: null,
-          })),
-        };
-      });
-
-    setTemplateStartData({ exercises: templateExercises, name: lastWorkout.name || "" });
+  const handleRepeatWorkout = (exercises: RepeatData["exercises"], name: string) => {
+    setRepeatData({ exercises, name });
     setView("start");
   };
 
   if (view === "start") {
-    const initialData = templateStartData;
+    const initialData = repeatData;
     return (
       <StartWorkout
-        onBack={() => { setView("hub"); setTemplateStartData(null); }}
+        onBack={() => { setView("hub"); setRepeatData(null); }}
         initialExercises={initialData?.exercises}
         initialName={initialData?.name}
       />
@@ -129,7 +64,7 @@ const Workouts = () => {
   }
   if (view === "edit") return <StartWorkout onBack={() => { setEditData(undefined); setView("history"); }} editData={editData} />;
   if (view === "library") return <ExerciseLibrary onBack={() => setView("hub")} />;
-  if (view === "history") return <WorkoutHistory onBack={() => setView("hub")} onEdit={handleEdit} />;
+  if (view === "history") return <WorkoutHistory onBack={() => setView("hub")} onEdit={handleEdit} onRepeat={handleRepeatWorkout} />;
   if (view === "charts") return <WorkoutProgressCharts onBack={() => setView("hub")} />;
 
   const menuItems = [
@@ -158,9 +93,6 @@ const Workouts = () => {
           </Card>
         ))}
       </div>
-
-      {/* Workout Templates */}
-      <WorkoutTemplates onStartFromTemplate={handleStartFromTemplate} />
     </div>
   );
 };

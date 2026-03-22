@@ -33,6 +33,7 @@ const PreviousWorkoutInfo = ({ exerciseName, muscleGroup }: Props) => {
     if (!user || loaded) return;
     setLoading(true);
     try {
+      // Find exercise id
       const { data: exercises } = await (supabase as any)
         .from("exercises")
         .select("id")
@@ -42,28 +43,39 @@ const PreviousWorkoutInfo = ({ exerciseName, muscleGroup }: Props) => {
       if (!exercises?.length) { setLoaded(true); setLoading(false); return; }
       const exerciseId = exercises[0].id;
 
+      // Get user's workouts to filter by user
+      const { data: userWorkouts } = await supabase
+        .from("workouts")
+        .select("id, started_at")
+        .eq("user_id", user.id)
+        .order("started_at", { ascending: false });
+
+      if (!userWorkouts?.length) { setLoaded(true); setLoading(false); return; }
+
+      const workoutIds = userWorkouts.map(w => w.id);
+
+      // Get sets for this exercise from user's workouts
       const { data: sets } = await supabase
         .from("workout_sets")
         .select("weight, reps, set_number, workout_id, created_at")
         .eq("exercise_id", exerciseId)
+        .in("workout_id", workoutIds)
         .order("created_at", { ascending: false })
         .limit(50);
 
       if (!sets?.length) { setLoaded(true); setLoading(false); return; }
 
+      // Find the most recent workout that has this exercise
       const firstWorkoutId = sets[0].workout_id;
       const workoutSets = sets
         .filter(s => s.workout_id === firstWorkoutId)
         .sort((a, b) => a.set_number - b.set_number);
 
-      const { data: workout } = await supabase
-        .from("workouts")
-        .select("started_at")
-        .eq("id", firstWorkoutId)
-        .maybeSingle();
+      // Get workout date
+      const workout = userWorkouts.find(w => w.id === firstWorkoutId);
 
       setData({
-        sets: workoutSets.map(s => ({ set_number: s.set_number, weight: s.weight, reps: s.reps })),
+        sets: workoutSets.map(s => ({ set_number: s.set_number, weight: Number(s.weight), reps: Number(s.reps) })),
         date: workout?.started_at || sets[0].created_at,
       });
       setLoaded(true);
