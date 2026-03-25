@@ -10,6 +10,10 @@ export const uk: Translations = {
     insights: "Аналітика",
     admin: "Адмін",
     appName: "FitTrack",
+    quickActions: "Швидкі дії",
+    quickLogMeasurements: "Записати заміри",
+    quickLogNutrition: "Записати харчування",
+    quickStartWorkout: "Почати тренування",
   },
 
   auth: {
