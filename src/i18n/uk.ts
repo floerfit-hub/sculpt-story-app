@@ -92,6 +92,7 @@ export const uk: Translations = {
       nutrition: "План харчування",
       insights: "ШІ поради",
       recentEntries: "Останні записи",
+      bento: "Кроки та калорії",
     },
   },
 

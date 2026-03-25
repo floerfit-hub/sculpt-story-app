@@ -7,8 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { PlusCircle, Clock, Pencil, Trash2, Crown, ChevronUp, ChevronDown, Eye, EyeOff, Check } from "lucide-react";
+import { PlusCircle, Clock, Pencil, Trash2, Crown, ChevronUp, ChevronDown, Eye, EyeOff, Check, Flame, Footprints } from "lucide-react";
 import { format, differenceInDays, addDays, startOfMonth, subDays } from "date-fns";
 import { uk as ukLocale } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -46,7 +47,7 @@ interface ExerciseInfo {
   muscle_group: string;
 }
 
-const PANEL_IDS = ["checkin", "fitnessScore", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutritionTracker", "nutrition", "insights", "recentEntries"] as const;
+const PANEL_IDS = ["checkin", "fitnessScore", "bento", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutritionTracker", "nutrition", "insights", "recentEntries"] as const;
 type PanelId = typeof PANEL_IDS[number];
 
 interface PanelConfig { order: PanelId[]; hidden: PanelId[] }
@@ -63,9 +64,58 @@ function savePanelConfig(config: PanelConfig) {
   localStorage.setItem("dashboard_panels", JSON.stringify(config));
 }
 
+/* ─── Skeleton Loading Screen ─── */
+const DashboardSkeleton = () => (
+  <div className="space-y-[var(--gap-section)] animate-fade-in">
+    {/* Header */}
+    <div>
+      <Skeleton className="h-9 w-56 rounded-xl" />
+      <Skeleton className="h-4 w-40 rounded-lg mt-2" />
+    </div>
+    {/* Fit Score circle */}
+    <Card>
+      <CardContent className="p-6 flex flex-col items-center gap-4">
+        <Skeleton className="h-[220px] w-[220px] rounded-full" />
+        <div className="w-full space-y-2">
+          <Skeleton className="h-2 w-full rounded-full" />
+          <Skeleton className="h-2 w-3/4 rounded-full" />
+          <Skeleton className="h-2 w-5/6 rounded-full" />
+          <Skeleton className="h-2 w-2/3 rounded-full" />
+        </div>
+      </CardContent>
+    </Card>
+    {/* XP bar */}
+    <Skeleton className="h-16 w-full rounded-2xl" />
+    {/* Bento widgets */}
+    <div className="grid grid-cols-2 gap-4">
+      <Skeleton className="h-36 rounded-3xl" />
+      <Skeleton className="h-36 rounded-3xl" />
+    </div>
+    {/* Other panels */}
+    <Skeleton className="h-48 rounded-4xl" />
+    <Skeleton className="h-48 rounded-4xl" />
+  </div>
+);
+
+/* ─── Bento Widget ─── */
+const BentoWidget = ({ icon, label, value, sub }: { icon: ReactNode; label: string; value: string | number; sub?: string }) => (
+  <Card className="rounded-3xl">
+    <CardContent className="p-5 flex flex-col justify-between h-36">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        {icon}
+        <span className="text-xs font-semibold uppercase tracking-widest">{label}</span>
+      </div>
+      <div>
+        <p className="text-5xl font-display font-black leading-none text-foreground">{value}</p>
+        {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
+      </div>
+    </CardContent>
+  </Card>
+);
+
 const Dashboard = () => {
   const { user, profile } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -78,6 +128,8 @@ const Dashboard = () => {
   const [workouts, setWorkouts] = useState<Tables<"workouts">[]>([]);
   const [perfData, setPerfData] = useState<PerfData[]>([]);
   const [exerciseMap, setExerciseMap] = useState<Map<string, ExerciseInfo>>(new Map());
+  const [todayCalories, setTodayCalories] = useState(0);
+  const [calorieGoal, setCalorieGoal] = useState(2000);
   const { stats: fitnessStatsData, weeklyChange, isInactive, coldStart, updateFitScore, profileGoals, fetchStats: refetchFitnessStats } = useFitnessStats();
   useNotificationScheduler();
 
@@ -120,7 +172,6 @@ const Dashboard = () => {
           setExerciseMap(new Map((exercises || []).map((e: any) => [e.id, { name: e.name, muscle_group: e.muscle_group }])));
         }
 
-        // Auto-update training tenure (experience_level)
         const firstWorkout = new Date(allWorkouts[0].started_at);
         const monthsTraining = differenceInDays(new Date(), firstWorkout) / 30;
         let autoLevel: string | null = null;
@@ -131,8 +182,30 @@ const Dashboard = () => {
         const currentLevel = (profile as any)?.experience_level;
         if (autoLevel && autoLevel !== currentLevel) {
           await supabase.from("profiles").update({ experience_level: autoLevel } as any).eq("user_id", user.id);
-          console.log(`[Tenure] Auto-updated experience: ${currentLevel} → ${autoLevel} (${Math.round(monthsTraining)} months)`);
         }
+      }
+
+      // Fetch today's calories for bento widget
+      const todayStr = format(new Date(), "yyyy-MM-dd");
+      const { data: foodLogs } = await (supabase as any)
+        .from("food_logs")
+        .select("kcal")
+        .eq("user_id", user.id)
+        .gte("created_at", `${todayStr}T00:00:00`)
+        .lte("created_at", `${todayStr}T23:59:59`);
+      
+      if (foodLogs) {
+        setTodayCalories(foodLogs.reduce((sum: number, l: any) => sum + Number(l.kcal), 0));
+      }
+
+      // Get calorie goal from profile
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("daily_calories" as any)
+        .eq("user_id", user.id)
+        .single();
+      if (prof && (prof as any).daily_calories) {
+        setCalorieGoal((prof as any).daily_calories);
       }
 
       setLoading(false);
@@ -220,7 +293,6 @@ const Dashboard = () => {
     });
   }, [workouts, perfData, exerciseMap]);
 
-  // Async PR detection + fit score calculation
   const [fitnessScores, setFitnessScores] = useState({ trainingConsistency: 0, strengthProgress: 0, bodyProgress: 0, muscleBalance: 0, overall: 0, undertrained: [] as string[] });
 
   useEffect(() => {
@@ -230,7 +302,6 @@ const Dashboard = () => {
       const thirtyDaysAgo = subDays(new Date(), 30);
       const workoutsLast30Days = workouts.filter((w) => new Date(w.started_at) >= thirtyDaysAgo).length;
 
-      // Measurement recency + field checks
       let daysSinceLastMeasurement: number | null = null;
       const lastEntry = entries.length > 0 ? entries[entries.length - 1] : null;
       if (lastEntry) {
@@ -245,7 +316,6 @@ const Dashboard = () => {
         hasThigh: lastEntry?.thigh_circumference != null,
       };
 
-      // Weekly sets per muscle group (last 7 days)
       const sevenDaysAgo = subDays(new Date(), 7);
       const weekWorkoutIds = new Set(workouts.filter((w) => new Date(w.started_at) >= sevenDaysAgo).map((w) => w.id));
       const weeklySets: Record<string, number> = {};
@@ -256,7 +326,6 @@ const Dashboard = () => {
           if (ex) weeklySets[ex.muscle_group] = (weeklySets[ex.muscle_group] || 0) + Number(p.total_sets);
         });
 
-      // Detect PRs from raw sets (filtered 1-12 reps)
       const prCount = await detectPRsLast30Days(user.id);
 
       const scores = calculateFitScore({
@@ -279,7 +348,6 @@ const Dashboard = () => {
         undertrained: scores.undertrained,
       });
 
-      // Persist score — only block if truly cold start (no workouts at all AND < 7 days)
       const shouldBlock = coldStart && workoutsLast30Days === 0;
       if (fitnessStatsData && !shouldBlock && scores.overall !== fitnessStatsData.fit_score) {
         updateFitScore(scores.overall);
@@ -289,19 +357,22 @@ const Dashboard = () => {
     compute();
   }, [user, loading, workouts, entries, muscleData, profileGoals, fitnessStatsData, coldStart, updateFitScore, perfData, exerciseMap]);
 
-  // Ensure all panel IDs are in order (handle new panels added after user saved config)
   const orderedPanels = useMemo(() => {
     const ordered = [...panelConfig.order];
     PANEL_IDS.forEach(id => { if (!ordered.includes(id)) ordered.push(id); });
     return ordered;
   }, [panelConfig.order]);
 
+  // Steps from localStorage (placeholder)
+  const steps = useMemo(() => {
+    try {
+      const saved = localStorage.getItem("daily_steps");
+      return saved ? Number(saved) : 0;
+    } catch { return 0; }
+  }, []);
+
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const movePanel = (id: PanelId, dir: -1 | 1) => {
@@ -340,9 +411,12 @@ const Dashboard = () => {
     toast({ title: t.dashboard.panelsReset });
   };
 
+  const stepsLabel = lang === "uk" ? "Кроки" : "Steps";
+  const caloriesLabel = lang === "uk" ? "Калорії" : "Calories";
+
   const panelComponents: Record<PanelId, ReactNode> = {
     checkin: canLogEntry && entries.length > 0 ? (
-      <Card className="border-primary/20 gradient-glow">
+      <Card className="border-primary/20">
         <CardContent className="flex items-center gap-4 p-4">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
             <PlusCircle className="h-4 w-4 text-primary" />
@@ -355,6 +429,22 @@ const Dashboard = () => {
       </Card>
     ) : null,
     fitnessScore: <PremiumGate feature="Fitness Score Dashboard"><FitnessScore {...fitnessScores} totalXP={fitnessStatsData?.total_xp} level={fitnessStatsData?.level} fitScore={(coldStart && workoutsThisMonth === 0 && workouts.length === 0) ? undefined : fitnessScores.overall} weeklyChange={weeklyChange} isInactive={isInactive} coldStart={coldStart && workoutsThisMonth === 0 && workouts.length === 0} undertrained={fitnessScores.undertrained} showMeasurementReminder={fitnessScores.bodyProgress < 50 && entries.length > 0} /></PremiumGate>,
+    bento: (
+      <div className="grid grid-cols-2 gap-4">
+        <BentoWidget
+          icon={<Footprints className="h-4 w-4" />}
+          label={stepsLabel}
+          value={steps.toLocaleString()}
+          sub={lang === "uk" ? "сьогодні" : "today"}
+        />
+        <BentoWidget
+          icon={<Flame className="h-4 w-4" />}
+          label={caloriesLabel}
+          value={todayCalories}
+          sub={`/ ${calorieGoal} kcal`}
+        />
+      </div>
+    ),
     weightChart: <WeightChart entries={entries} />,
     measurements: <PremiumGate feature="Body Composition Dashboard"><MeasurementsCard latest={latest} previous={previous} /></PremiumGate>,
     muscleHeatmap: <PremiumGate feature="Muscle Heatmap Analytics"><MuscleHeatmap muscleData={muscleData} /></PremiumGate>,
@@ -410,11 +500,11 @@ const Dashboard = () => {
 
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="flex flex-col gap-[var(--gap-section)] animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-extrabold tracking-tight">
-            {t.dashboard.hey}, {profile?.full_name || t.dashboard.there} 💪
+          <h1 className="text-3xl font-display font-bold tracking-tight">
+            {t.dashboard.hey}, {profile?.full_name || t.dashboard.there}! 💪
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">{t.dashboard.trackTransformation}</p>
         </div>
