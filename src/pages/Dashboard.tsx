@@ -501,7 +501,7 @@ const Dashboard = () => {
 
 
   return (
-    <div className="flex flex-col gap-[var(--gap-section)] animate-fade-in">
+    <div className="flex flex-col gap-[calc(var(--gap-section)/2)] animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-display font-bold tracking-tight">
