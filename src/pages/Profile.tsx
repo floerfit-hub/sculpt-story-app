@@ -285,6 +285,39 @@ const Profile = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Avatar */}
+          <div className="flex flex-col items-center gap-2">
+            <button
+              onClick={() => avatarInputRef.current?.click()}
+              className="relative group"
+              disabled={uploadingAvatar}
+            >
+              <Avatar className="h-20 w-20 border-2 border-primary/20">
+                {avatarUrl ? (
+                  <AvatarImage src={avatarUrl} alt={name} />
+                ) : null}
+                <AvatarFallback className="bg-accent text-2xl">
+                  <User className="h-8 w-8 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="h-5 w-5 text-background" />
+              </div>
+            </button>
+            <p className="text-xs text-muted-foreground">
+              {uploadingAvatar
+                ? (lang === "uk" ? "Завантаження..." : "Uploading...")
+                : (lang === "uk" ? "Натисніть, щоб змінити фото" : "Tap to change photo")}
+            </p>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+          </div>
           <div className="space-y-2">
             <Label>{t.profile.email}</Label>
             <Input value={user?.email || ""} disabled className="bg-muted" />
