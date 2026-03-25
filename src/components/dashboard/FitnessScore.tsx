@@ -19,6 +19,8 @@ interface FitnessScoreProps {
   coldStart?: boolean;
   undertrained?: string[];
   showMeasurementReminder?: boolean;
+  hideXPBar?: boolean;
+  xpBarOnly?: boolean;
 }
 
 const CircularProgress = ({ score, size = 220, strokeWidth = 14, dimmed = false }: { score: number; size?: number; strokeWidth?: number; dimmed?: boolean }) => {
@@ -70,6 +72,8 @@ const FitnessScore = ({
   coldStart = false,
   undertrained = [],
   showMeasurementReminder = false,
+  hideXPBar = false,
+  xpBarOnly = false,
 }: FitnessScoreProps) => {
   const { t, lang } = useTranslation();
   const [showInfo, setShowInfo] = useState(false);
@@ -85,6 +89,74 @@ const FitnessScore = ({
   const xpInLevel = totalXP - currentLevelXP;
   const xpNeeded = nextLevelXP - currentLevelXP;
   const xpProgress = xpNeeded > 0 ? Math.min(100, (xpInLevel / xpNeeded) * 100) : 100;
+
+  if (xpBarOnly) {
+    return (
+      <>
+        <button
+          onClick={() => setShowLevels(true)}
+          className="w-full rounded-2xl border border-border bg-card p-4 space-y-2.5 text-left transition-colors hover:bg-accent/30 active:scale-[0.99] shadow-2xl"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className={`flex h-9 w-9 items-center justify-center rounded-xl font-display font-bold text-sm ${isInactive ? "bg-muted text-muted-foreground" : "bg-primary/15 text-primary"}`}>
+                {level}
+              </div>
+              <div>
+                <p className={`font-display font-bold text-sm leading-none ${isInactive ? "text-muted-foreground" : ""}`}>{levelTitle}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{totalXP} XP</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground tabular-nums">
+                {xpInLevel} / {xpNeeded} XP
+              </span>
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+          </div>
+          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-700 ease-out ${isInactive ? "bg-muted-foreground/40" : "bg-primary"}`}
+              style={{ width: `${xpProgress}%` }}
+            />
+          </div>
+        </button>
+        {/* Level Hierarchy Dialog */}
+        <Dialog open={showLevels} onOpenChange={setShowLevels}>
+          <DialogContent className="rounded-2xl max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="font-display text-base">
+                {lang === "uk" ? "Ієрархія рівнів" : "Level Hierarchy"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-1.5">
+              {LEVEL_THRESHOLDS_EXPORT.map((threshold, i) => {
+                const lvl = i + 1;
+                const title = getLevelTitle(lvl, lang);
+                const nextThreshold = LEVEL_THRESHOLDS_EXPORT[i + 1];
+                const isCurrent = lvl === level;
+                const isCompleted = lvl < level;
+                const xpRange = nextThreshold ? `${threshold} — ${nextThreshold} XP` : `${threshold}+ XP`;
+                return (
+                  <div key={lvl} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${isCurrent ? "bg-primary/10 border border-primary/30" : isCompleted ? "opacity-60" : "border border-border/30"}`}>
+                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-display font-bold text-sm ${isCurrent ? "bg-primary text-primary-foreground" : isCompleted ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>{lvl}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-display font-bold text-sm leading-none ${isCurrent ? "text-primary" : ""}`}>
+                        {title}
+                        {isCurrent && <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">← {lang === "uk" ? "ви тут" : "you are here"}</span>}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">{xpRange}</p>
+                    </div>
+                    {isCompleted && <span className="text-primary text-xs">✓</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
 
   return (
     <>
@@ -143,35 +215,39 @@ const FitnessScore = ({
         </CardContent>
       </Card>
 
-      {/* XP bar — rendered separately below the card */}
-      <button
-        onClick={() => setShowLevels(true)}
-        className="w-full rounded-2xl border border-border bg-card p-4 space-y-2.5 text-left transition-colors hover:bg-accent/30 active:scale-[0.99] shadow-2xl"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl font-display font-bold text-sm ${isInactive ? "bg-muted text-muted-foreground" : "bg-primary/15 text-primary"}`}>
-              {level}
+      {!hideXPBar && (
+        <>
+          {/* XP bar — rendered separately below the card */}
+          <button
+            onClick={() => setShowLevels(true)}
+            className="w-full rounded-2xl border border-border bg-card p-4 space-y-2.5 text-left transition-colors hover:bg-accent/30 active:scale-[0.99] shadow-2xl"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl font-display font-bold text-sm ${isInactive ? "bg-muted text-muted-foreground" : "bg-primary/15 text-primary"}`}>
+                  {level}
+                </div>
+                <div>
+                  <p className={`font-display font-bold text-sm leading-none ${isInactive ? "text-muted-foreground" : ""}`}>{levelTitle}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{totalXP} XP</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-muted-foreground tabular-nums">
+                  {xpInLevel} / {xpNeeded} XP
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
             </div>
-            <div>
-              <p className={`font-display font-bold text-sm leading-none ${isInactive ? "text-muted-foreground" : ""}`}>{levelTitle}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{totalXP} XP</p>
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ease-out ${isInactive ? "bg-muted-foreground/40" : "bg-primary"}`}
+                style={{ width: `${xpProgress}%` }}
+              />
             </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] text-muted-foreground tabular-nums">
-              {xpInLevel} / {xpNeeded} XP
-            </span>
-            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-          </div>
-        </div>
-        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-700 ease-out ${isInactive ? "bg-muted-foreground/40" : "bg-primary"}`}
-            style={{ width: `${xpProgress}%` }}
-          />
-        </div>
-      </button>
+          </button>
+        </>
+      )}
 
       {/* Fit Score Info Dialog */}
       <Dialog open={showInfo} onOpenChange={setShowInfo}>
