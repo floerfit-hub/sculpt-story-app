@@ -156,8 +156,53 @@ const Profile = () => {
       setPrimaryGoal(profile.primary_goal || "");
       setTrainingFrequency(profile.training_frequency?.toString() || "4");
       setExperienceLevel(profile.experience_level || "");
+      setAvatarUrl(profile.avatar_url || "");
     }
   }, [profile]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploadingAvatar(true);
+    try {
+      // Compress: draw to canvas at max 256px
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = () => { img.src = reader.result as string; };
+      reader.readAsDataURL(file);
+      await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+      
+      const size = Math.min(img.width, img.height);
+      const sx = (img.width - size) / 2;
+      const sy = (img.height - size) / 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, 256, 256);
+      
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.8));
+      const filePath = `${user.id}/avatar.jpg`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from("progress-photos")
+        .upload(filePath, blob, { upsert: true, contentType: "image/jpeg" });
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: urlData } = supabase.storage
+        .from("progress-photos")
+        .getPublicUrl(filePath);
+      
+      const publicUrl = urlData.publicUrl + "?t=" + Date.now();
+      await supabase.from("profiles").update({ avatar_url: publicUrl } as any).eq("user_id", user.id);
+      setAvatarUrl(publicUrl);
+      toast({ title: lang === "uk" ? "Фото оновлено" : "Photo updated" });
+    } catch (err: any) {
+      toast({ title: t.common.error, description: err.message, variant: "destructive" });
+    }
+    setUploadingAvatar(false);
+  };
 
   const autoSaveGoal = async (field: string, value: any) => {
     if (!user) return;
