@@ -47,7 +47,7 @@ interface ExerciseInfo {
   muscle_group: string;
 }
 
-const PANEL_IDS = ["checkin", "fitnessScore", "bento", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutritionTracker", "nutrition", "insights", "recentEntries"] as const;
+const PANEL_IDS = ["checkin", "fitnessScore", "levels", "bento", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutritionTracker", "nutrition", "insights", "recentEntries"] as const;
 type PanelId = typeof PANEL_IDS[number];
 
 interface PanelConfig { order: PanelId[]; hidden: PanelId[] }
@@ -428,7 +428,8 @@ const Dashboard = () => {
         </CardContent>
       </Card>
     ) : null,
-    fitnessScore: <PremiumGate feature="Fitness Score Dashboard"><FitnessScore {...fitnessScores} totalXP={fitnessStatsData?.total_xp} level={fitnessStatsData?.level} fitScore={(coldStart && workoutsThisMonth === 0 && workouts.length === 0) ? undefined : fitnessScores.overall} weeklyChange={weeklyChange} isInactive={isInactive} coldStart={coldStart && workoutsThisMonth === 0 && workouts.length === 0} undertrained={fitnessScores.undertrained} showMeasurementReminder={fitnessScores.bodyProgress < 50 && entries.length > 0} /></PremiumGate>,
+    fitnessScore: <PremiumGate feature="Fitness Score Dashboard"><FitnessScore {...fitnessScores} totalXP={fitnessStatsData?.total_xp} level={fitnessStatsData?.level} fitScore={(coldStart && workoutsThisMonth === 0 && workouts.length === 0) ? undefined : fitnessScores.overall} weeklyChange={weeklyChange} isInactive={isInactive} coldStart={coldStart && workoutsThisMonth === 0 && workouts.length === 0} undertrained={fitnessScores.undertrained} showMeasurementReminder={fitnessScores.bodyProgress < 50 && entries.length > 0} hideXPBar /></PremiumGate>,
+    levels: <FitnessScore {...fitnessScores} totalXP={fitnessStatsData?.total_xp} level={fitnessStatsData?.level} isInactive={isInactive} xpBarOnly />,
     bento: (
       <div className="grid grid-cols-2 gap-4">
         <BentoWidget
