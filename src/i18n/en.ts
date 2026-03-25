@@ -33,6 +33,9 @@ export const en = {
     andPrivacy: "and",
     privacyLink: "Privacy Policy",
     mustAcceptTerms: "You must accept the terms to continue",
+    forgotPassword: "Forgot password?",
+    enterEmailForReset: "Enter your email to reset password",
+    resetPasswordSent: "Password reset link has been sent to your email.",
   },
 
   // Dashboard
