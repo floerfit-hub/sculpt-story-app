@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Montserrat', 'sans-serif'],
+        display: ['Inter', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
       },
       colors: {
@@ -67,6 +67,7 @@ export default {
         },
       },
       borderRadius: {
+        "4xl": "var(--radius-48)",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
@@ -93,8 +94,8 @@ export default {
           to: { opacity: "1", transform: "scale(1)" },
         },
         "glow-pulse": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(82 85% 55% / 0.15)" },
-          "50%": { boxShadow: "0 0 30px hsl(82 85% 55% / 0.3)" },
+          "0%, 100%": { boxShadow: "0 0 20px hsl(160 84% 39% / 0.15)" },
+          "50%": { boxShadow: "0 0 30px hsl(160 84% 39% / 0.3)" },
         },
         "shimmer": {
           from: { backgroundPosition: "200% 0" },
