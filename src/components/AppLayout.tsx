@@ -1,15 +1,14 @@
-import { ReactNode, useState, useRef, useCallback } from "react";
+import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { useTranslation } from "@/i18n";
-import { Dumbbell, Home, PlusCircle, UserCircle, Crown, X, Scale, Utensils, Zap } from "lucide-react";
+import { Dumbbell, Home, PlusCircle, UserCircle, Crown, Scale, Utensils, Zap, Shield } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerClose,
 } from "@/components/ui/drawer";
 
 const AppLayout = ({ children }: { children: ReactNode }) => {
@@ -36,12 +35,20 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       label: t.nav.quickStartWorkout || "Start Workout",
       onClick: () => { setActionSheetOpen(false); navigate("/workouts"); },
     },
+    ...(isAdmin ? [{
+      icon: Shield,
+      label: t.nav.admin || "Admin Panel",
+      onClick: () => { setActionSheetOpen(false); navigate("/admin"); },
+    }] : []),
   ];
 
   const navItems = [
     { to: "/", icon: Home, label: t.nav.home },
     { to: "/profile", icon: UserCircle, label: t.nav.profile },
   ];
+
+  const isHomeActive = location.pathname === "/";
+  const isProfileActive = location.pathname === "/profile";
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,50 +74,73 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
         </div>
       </header>
 
-      <main className="px-5 py-6 pb-28 lg:pb-8 max-w-2xl mx-auto">{children}</main>
+      <main className="px-5 py-6 pb-36 lg:pb-8 max-w-2xl mx-auto">{children}</main>
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong safe-bottom">
-        <div className="relative flex items-center justify-around pb-[env(safe-area-inset-bottom)] pt-2 pb-3 max-w-lg mx-auto">
-          {/* Home */}
-          {navItems.map((item, idx) => {
-            const active = location.pathname === item.to;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={(e) => {
-                  if (active) {
-                    e.preventDefault();
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }
-                }}
-                className={`flex flex-col items-center gap-1 px-6 py-1.5 text-[11px] transition-all duration-200 rounded-xl ${
-                  active
-                    ? "text-primary text-glow"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                style={idx === 0 ? { marginRight: "auto" } : { marginLeft: "auto" }}
-              >
-                <div className={`relative p-1.5 rounded-xl transition-all duration-200 ${active ? "bg-accent" : ""}`}>
-                  <item.icon className={`h-5 w-5 transition-transform duration-200 ${active ? "scale-110" : ""}`} />
-                  {active && (
-                    <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-primary" />
-                  )}
-                </div>
-                <span className="font-semibold leading-tight">{item.label}</span>
-              </Link>
-            );
-          })}
+        <div className="flex items-center justify-between px-6 pt-4 pb-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] max-w-lg mx-auto">
+          {/* Home — centered between left edge and center */}
+          <div className="flex-1 flex justify-center">
+            <Link
+              to="/"
+              onClick={(e) => {
+                if (isHomeActive) {
+                  e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }}
+              className={`flex flex-col items-center gap-1 px-4 py-1.5 text-[11px] transition-all duration-200 rounded-xl ${
+                isHomeActive
+                  ? "text-primary text-glow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <div className={`relative p-1.5 rounded-xl transition-all duration-200 ${isHomeActive ? "bg-accent" : ""}`}>
+                <Home className={`h-5 w-5 transition-transform duration-200 ${isHomeActive ? "scale-110" : ""}`} />
+                {isHomeActive && (
+                  <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-primary" />
+                )}
+              </div>
+              <span className="font-semibold leading-tight">{t.nav.home}</span>
+            </Link>
+          </div>
 
-          {/* Floating Action Button — centered */}
-          <button
-            onClick={() => setActionSheetOpen(true)}
-            aria-label={t.nav.quickActions || "Quick actions"}
-            className="absolute left-1/2 -translate-x-1/2 -top-6 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg glow-primary hover:glow-primary-strong transition-all duration-200 active:scale-95"
-          >
-            <PlusCircle className="h-7 w-7" />
-          </button>
+          {/* Center FAB — inline, not floating */}
+          <div className="flex-shrink-0">
+            <button
+              onClick={() => setActionSheetOpen(true)}
+              aria-label={t.nav.quickActions || "Quick actions"}
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg glow-primary hover:glow-primary-strong transition-all duration-200 active:scale-95"
+            >
+              <PlusCircle className="h-7 w-7" />
+            </button>
+          </div>
+
+          {/* Profile — centered between center and right edge */}
+          <div className="flex-1 flex justify-center">
+            <Link
+              to="/profile"
+              onClick={(e) => {
+                if (isProfileActive) {
+                  e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }}
+              className={`flex flex-col items-center gap-1 px-4 py-1.5 text-[11px] transition-all duration-200 rounded-xl ${
+                isProfileActive
+                  ? "text-primary text-glow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <div className={`relative p-1.5 rounded-xl transition-all duration-200 ${isProfileActive ? "bg-accent" : ""}`}>
+                <UserCircle className={`h-5 w-5 transition-transform duration-200 ${isProfileActive ? "scale-110" : ""}`} />
+                {isProfileActive && (
+                  <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-primary" />
+                )}
+              </div>
+              <span className="font-semibold leading-tight">{t.nav.profile}</span>
+            </Link>
+          </div>
         </div>
       </nav>
 
