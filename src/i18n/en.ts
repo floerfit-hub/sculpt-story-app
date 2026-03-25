@@ -9,6 +9,10 @@ export const en = {
     insights: "Insights",
     admin: "Admin",
     appName: "FitTrack",
+    quickActions: "Quick Actions",
+    quickLogMeasurements: "Log Measurements",
+    quickLogNutrition: "Log Nutrition",
+    quickStartWorkout: "Start Workout",
   },
 
   // Auth
