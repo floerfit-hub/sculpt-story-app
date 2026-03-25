@@ -106,7 +106,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
           </div>
 
           {/* Center FAB — inline, not floating */}
-          <div className="flex-shrink-0">
+          <div className="flex justify-center">
             <button
               onClick={() => setActionSheetOpen(true)}
               aria-label={t.nav.quickActions || "Quick actions"}
