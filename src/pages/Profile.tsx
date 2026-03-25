@@ -144,6 +144,9 @@ const Profile = () => {
   const [trainingFrequency, setTrainingFrequency] = useState(profile?.training_frequency?.toString() || "4");
   const [experienceLevel, setExperienceLevel] = useState(profile?.experience_level || "");
   const [saving, setSaving] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Sync local state from profile when it loads/changes
   useEffect(() => {
