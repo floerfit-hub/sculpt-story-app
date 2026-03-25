@@ -190,6 +190,11 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Eliminate 300ms tap delay on all interactive elements */
+button, a, [role="button"], input, select, textarea, label, .cursor-pointer {
+  touch-action: manipulation;
+}
+
 /* Constrain main on desktop */
 @media (min-width: 1024px) {
   main {
