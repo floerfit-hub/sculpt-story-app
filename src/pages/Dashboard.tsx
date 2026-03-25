@@ -428,15 +428,11 @@ const Dashboard = () => {
                 <Check className="mr-1.5 h-4 w-4" />{t.dashboard.donePanels}
               </Button>
             </>
-          ) : canLogEntry ? (
-            <Link to="/add-entry">
-              <Button size="sm"><PlusCircle className="mr-1.5 h-4 w-4" />{t.dashboard.newEntry}</Button>
-            </Link>
-          ) : (
+          ) : !canLogEntry ? (
             <Button variant="outline" size="sm" disabled>
               <Clock className="mr-1.5 h-4 w-4" />{daysUntilCheckin}{t.dashboard.daysLeft}
             </Button>
-          )}
+          ) : null}
         </div>
       </div>
 

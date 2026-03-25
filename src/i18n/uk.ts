@@ -45,7 +45,7 @@ export const uk: Translations = {
     day: "день",
     days: "днів",
     checkinReady: "Ваша двотижнева перевірка готова!",
-    logProgressNow: "Запишіть свій прогрес зараз",
+    logProgressNow: "Запишіть нові дані зараз",
     weight: "Вага",
     waist: "Талія",
     bodyFat: "Жир",

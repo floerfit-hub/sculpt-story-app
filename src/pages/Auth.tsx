@@ -129,7 +129,33 @@ const Auth = () => {
               {loading ? t.auth.loading : isSignUp ? t.auth.signUp : t.auth.logIn}
             </Button>
           </form>
-          <div className="mt-6 text-center">
+          {!isSignUp && (
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!email) {
+                    toast({ title: t.common.error, description: t.auth.enterEmailForReset, variant: "destructive" });
+                    return;
+                  }
+                  setLoading(true);
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin,
+                  });
+                  setLoading(false);
+                  if (error) {
+                    toast({ title: t.common.error, description: error.message, variant: "destructive" });
+                  } else {
+                    toast({ title: t.auth.checkEmail, description: t.auth.resetPasswordSent });
+                  }
+                }}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
+              >
+                {t.auth.forgotPassword}
+              </button>
+            </div>
+          )}
+          <div className="mt-4 text-center">
             <button onClick={() => setIsSignUp(!isSignUp)} className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200">
               {isSignUp ? t.auth.alreadyHaveAccount : t.auth.dontHaveAccount}
             </button>
