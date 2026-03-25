@@ -21,6 +21,11 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
 
   const quickActions = [
     {
+      icon: Zap,
+      label: t.nav.quickStartWorkout || "Start Workout",
+      onClick: () => { setActionSheetOpen(false); navigate("/workouts"); },
+    },
+    {
       icon: Scale,
       label: t.nav.quickLogMeasurements || "Log Measurements",
       onClick: () => { setActionSheetOpen(false); navigate("/add-entry"); },
@@ -29,11 +34,6 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       icon: Utensils,
       label: t.nav.quickLogNutrition || "Log Nutrition",
       onClick: () => { setActionSheetOpen(false); navigate("/add-entry"); },
-    },
-    {
-      icon: Zap,
-      label: t.nav.quickStartWorkout || "Start Workout",
-      onClick: () => { setActionSheetOpen(false); navigate("/workouts"); },
     },
     ...(isAdmin ? [{
       icon: Shield,
@@ -77,8 +77,8 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       <main className="px-5 py-6 pb-36 lg:pb-8 max-w-2xl mx-auto">{children}</main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong rounded-none border-b-0 border-x-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="flex items-center justify-between px-6 pt-4 pb-2 max-w-lg mx-auto">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong rounded-none border-0 pb-0 mb-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="flex items-center justify-between px-6 pt-3 pb-0 max-w-lg mx-auto">
           {/* Home — centered between left edge and center */}
           <div className="flex-1 flex justify-center">
             <Link
