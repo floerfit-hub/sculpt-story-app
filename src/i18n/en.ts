@@ -93,6 +93,7 @@ export const en = {
       nutrition: "Nutrition Plan",
       insights: "AI Insights",
       recentEntries: "Recent Entries",
+      bento: "Steps & Calories",
     },
   },
 
