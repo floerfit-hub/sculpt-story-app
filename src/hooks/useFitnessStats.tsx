@@ -60,8 +60,19 @@ export function getLevelTitle(level: number, lang: string): string {
 
 // Goal-based weights
 export function getWeights(goal: string | null) {
-  // Equal weights for all goals: each component contributes 25%
-  return { consistency: 0.25, strength: 0.25, balance: 0.25, measurements: 0.25 };
+  switch (goal) {
+    case "muscle_gain":
+    case "muscle":
+      return { consistency: 0.25, strength: 0.30, balance: 0.25, measurements: 0.20 };
+    case "fat_loss":
+    case "weight_loss":
+    case "lose_weight":
+      return { consistency: 0.30, strength: 0.15, balance: 0.20, measurements: 0.35 };
+    case "strength":
+      return { consistency: 0.20, strength: 0.35, balance: 0.25, measurements: 0.20 };
+    default:
+      return { consistency: 0.25, strength: 0.25, balance: 0.25, measurements: 0.25 };
+  }
 }
 
 // XP for PR based on experience level
@@ -133,7 +144,8 @@ export function calculateMuscleBalanceScore(weeklySets: Record<string, number>):
  * Beginner: +2pts, Intermediate: +4pts, Advanced: +6pts per PR.
  */
 export function calculateStrengthScore(prCount: number, experienceLevel: string | null): number {
-  const ptsPerPR = experienceLevel === "advanced" ? 6 : experienceLevel === "intermediate" ? 4 : 2;
+  // Scaling: Beginner needs 5 PRs/mo for 100pts (20/PR), Advanced needs 1 PR/mo for 100pts
+  const ptsPerPR = experienceLevel === "advanced" ? 100 : experienceLevel === "intermediate" ? 34 : 20;
   return Math.min(100, prCount * ptsPerPR);
 }
 
