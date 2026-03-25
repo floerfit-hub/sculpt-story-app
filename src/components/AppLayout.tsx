@@ -78,9 +78,9 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong rounded-none border-0 pb-0 mb-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="flex items-center justify-between px-6 pt-3 pb-0 max-w-lg mx-auto">
+        <div className="grid grid-cols-3 items-center pt-3 pb-0 max-w-lg mx-auto">
           {/* Home — centered between left edge and center */}
-          <div className="flex-1 flex justify-center">
+          <div className="flex justify-center">
             <Link
               to="/"
               onClick={(e) => {
@@ -106,7 +106,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
           </div>
 
           {/* Center FAB — inline, not floating */}
-          <div className="flex-shrink-0">
+          <div className="flex justify-center">
             <button
               onClick={() => setActionSheetOpen(true)}
               aria-label={t.nav.quickActions || "Quick actions"}
@@ -117,7 +117,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
           </div>
 
           {/* Profile — centered between center and right edge */}
-          <div className="flex-1 flex justify-center">
+          <div className="flex justify-center">
             <Link
               to="/profile"
               onClick={(e) => {
