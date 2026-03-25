@@ -78,7 +78,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong rounded-none border-0 pb-0 mb-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="flex items-center justify-between px-6 pt-3 pb-0 max-w-lg mx-auto">
+        <div className="grid grid-cols-3 items-center pt-3 pb-0 max-w-lg mx-auto">
           {/* Home — centered between left edge and center */}
           <div className="flex-1 flex justify-center">
             <Link
