@@ -22,7 +22,7 @@ import MuscleHeatmap from "@/components/dashboard/MuscleHeatmap";
 import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
 import NutritionSummary from "@/components/dashboard/NutritionSummary";
 import NutritionTracker from "@/components/dashboard/NutritionTracker";
-import SmartInsights from "@/components/dashboard/SmartInsights";
+
 import PremiumGate from "@/components/subscription/PremiumGate";
 import { useFitnessStats, calculateFitScore, detectPRsLast30Days, getWeights } from "@/hooks/useFitnessStats";
 import NotificationPrompt from "@/components/NotificationPrompt";
@@ -453,7 +453,7 @@ const Dashboard = () => {
     personalRecords: <PersonalRecords />,
     nutritionTracker: <NutritionTracker />,
     nutrition: <NutritionSummary nutrition={nutrition} />,
-    insights: <PremiumGate feature="AI Training Insights"><SmartInsights entries={entries} muscleData={muscleData} strengthTrending={strengthTrending} /></PremiumGate>,
+    insights: null,
     recentEntries: (
       <Card>
         <CardHeader className="pb-2">

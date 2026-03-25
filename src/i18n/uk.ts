@@ -13,7 +13,7 @@ export const uk: Translations = {
     quickActions: "Швидкі дії",
     quickLogMeasurements: "Записати заміри",
     quickLogNutrition: "Записати харчування",
-    quickStartWorkout: "Почати тренування",
+    quickStartWorkout: "Тренування",
   },
 
   auth: {
