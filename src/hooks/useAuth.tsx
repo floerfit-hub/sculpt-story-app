@@ -13,6 +13,7 @@ interface ProfileData {
   timer_vibration?: boolean;
   pr_celebration_vibration?: boolean;
   notifications_enabled?: boolean;
+  avatar_url?: string | null;
 }
 
 interface AuthContextType {
@@ -60,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             const { data: prof } = await supabase
               .from("profiles")
-              .select("full_name, weight_unit, onboarding_completed, primary_goal, training_frequency, experience_level, haptic_feedback, timer_vibration, pr_celebration_vibration, notifications_enabled")
+              .select("full_name, weight_unit, onboarding_completed, primary_goal, training_frequency, experience_level, haptic_feedback, timer_vibration, pr_celebration_vibration, notifications_enabled, avatar_url")
               .eq("user_id", session.user.id)
               .single();
             setProfile(prof);

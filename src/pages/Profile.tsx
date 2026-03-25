@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Weight, LayoutDashboard, RefreshCw, Target, Bell, Smartphone } from "lucide-react";
+import { User, LogOut, Save, Download, Globe, Moon, Sun, Crown, Check, X, Mail, Weight, LayoutDashboard, RefreshCw, Target, Bell, Smartphone, Camera } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 import { useRegisterSW } from "virtual:pwa-register/react";
@@ -143,6 +144,9 @@ const Profile = () => {
   const [trainingFrequency, setTrainingFrequency] = useState(profile?.training_frequency?.toString() || "4");
   const [experienceLevel, setExperienceLevel] = useState(profile?.experience_level || "");
   const [saving, setSaving] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Sync local state from profile when it loads/changes
   useEffect(() => {
@@ -152,8 +156,53 @@ const Profile = () => {
       setPrimaryGoal(profile.primary_goal || "");
       setTrainingFrequency(profile.training_frequency?.toString() || "4");
       setExperienceLevel(profile.experience_level || "");
+      setAvatarUrl(profile.avatar_url || "");
     }
   }, [profile]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploadingAvatar(true);
+    try {
+      // Compress: draw to canvas at max 256px
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = () => { img.src = reader.result as string; };
+      reader.readAsDataURL(file);
+      await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+      
+      const size = Math.min(img.width, img.height);
+      const sx = (img.width - size) / 2;
+      const sy = (img.height - size) / 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, 256, 256);
+      
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.8));
+      const filePath = `${user.id}/avatar.jpg`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from("progress-photos")
+        .upload(filePath, blob, { upsert: true, contentType: "image/jpeg" });
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: urlData } = supabase.storage
+        .from("progress-photos")
+        .getPublicUrl(filePath);
+      
+      const publicUrl = urlData.publicUrl + "?t=" + Date.now();
+      await supabase.from("profiles").update({ avatar_url: publicUrl } as any).eq("user_id", user.id);
+      setAvatarUrl(publicUrl);
+      toast({ title: lang === "uk" ? "Фото оновлено" : "Photo updated" });
+    } catch (err: any) {
+      toast({ title: t.common.error, description: err.message, variant: "destructive" });
+    }
+    setUploadingAvatar(false);
+  };
 
   const autoSaveGoal = async (field: string, value: any) => {
     if (!user) return;
@@ -236,6 +285,39 @@ const Profile = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Avatar */}
+          <div className="flex flex-col items-center gap-2">
+            <button
+              onClick={() => avatarInputRef.current?.click()}
+              className="relative group"
+              disabled={uploadingAvatar}
+            >
+              <Avatar className="h-20 w-20 border-2 border-primary/20">
+                {avatarUrl ? (
+                  <AvatarImage src={avatarUrl} alt={name} />
+                ) : null}
+                <AvatarFallback className="bg-accent text-2xl">
+                  <User className="h-8 w-8 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="h-5 w-5 text-background" />
+              </div>
+            </button>
+            <p className="text-xs text-muted-foreground">
+              {uploadingAvatar
+                ? (lang === "uk" ? "Завантаження..." : "Uploading...")
+                : (lang === "uk" ? "Натисніть, щоб змінити фото" : "Tap to change photo")}
+            </p>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+          </div>
           <div className="space-y-2">
             <Label>{t.profile.email}</Label>
             <Input value={user?.email || ""} disabled className="bg-muted" />

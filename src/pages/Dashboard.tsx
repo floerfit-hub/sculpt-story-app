@@ -8,8 +8,9 @@ import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { PlusCircle, Clock, Pencil, Trash2, Crown, ChevronUp, ChevronDown, Eye, EyeOff, Check, Flame, Footprints } from "lucide-react";
+import { PlusCircle, Clock, Pencil, Trash2, Crown, ChevronUp, ChevronDown, Eye, EyeOff, Check, Flame, Footprints, UserCircle } from "lucide-react";
 import { format, differenceInDays, addDays, startOfMonth, subDays } from "date-fns";
 import { uk as ukLocale } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +23,7 @@ import MuscleHeatmap from "@/components/dashboard/MuscleHeatmap";
 import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
 import NutritionSummary from "@/components/dashboard/NutritionSummary";
 import NutritionTracker from "@/components/dashboard/NutritionTracker";
-import SmartInsights from "@/components/dashboard/SmartInsights";
+
 import PremiumGate from "@/components/subscription/PremiumGate";
 import { useFitnessStats, calculateFitScore, detectPRsLast30Days, getWeights } from "@/hooks/useFitnessStats";
 import NotificationPrompt from "@/components/NotificationPrompt";
@@ -453,7 +454,7 @@ const Dashboard = () => {
     personalRecords: <PersonalRecords />,
     nutritionTracker: <NutritionTracker />,
     nutrition: <NutritionSummary nutrition={nutrition} />,
-    insights: <PremiumGate feature="AI Training Insights"><SmartInsights entries={entries} muscleData={muscleData} strengthTrending={strengthTrending} /></PremiumGate>,
+    insights: null,
     recentEntries: (
       <Card>
         <CardHeader className="pb-2">
@@ -503,11 +504,23 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col gap-[calc(var(--gap-section)/2)] animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">
-            {t.dashboard.hey}, {profile?.full_name || t.dashboard.there}! 💪
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">{t.dashboard.trackTransformation}</p>
+        <div className="flex items-center gap-3">
+          <Avatar className="h-12 w-12 border-2 border-primary/20">
+            {profile?.avatar_url ? (
+              <AvatarImage src={profile.avatar_url} alt={profile?.full_name || ""} />
+            ) : null}
+            <AvatarFallback className="bg-accent">
+              <UserCircle className="h-6 w-6 text-muted-foreground" />
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-2xl font-display font-bold tracking-tight">
+              {t.dashboard.hey}, {profile?.full_name || t.dashboard.there}! 💪
+            </h1>
+            <p className="text-muted-foreground text-xs">
+              {fitnessScores.overall > 0 ? `Fit Score: ${fitnessScores.overall}` : t.dashboard.trackTransformation}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {editMode ? (

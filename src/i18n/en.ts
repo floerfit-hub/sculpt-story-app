@@ -12,7 +12,7 @@ export const en = {
     quickActions: "Quick Actions",
     quickLogMeasurements: "Log Measurements",
     quickLogNutrition: "Log Nutrition",
-    quickStartWorkout: "Start Workout",
+    quickStartWorkout: "Workout",
   },
 
   // Auth
