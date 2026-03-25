@@ -33,6 +33,9 @@ export const uk: Translations = {
     andPrivacy: "та",
     privacyLink: "Політикою конфіденційності",
     mustAcceptTerms: "Потрібно прийняти умови для продовження",
+    forgotPassword: "Забули пароль?",
+    enterEmailForReset: "Введіть email для відновлення паролю",
+    resetPasswordSent: "Лист для відновлення паролю відправлено на вашу пошту.",
   },
 
   dashboard: {
