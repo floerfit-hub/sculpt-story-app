@@ -117,7 +117,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
           </div>
 
           {/* Profile — centered between center and right edge */}
-          <div className="flex-1 flex justify-center">
+          <div className="flex justify-center">
             <Link
               to="/profile"
               onClick={(e) => {
