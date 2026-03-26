@@ -223,11 +223,42 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             </SelectContent>
           </Select>
         )}
+        {/* Photo upload */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => addImageRef.current?.click()}
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-accent/50 overflow-hidden"
+          >
+            {newImagePreview ? (
+              <img src={newImagePreview} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <Camera className="h-5 w-5 text-muted-foreground" />
+            )}
+          </button>
+          <p className="text-xs text-muted-foreground">{lang === "uk" ? "Додати фото вправи" : "Add exercise photo"}</p>
+          <input
+            ref={addImageRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setNewImageFile(file);
+                const reader = new FileReader();
+                reader.onload = () => setNewImagePreview(reader.result as string);
+                reader.readAsDataURL(file);
+              }
+            }}
+          />
+        </div>
         <div className="flex gap-2">
           <Button className="flex-1" onClick={addCustomExercise} disabled={!newName.trim() || !newGroup}>
             {t.workouts.add}
           </Button>
-          <Button variant="outline" onClick={() => { setShowAddForm(false); setNewName(""); setNewGroup(""); }}>
+          <Button variant="outline" onClick={() => { setShowAddForm(false); setNewName(""); setNewGroup(""); setNewImageFile(null); setNewImagePreview(null); }}>
             {t.workouts.cancel}
           </Button>
         </div>
