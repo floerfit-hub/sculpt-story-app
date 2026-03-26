@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           exercise_name: string
           id: string
+          image_url: string | null
           muscle_group: string
           user_id: string
         }
@@ -26,6 +27,7 @@ export type Database = {
           created_at?: string
           exercise_name: string
           id?: string
+          image_url?: string | null
           muscle_group: string
           user_id: string
         }
@@ -33,6 +35,7 @@ export type Database = {
           created_at?: string
           exercise_name?: string
           id?: string
+          image_url?: string | null
           muscle_group?: string
           user_id?: string
         }
