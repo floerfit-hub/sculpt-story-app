@@ -241,7 +241,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             ref={addImageRef}
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
@@ -253,6 +252,11 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               }
             }}
           />
+          {newImagePreview && (
+            <Button variant="ghost" size="sm" className="text-destructive text-xs h-7" onClick={() => { setNewImageFile(null); setNewImagePreview(null); }}>
+              <Trash2 className="h-3 w-3 mr-1" /> {lang === "uk" ? "Видалити фото" : "Delete photo"}
+            </Button>
+          )}
         </div>
         <div className="flex gap-2">
           <Button className="flex-1" onClick={addCustomExercise} disabled={!newName.trim() || !newGroup}>
@@ -305,7 +309,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                 ref={editImageRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -317,6 +320,19 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                   }
                 }}
               />
+              {editImagePreview && (
+                <Button variant="ghost" size="sm" className="text-destructive text-xs h-7" onClick={async () => {
+                  if (editingId && user) {
+                    await supabase.storage.from("exercise-images").remove([`${user.id}/${editingId}.jpg`]);
+                    await supabase.from("custom_exercises").update({ image_url: null } as any).eq("id", editingId);
+                    setCustomExercises(prev => prev.map(e => e.id === editingId ? { ...e, image_url: null } : e));
+                  }
+                  setEditImageFile(null);
+                  setEditImagePreview(null);
+                }}>
+                  <Trash2 className="h-3 w-3 mr-1" /> {lang === "uk" ? "Видалити фото" : "Delete photo"}
+                </Button>
+              )}
             </div>
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveEdit} disabled={!editName.trim() || !editGroup}>
@@ -410,19 +426,38 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
 
         <div className="grid gap-2">
           {builtIn.map((ex) => {
-            const img = EXERCISE_IMAGES[ex.name];
+            const override = overrideImages[ex.name];
+            const img = override || EXERCISE_IMAGES[ex.name];
             return (
-              <Card key={ex.name} className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform overflow-hidden`} onClick={() => selectable && onSelect?.(ex.name, ex.muscleGroup)}>
+              <Card key={ex.name} className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform overflow-hidden`}>
                 <CardContent className="flex items-center gap-3 p-3">
-                  {img && (
-                    <img
-                      src={img}
-                      alt={t.exerciseNames[ex.name] || ex.name}
-                      className="h-14 w-14 rounded-lg object-contain shrink-0 bg-muted"
-                      loading="lazy"
-                    />
+                  <div className="relative shrink-0">
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={t.exerciseNames[ex.name] || ex.name}
+                        className="h-14 w-14 rounded-lg object-contain bg-muted"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center">
+                        <Camera className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md"
+                      onClick={(e) => { e.stopPropagation(); builtInImageRef.current?.setAttribute("data-exercise", ex.name); builtInImageRef.current?.click(); }}
+                    >
+                      <Camera className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <span className="font-medium flex-1" onClick={() => selectable && onSelect?.(ex.name, ex.muscleGroup)}>{t.exerciseNames[ex.name] || ex.name}</span>
+                  {override && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={(e) => { e.stopPropagation(); deleteOverrideImage(ex.name); }}>
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
                   )}
-                  <span className="font-medium flex-1">{t.exerciseNames[ex.name] || ex.name}</span>
                   {selectable && <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
                 </CardContent>
               </Card>
