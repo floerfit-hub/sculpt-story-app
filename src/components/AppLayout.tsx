@@ -16,7 +16,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
   const { isPremium } = usePremium();
   const location = useLocation();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
 
   const quickActions = [
@@ -27,7 +27,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     },
     {
       icon: Dumbbell,
-      label: t.nav.quickAddExercise || (lang === "uk" ? "Додати вправу" : "Add Exercise"),
+      label: lang === "uk" ? "Додати вправу" : "Add Exercise",
       onClick: () => { setActionSheetOpen(false); navigate("/workouts"); sessionStorage.setItem("workout-view", "library"); },
     },
     {
