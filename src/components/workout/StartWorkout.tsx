@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-
+import { EXERCISE_IMAGES } from "@/data/exerciseImages";
 import { useAuth } from "@/hooks/useAuth";
 import { useFitnessStats, getPRXP } from "@/hooks/useFitnessStats";
 import { useTranslation } from "@/i18n";
@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy, Camera } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import PreviousWorkoutInfo from "./PreviousWorkoutInfo";
 import RestTimer from "./RestTimer";
@@ -20,7 +20,7 @@ import confetti from "canvas-confetti";
 import { useHaptics } from "@/hooks/useHaptics";
 
 interface SetData { weight: number | ""; reps: number | ""; rest_time: number | null }
-interface WorkoutExercise { name: string; muscleGroup: string; sets: SetData[]; notes: string }
+interface WorkoutExercise { name: string; muscleGroup: string; sets: SetData[]; notes: string; image?: string }
 
 export interface EditWorkoutData {
   id: string;
