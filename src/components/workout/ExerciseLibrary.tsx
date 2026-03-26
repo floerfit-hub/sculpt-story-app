@@ -287,6 +287,37 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                 ))}
               </SelectContent>
             </Select>
+            {/* Photo upload for edit */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => editImageRef.current?.click()}
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-accent/50 overflow-hidden"
+              >
+                {editImagePreview ? (
+                  <img src={editImagePreview} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <Camera className="h-5 w-5 text-muted-foreground" />
+                )}
+              </button>
+              <p className="text-xs text-muted-foreground">{lang === "uk" ? "Змінити фото" : "Change photo"}</p>
+              <input
+                ref={editImageRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setEditImageFile(file);
+                    const reader = new FileReader();
+                    reader.onload = () => setEditImagePreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveEdit} disabled={!editName.trim() || !editGroup}>
                 <Check className="h-4 w-4 mr-1" /> {t.workouts.saveExercise}
