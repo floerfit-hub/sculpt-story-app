@@ -73,13 +73,41 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     return t.muscleGroups[key];
   };
 
+  const uploadExerciseImage = async (file: File, exerciseId: string): Promise<string | null> => {
+    if (!user) return null;
+    try {
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = () => { img.src = reader.result as string; };
+      reader.readAsDataURL(file);
+      await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+      const size = Math.min(img.width, img.height);
+      const sx = (img.width - size) / 2;
+      const sy = (img.height - size) / 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, 256, 256);
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.8));
+      const filePath = `${user.id}/${exerciseId}.jpg`;
+      await supabase.storage.from("exercise-images").upload(filePath, blob, { upsert: true, contentType: "image/jpeg" });
+      const { data: urlData } = supabase.storage.from("exercise-images").getPublicUrl(filePath);
+      return urlData.publicUrl + "?t=" + Date.now();
+    } catch {
+      return null;
+    }
+  };
+
   const addCustomExercise = async () => {
     if (!user || !newName.trim() || !newGroup) return;
 
+    let imageUrl: string | null = null;
+
     const { data, error } = await supabase
       .from("custom_exercises")
-      .insert({ user_id: user.id, exercise_name: newName.trim(), muscle_group: newGroup })
-      .select("id, exercise_name, muscle_group")
+      .insert({ user_id: user.id, exercise_name: newName.trim(), muscle_group: newGroup } as any)
+      .select("id, exercise_name, muscle_group" as any)
       .single();
 
     if (error) {
@@ -93,11 +121,20 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
       .select("id")
       .single();
 
+    if (data && newImageFile) {
+      imageUrl = await uploadExerciseImage(newImageFile, (data as any).id);
+      if (imageUrl) {
+        await supabase.from("custom_exercises").update({ image_url: imageUrl } as any).eq("id", (data as any).id);
+      }
+    }
+
     if (data) {
-      setCustomExercises((prev) => [...prev, data]);
+      setCustomExercises((prev) => [...prev, { ...(data as any), image_url: imageUrl }]);
       toast({ title: t.workouts.customExerciseAdded });
       setNewName("");
       setNewGroup("");
+      setNewImageFile(null);
+      setNewImagePreview(null);
       setShowAddForm(false);
     }
   };
