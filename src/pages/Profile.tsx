@@ -309,6 +309,22 @@ const Profile = () => {
                 ? (lang === "uk" ? "Завантаження..." : "Uploading...")
                 : (lang === "uk" ? "Натисніть, щоб змінити фото" : "Tap to change photo")}
             </p>
+            {avatarUrl && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive text-xs h-7"
+                onClick={async () => {
+                  if (!user) return;
+                  await supabase.storage.from("progress-photos").remove([`${user.id}/avatar.jpg`]);
+                  await supabase.from("profiles").update({ avatar_url: null } as any).eq("user_id", user.id);
+                  setAvatarUrl("");
+                  toast({ title: lang === "uk" ? "Фото видалено" : "Photo removed" });
+                }}
+              >
+                {lang === "uk" ? "Видалити фото" : "Remove photo"}
+              </Button>
+            )}
             <input
               ref={avatarInputRef}
               type="file"
