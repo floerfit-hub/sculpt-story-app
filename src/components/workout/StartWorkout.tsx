@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-
+import { EXERCISE_IMAGES } from "@/data/exerciseImages";
 import { useAuth } from "@/hooks/useAuth";
 import { useFitnessStats, getPRXP } from "@/hooks/useFitnessStats";
 import { useTranslation } from "@/i18n";
@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy, Camera, X } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import PreviousWorkoutInfo from "./PreviousWorkoutInfo";
 import RestTimer from "./RestTimer";
@@ -20,7 +20,7 @@ import confetti from "canvas-confetti";
 import { useHaptics } from "@/hooks/useHaptics";
 
 interface SetData { weight: number | ""; reps: number | ""; rest_time: number | null }
-interface WorkoutExercise { name: string; muscleGroup: string; sets: SetData[]; notes: string }
+interface WorkoutExercise { name: string; muscleGroup: string; sets: SetData[]; notes: string; image?: string }
 
 export interface EditWorkoutData {
   id: string;
@@ -134,7 +134,49 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   const [finalDuration, setFinalDuration] = useState<number>(0);
   const [showRestTooltip, setShowRestTooltip] = useState(false);
   const prMapRef = useRef<Map<string, number>>(new Map());
-  const prCountRef = useRef(0); // count PRs detected during this session
+  const prCountRef = useRef(0);
+  const exerciseImageRef = useRef<HTMLInputElement>(null);
+  const [exerciseImageIdx, setExerciseImageIdx] = useState<number | null>(null);
+
+  const getOverrideImages = (): Record<string, string> => {
+    try { return JSON.parse(localStorage.getItem("exercise-photo-overrides") || "{}"); } catch { return {}; }
+  };
+
+  const getExerciseImage = (ex: WorkoutExercise): string | undefined => {
+    if (ex.image) return ex.image;
+    const overrides = getOverrideImages();
+    if (overrides[ex.name]) return overrides[ex.name];
+    return EXERCISE_IMAGES[ex.name];
+  };
+
+  const uploadWorkoutExerciseImage = async (file: File, exIdx: number) => {
+    if (!user) return;
+    try {
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = () => { img.src = reader.result as string; };
+      reader.readAsDataURL(file);
+      await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+      const size = Math.min(img.width, img.height);
+      const sx = (img.width - size) / 2;
+      const sy = (img.height - size) / 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = 256; canvas.height = 256;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, 256, 256);
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.8));
+      const exName = encodeURIComponent(exercises[exIdx].name);
+      const filePath = `${user.id}/workout-${exName}-${Date.now()}.jpg`;
+      await supabase.storage.from("exercise-images").upload(filePath, blob, { upsert: true, contentType: "image/jpeg" });
+      const { data: urlData } = supabase.storage.from("exercise-images").getPublicUrl(filePath);
+      const url = urlData.publicUrl + "?t=" + Date.now();
+      setExercises(prev => {
+        const c = [...prev];
+        c[exIdx] = { ...c[exIdx], image: url };
+        return c;
+      });
+    } catch { /* silent */ }
+  };
 
   // Load existing PRs for confetti detection
   useEffect(() => {
@@ -667,8 +709,35 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           <Card key={exIdx}>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <div><p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p><p className="text-xs text-muted-foreground">{(() => { const keyMap: Record<string, string> = { "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest", "Shoulders": "shoulders", "Arms": "arms", "Core": "core" }; const k = keyMap[ex.muscleGroup] as keyof typeof t.muscleGroups; return k ? t.muscleGroups[k] : ex.muscleGroup; })()}</p></div>
+                <div className="flex items-center gap-3">
+                  {/* Exercise photo */}
+                  <div className="relative shrink-0">
+                    {getExerciseImage(ex) ? (
+                      <img src={getExerciseImage(ex)!} alt={ex.name} className="h-10 w-10 rounded-lg object-cover bg-muted" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                        <Camera className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm"
+                      onClick={() => { setExerciseImageIdx(exIdx); exerciseImageRef.current?.click(); }}
+                    >
+                      <Camera className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                  <div>
+                    <p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p>
+                    <p className="text-xs text-muted-foreground">{(() => { const keyMap: Record<string, string> = { "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest", "Shoulders": "shoulders", "Arms": "arms", "Core": "core" }; const k = keyMap[ex.muscleGroup] as keyof typeof t.muscleGroups; return k ? t.muscleGroups[k] : ex.muscleGroup; })()}</p>
+                  </div>
+                </div>
                 <div className="flex items-center gap-1">
+                  {ex.image && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setExercises(prev => { const c = [...prev]; c[exIdx] = { ...c[exIdx], image: undefined }; return c; })}>
+                      <X className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  )}
                   <PreviousWorkoutInfo exerciseName={ex.name} muscleGroup={ex.muscleGroup} />
                   <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
@@ -737,6 +806,19 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
         )}
 
         {showTimer && <RestTimer onClose={() => setShowTimer(false)} />}
+
+        {/* Hidden file input for exercise photos */}
+        <input
+          ref={exerciseImageRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file && exerciseImageIdx !== null) uploadWorkoutExerciseImage(file, exerciseImageIdx);
+            if (e.target) e.target.value = "";
+          }}
+        />
       </div>
     </TooltipProvider>
   );
