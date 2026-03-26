@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ChevronRight, Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { ArrowLeft, ChevronRight, Plus, Trash2, Pencil, Check, X, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EXERCISE_IMAGES } from "@/data/exerciseImages";
 
