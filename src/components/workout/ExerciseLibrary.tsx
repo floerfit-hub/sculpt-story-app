@@ -149,19 +149,32 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     setEditingId(ex.id);
     setEditName(ex.exercise_name);
     setEditGroup(ex.muscle_group as MuscleGroup);
+    setEditImagePreview(ex.image_url || null);
+    setEditImageFile(null);
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setEditName("");
     setEditGroup("");
+    setEditImageFile(null);
+    setEditImagePreview(null);
   };
 
   const saveEdit = async () => {
     if (!editingId || !editName.trim() || !editGroup) return;
+    
+    let imageUrl = editImagePreview;
+    if (editImageFile) {
+      imageUrl = await uploadExerciseImage(editImageFile, editingId);
+    }
+
+    const updateData: any = { exercise_name: editName.trim(), muscle_group: editGroup };
+    if (editImageFile && imageUrl) updateData.image_url = imageUrl;
+
     const { error } = await supabase
       .from("custom_exercises")
-      .update({ exercise_name: editName.trim(), muscle_group: editGroup })
+      .update(updateData)
       .eq("id", editingId);
 
     if (error) {
@@ -170,7 +183,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     }
 
     setCustomExercises((prev) =>
-      prev.map((e) => e.id === editingId ? { ...e, exercise_name: editName.trim(), muscle_group: editGroup } : e)
+      prev.map((e) => e.id === editingId ? { ...e, exercise_name: editName.trim(), muscle_group: editGroup, image_url: imageUrl } : e)
     );
     toast({ title: t.workouts.exerciseUpdated });
     cancelEdit();
