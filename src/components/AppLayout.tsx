@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { useTranslation } from "@/i18n";
-import { Dumbbell, Home, PlusCircle, UserCircle, Crown, Scale, Utensils, Zap, Shield } from "lucide-react";
+import { Dumbbell, Home, PlusCircle, UserCircle, Crown, Scale, Utensils, Zap, Shield, CheckCircle } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -27,7 +27,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       {
         icon: Dumbbell,
         label: lang === "uk" ? "Додати вправу" : "Add Exercise",
-        onClick: () => { setActionSheetOpen(false); navigate("/workouts"); sessionStorage.setItem("workout-view", "library"); },
+        onClick: () => { setActionSheetOpen(false); window.dispatchEvent(new CustomEvent("workout-add-exercise")); },
       },
     ] : []),
     {
@@ -50,6 +50,13 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
       label: t.nav.admin || "Admin Panel",
       onClick: () => { setActionSheetOpen(false); navigate("/admin"); },
     }] : []),
+    ...(isWorkoutActive ? [
+      {
+        icon: CheckCircle,
+        label: lang === "uk" ? "Завершити тренування" : "Finish Workout",
+        onClick: () => { setActionSheetOpen(false); window.dispatchEvent(new CustomEvent("workout-finish")); },
+      },
+    ] : []),
   ];
 
   const navItems = [
