@@ -19,16 +19,21 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
   const { t, lang } = useTranslation();
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
 
+  const isWorkoutActive = location.pathname === "/workouts" && 
+    (sessionStorage.getItem("workout-view") === "start" || sessionStorage.getItem("workout-view") === "edit");
+
   const quickActions = [
+    ...(isWorkoutActive ? [
+      {
+        icon: Dumbbell,
+        label: lang === "uk" ? "Додати вправу" : "Add Exercise",
+        onClick: () => { setActionSheetOpen(false); navigate("/workouts"); sessionStorage.setItem("workout-view", "library"); },
+      },
+    ] : []),
     {
       icon: Zap,
       label: t.nav.quickStartWorkout || "Workout",
       onClick: () => { setActionSheetOpen(false); navigate("/workouts"); sessionStorage.setItem("workout-view", "start"); },
-    },
-    {
-      icon: Dumbbell,
-      label: lang === "uk" ? "Додати вправу" : "Add Exercise",
-      onClick: () => { setActionSheetOpen(false); navigate("/workouts"); sessionStorage.setItem("workout-view", "library"); },
     },
     {
       icon: Scale,

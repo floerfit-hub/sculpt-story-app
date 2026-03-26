@@ -329,7 +329,7 @@ const Profile = () => {
               ref={avatarInputRef}
               type="file"
               accept="image/*"
-              capture="environment"
+              
               className="hidden"
               onChange={handleAvatarUpload}
             />
