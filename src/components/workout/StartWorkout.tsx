@@ -261,7 +261,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     };
   }, [exercises.length, saving]);
 
-
+  useEffect(() => {
     if (isEditing) {
       sessionStorage.setItem("workout-edit-in-progress", JSON.stringify(exercises));
     } else {
