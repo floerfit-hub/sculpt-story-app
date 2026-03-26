@@ -249,8 +249,19 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
     return `${m}:${String(s).padStart(2, "0")}`;
   };
-
+  // Listen for FAB events
   useEffect(() => {
+    const handleAddExercise = () => setShowLibrary(true);
+    const handleFinish = () => { if (exercises.length > 0 && !saving) saveWorkout(); };
+    window.addEventListener("workout-add-exercise", handleAddExercise);
+    window.addEventListener("workout-finish", handleFinish);
+    return () => {
+      window.removeEventListener("workout-add-exercise", handleAddExercise);
+      window.removeEventListener("workout-finish", handleFinish);
+    };
+  }, [exercises.length, saving]);
+
+
     if (isEditing) {
       sessionStorage.setItem("workout-edit-in-progress", JSON.stringify(exercises));
     } else {
