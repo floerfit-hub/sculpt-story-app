@@ -54,6 +54,55 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
   const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
   const editImageRef = useRef<HTMLInputElement>(null);
+  const builtInImageRef = useRef<HTMLInputElement>(null);
+  const [overrideImages, setOverrideImages] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem("exercise-photo-overrides") || "{}"); } catch { return {}; }
+  });
+
+  const uploadOverrideImage = async (file: File, exerciseName: string) => {
+    if (!user) return;
+    try {
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = () => { img.src = reader.result as string; };
+      reader.readAsDataURL(file);
+      await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+      const size = Math.min(img.width, img.height);
+      const sx = (img.width - size) / 2;
+      const sy = (img.height - size) / 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = 256; canvas.height = 256;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, 256, 256);
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.8));
+      const encoded = encodeURIComponent(exerciseName);
+      const filePath = `${user.id}/override-${encoded}.jpg`;
+      await supabase.storage.from("exercise-images").upload(filePath, blob, { upsert: true, contentType: "image/jpeg" });
+      const { data: urlData } = supabase.storage.from("exercise-images").getPublicUrl(filePath);
+      const url = urlData.publicUrl + "?t=" + Date.now();
+      setOverrideImages(prev => {
+        const next = { ...prev, [exerciseName]: url };
+        localStorage.setItem("exercise-photo-overrides", JSON.stringify(next));
+        return next;
+      });
+      toast({ title: lang === "uk" ? "Фото оновлено" : "Photo updated" });
+    } catch {
+      toast({ title: lang === "uk" ? "Помилка завантаження" : "Upload error", variant: "destructive" });
+    }
+  };
+
+  const deleteOverrideImage = async (exerciseName: string) => {
+    if (!user) return;
+    const encoded = encodeURIComponent(exerciseName);
+    await supabase.storage.from("exercise-images").remove([`${user.id}/override-${encoded}.jpg`]);
+    setOverrideImages(prev => {
+      const next = { ...prev };
+      delete next[exerciseName];
+      localStorage.setItem("exercise-photo-overrides", JSON.stringify(next));
+      return next;
+    });
+    toast({ title: lang === "uk" ? "Фото видалено" : "Photo deleted" });
+  };
 
   useEffect(() => {
     if (!user) return;
