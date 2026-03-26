@@ -333,7 +333,15 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
 
     return (
       <Card key={ex.id} className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform border-primary/20`}>
-        <CardContent className="flex items-center justify-between p-4">
+        <CardContent className="flex items-center gap-3 p-3">
+          {ex.image_url && (
+            <img
+              src={ex.image_url}
+              alt={ex.exercise_name}
+              className="h-14 w-14 rounded-lg object-cover shrink-0 bg-muted"
+              loading="lazy"
+            />
+          )}
           <div
             className="flex-1 min-w-0"
             onClick={() => selectable && onSelect?.(ex.exercise_name, ex.muscle_group)}
