@@ -709,8 +709,35 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           <Card key={exIdx}>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <div><p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p><p className="text-xs text-muted-foreground">{(() => { const keyMap: Record<string, string> = { "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest", "Shoulders": "shoulders", "Arms": "arms", "Core": "core" }; const k = keyMap[ex.muscleGroup] as keyof typeof t.muscleGroups; return k ? t.muscleGroups[k] : ex.muscleGroup; })()}</p></div>
+                <div className="flex items-center gap-3">
+                  {/* Exercise photo */}
+                  <div className="relative shrink-0">
+                    {getExerciseImage(ex) ? (
+                      <img src={getExerciseImage(ex)!} alt={ex.name} className="h-10 w-10 rounded-lg object-cover bg-muted" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                        <Camera className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm"
+                      onClick={() => { setExerciseImageIdx(exIdx); exerciseImageRef.current?.click(); }}
+                    >
+                      <Camera className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                  <div>
+                    <p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p>
+                    <p className="text-xs text-muted-foreground">{(() => { const keyMap: Record<string, string> = { "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest", "Shoulders": "shoulders", "Arms": "arms", "Core": "core" }; const k = keyMap[ex.muscleGroup] as keyof typeof t.muscleGroups; return k ? t.muscleGroups[k] : ex.muscleGroup; })()}</p>
+                  </div>
+                </div>
                 <div className="flex items-center gap-1">
+                  {ex.image && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setExercises(prev => { const c = [...prev]; c[exIdx] = { ...c[exIdx], image: undefined }; return c; })}>
+                      <X className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  )}
                   <PreviousWorkoutInfo exerciseName={ex.name} muscleGroup={ex.muscleGroup} />
                   <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
