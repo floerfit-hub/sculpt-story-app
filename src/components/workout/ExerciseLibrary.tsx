@@ -515,6 +515,20 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           {customInGroup.map((ex) => renderCustomExerciseCard(ex, false))}
         </div>
 
+        {/* Hidden file input for built-in exercise photo override */}
+        <input
+          ref={builtInImageRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            const name = builtInImageRef.current?.getAttribute("data-exercise");
+            if (file && name) uploadOverrideImage(file, name);
+            if (e.target) e.target.value = "";
+          }}
+        />
+
         {/* Add custom exercise button at bottom */}
         {showAddForm ? (
           renderAddForm(activeGroup)
