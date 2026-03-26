@@ -43,11 +43,17 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState("");
   const [newGroup, setNewGroup] = useState<MuscleGroup | "">("");
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const [newImagePreview, setNewImagePreview] = useState<string | null>(null);
+  const addImageRef = useRef<HTMLInputElement>(null);
 
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editGroup, setEditGroup] = useState<MuscleGroup | "">("");
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const editImageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
