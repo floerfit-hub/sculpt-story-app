@@ -505,9 +505,9 @@ const Dashboard = () => {
     <div className="flex flex-col gap-[calc(var(--gap-section)/2)] animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Avatar className="h-12 w-12 border-2 border-primary/20">
+        <Avatar className="h-12 w-12 border-2 border-primary/20 animate-scale-in">
             {profile?.avatar_url ? (
-              <AvatarImage src={profile.avatar_url} alt={profile?.full_name || ""} />
+              <AvatarImage src={profile.avatar_url} alt={profile?.full_name || ""} className="animate-fade-in" />
             ) : null}
             <AvatarFallback className="bg-accent">
               <UserCircle className="h-6 w-6 text-muted-foreground" />

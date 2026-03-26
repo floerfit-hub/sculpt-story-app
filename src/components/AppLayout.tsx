@@ -22,8 +22,13 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
   const quickActions = [
     {
       icon: Zap,
-      label: t.nav.quickStartWorkout || "Start Workout",
-      onClick: () => { setActionSheetOpen(false); navigate("/workouts"); },
+      label: t.nav.quickStartWorkout || "Workout",
+      onClick: () => { setActionSheetOpen(false); navigate("/workouts"); sessionStorage.setItem("workout-view", "start"); },
+    },
+    {
+      icon: Dumbbell,
+      label: t.nav.quickAddExercise || (lang === "uk" ? "Додати вправу" : "Add Exercise"),
+      onClick: () => { setActionSheetOpen(false); navigate("/workouts"); sessionStorage.setItem("workout-view", "library"); },
     },
     {
       icon: Scale,
