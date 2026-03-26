@@ -134,7 +134,49 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   const [finalDuration, setFinalDuration] = useState<number>(0);
   const [showRestTooltip, setShowRestTooltip] = useState(false);
   const prMapRef = useRef<Map<string, number>>(new Map());
-  const prCountRef = useRef(0); // count PRs detected during this session
+  const prCountRef = useRef(0);
+  const exerciseImageRef = useRef<HTMLInputElement>(null);
+  const [exerciseImageIdx, setExerciseImageIdx] = useState<number | null>(null);
+
+  const getOverrideImages = (): Record<string, string> => {
+    try { return JSON.parse(localStorage.getItem("exercise-photo-overrides") || "{}"); } catch { return {}; }
+  };
+
+  const getExerciseImage = (ex: WorkoutExercise): string | undefined => {
+    if (ex.image) return ex.image;
+    const overrides = getOverrideImages();
+    if (overrides[ex.name]) return overrides[ex.name];
+    return EXERCISE_IMAGES[ex.name];
+  };
+
+  const uploadWorkoutExerciseImage = async (file: File, exIdx: number) => {
+    if (!user) return;
+    try {
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = () => { img.src = reader.result as string; };
+      reader.readAsDataURL(file);
+      await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+      const size = Math.min(img.width, img.height);
+      const sx = (img.width - size) / 2;
+      const sy = (img.height - size) / 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = 256; canvas.height = 256;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, 256, 256);
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.8));
+      const exName = encodeURIComponent(exercises[exIdx].name);
+      const filePath = `${user.id}/workout-${exName}-${Date.now()}.jpg`;
+      await supabase.storage.from("exercise-images").upload(filePath, blob, { upsert: true, contentType: "image/jpeg" });
+      const { data: urlData } = supabase.storage.from("exercise-images").getPublicUrl(filePath);
+      const url = urlData.publicUrl + "?t=" + Date.now();
+      setExercises(prev => {
+        const c = [...prev];
+        c[exIdx] = { ...c[exIdx], image: url };
+        return c;
+      });
+    } catch { /* silent */ }
+  };
 
   // Load existing PRs for confetti detection
   useEffect(() => {
