@@ -31,6 +31,7 @@ interface CustomExercise {
   id: string;
   exercise_name: string;
   muscle_group: string;
+  image_url?: string | null;
 }
 
 const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
