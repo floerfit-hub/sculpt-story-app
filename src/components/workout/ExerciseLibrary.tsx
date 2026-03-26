@@ -60,10 +60,10 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     const load = async () => {
       const { data } = await supabase
         .from("custom_exercises")
-        .select("id, exercise_name, muscle_group")
+        .select("id, exercise_name, muscle_group, image_url" as any)
         .eq("user_id", user.id)
         .order("created_at", { ascending: true });
-      if (data) setCustomExercises(data);
+      if (data) setCustomExercises(data as any);
     };
     load();
   }, [user]);
