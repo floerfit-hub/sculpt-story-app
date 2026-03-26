@@ -806,6 +806,19 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
         )}
 
         {showTimer && <RestTimer onClose={() => setShowTimer(false)} />}
+
+        {/* Hidden file input for exercise photos */}
+        <input
+          ref={exerciseImageRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file && exerciseImageIdx !== null) uploadWorkoutExerciseImage(file, exerciseImageIdx);
+            if (e.target) e.target.value = "";
+          }}
+        />
       </div>
     </TooltipProvider>
   );
