@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 
 import { supabase } from "@/integrations/supabase/client";
 import { MUSCLE_GROUPS, getExercisesByGroup, type MuscleGroup } from "@/data/exerciseLibrary";
@@ -37,6 +38,7 @@ interface CustomExercise {
 const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const { t, lang } = useTranslation();
   const { user } = useAuth();
+  const { isPremium } = usePremium();
   const { toast } = useToast();
   const [activeGroup, setActiveGroup] = useState<MuscleGroup | "custom" | null>(null);
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
@@ -446,7 +448,13 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
         {showAddForm ? (
           renderAddForm()
         ) : (
-          <Button variant="outline" className="w-full" onClick={() => setShowAddForm(true)}>
+          <Button variant="outline" className="w-full" onClick={() => {
+            if (!isPremium) {
+              toast({ title: lang === "uk" ? "Доступно лише для Pro" : "Pro feature only", description: lang === "uk" ? "Оновіть до Pro, щоб створювати власні вправи" : "Upgrade to Pro to create custom exercises" });
+              return;
+            }
+            setShowAddForm(true);
+          }}>
             <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
           </Button>
         )}

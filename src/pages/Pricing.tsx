@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "@/i18n";
-import { useAuth } from "@/hooks/useAuth";
-import { usePremium } from "@/hooks/usePremium";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Crown, Target, Flame, Brain, BarChart3, Zap, Check, ArrowLeft, Info, X, Dumbbell, Shield, Camera } from "lucide-react";
@@ -11,9 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 const Pricing = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { profile } = useAuth();
-  // activateMockPremium and cooldown moved below
-  const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
   const proFeatures = [
@@ -42,18 +37,12 @@ const Pricing = () => {
     { feature: "Пріоритетна підтримка", free: false, pro: true },
   ];
 
-  const { activateMockPremium, cooldown } = usePremium();
-
-  const handleBuy = async (plan: "monthly" | "yearly") => {
-    if (cooldown) return;
-    setLoading(plan);
-    await activateMockPremium(plan);
+  const handleBuy = (plan: "monthly" | "yearly") => {
     toast({
-      title: `Welcome to Pro, ${profile?.full_name || "Champion"}! 🚀`,
-      description: "Premium subscription activated successfully! Your premium features are now unlocked.",
+      title: "Paddle Checkout",
+      description: "Paddle Checkout буде активний після завершення верифікації акаунта.",
     });
-    setLoading(null);
-    navigate("/welcome-pro");
+    // TODO: integrate Paddle checkout here
   };
 
   return (
@@ -146,7 +135,7 @@ const Pricing = () => {
                   variant="outline"
                   className="w-full"
                   onClick={() => handleBuy("monthly")}
-                  disabled={loading !== null || cooldown}
+                  disabled={loading !== null}
                 >
                   {loading === "monthly" ? t.premium.activating : "Почати тріал"}
                 </Button>
@@ -165,7 +154,7 @@ const Pricing = () => {
                 <Button
                   className="w-full"
                   onClick={() => handleBuy("yearly")}
-                  disabled={loading !== null || cooldown}
+                  disabled={loading !== null}
                 >
                   {loading === "yearly" ? t.premium.activating : "Почати тріал"}
                 </Button>
