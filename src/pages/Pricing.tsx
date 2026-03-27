@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "@/i18n";
-import { useAuth } from "@/hooks/useAuth";
-import { usePremium } from "@/hooks/usePremium";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Crown, Target, Flame, Brain, BarChart3, Zap, Check, ArrowLeft, Info, X, Dumbbell, Shield, Camera } from "lucide-react";
@@ -11,9 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 const Pricing = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { profile } = useAuth();
-  // activateMockPremium and cooldown moved below
-  const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
   const proFeatures = [
