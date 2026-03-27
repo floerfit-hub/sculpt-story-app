@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/i18n";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,7 +136,7 @@ const CalculatorPage = () => {
     localStorage.removeItem("calc_form"); localStorage.removeItem("calc_step"); localStorage.removeItem("calc_results_full");
   };
 
-  const handleCalculate = () => {
+  const handleCalculate = async () => {
     const res = calculate(form, t);
     setResults(res);
     localStorage.setItem("calc_results_full", JSON.stringify(res));
@@ -142,6 +144,15 @@ const CalculatorPage = () => {
       calories: res.calories, protein: res.protein, fat: res.fat, carbs: res.carbs,
       bmr: res.bmr, tdee: res.tdee, updatedAt: new Date().toISOString(),
     }));
+
+    if (user) {
+      await supabase.from("profiles").update({
+        daily_calories: res.calories,
+        daily_protein: res.protein,
+        daily_fat: res.fat,
+        daily_carbs: res.carbs,
+      }).eq("user_id", user.id);
+    }
   };
 
   if (results) {
