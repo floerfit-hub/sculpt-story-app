@@ -661,6 +661,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      resolve_exercise_id: {
+        Args: { _muscle_group: string; _name: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "coach" | "client" | "admin"

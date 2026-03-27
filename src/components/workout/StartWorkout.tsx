@@ -62,12 +62,11 @@ async function resolveExerciseIds(
   for (const ex of uniqueKeys) {
     const key = `${ex.name}::${ex.muscleGroup}`;
     if (!map.has(key)) {
-      const { data } = await (supabase as any)
-        .from("exercises")
-        .insert({ name: ex.name, muscle_group: ex.muscleGroup })
-        .select("id")
-        .single();
-      if (data) map.set(key, data.id);
+      const { data } = await supabase.rpc("resolve_exercise_id", {
+        _name: ex.name,
+        _muscle_group: ex.muscleGroup,
+      });
+      if (data) map.set(key, data as string);
     }
   }
 
