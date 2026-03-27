@@ -809,6 +809,17 @@ export const en = {
     avgWeight: "Avg weight",
   },
 
+  // Install
+  install: {
+    title: "Install the App",
+    step1: 'Tap "Share" (arrow icon)',
+    step2: 'Select "Add to Home Screen"',
+    step3: 'Tap "Add"',
+    gotIt: "Got it",
+    installButton: "Install App",
+    androidDesc: "Install for quick access and offline use",
+  },
+
   // Common
   common: {
     error: "Error",
