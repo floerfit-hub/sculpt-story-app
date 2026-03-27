@@ -38,6 +38,7 @@ interface CustomExercise {
 const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const { t, lang } = useTranslation();
   const { user } = useAuth();
+  const { isPremium } = usePremium();
   const { toast } = useToast();
   const [activeGroup, setActiveGroup] = useState<MuscleGroup | "custom" | null>(null);
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
