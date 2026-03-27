@@ -35,6 +35,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   signOut: async () => {},
+  refreshProfile: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -96,12 +97,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  const refreshProfile = async () => {
+    if (!user) return;
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("full_name, weight_unit, onboarding_completed, primary_goal, training_frequency, experience_level, haptic_feedback, timer_vibration, pr_celebration_vibration, notifications_enabled, avatar_url")
+      .eq("user_id", user.id)
+      .single();
+    if (prof) setProfile(prof);
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, isCoach, isAdmin, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, isCoach, isAdmin, profile, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
