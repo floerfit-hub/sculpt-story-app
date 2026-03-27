@@ -24,6 +24,7 @@ interface AuthContextType {
   profile: ProfileData | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({

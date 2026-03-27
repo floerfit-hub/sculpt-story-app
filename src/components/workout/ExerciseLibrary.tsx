@@ -480,26 +480,22 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             return (
               <Card key={ex.name} className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform overflow-hidden`}>
                 <CardContent className="flex items-center gap-3 p-3">
-                  <div className="relative shrink-0">
+                  <div
+                    className="relative shrink-0 cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); builtInImageRef.current?.setAttribute("data-exercise", ex.name); builtInImageRef.current?.click(); }}
+                  >
                     {img ? (
                       <img
                         src={img}
                         alt={t.exerciseNames[ex.name] || ex.name}
-                        className="h-14 w-14 rounded-lg object-contain bg-muted"
+                        className="h-14 w-14 rounded-lg object-contain bg-muted hover:opacity-80 transition-opacity"
                         loading="lazy"
                       />
                     ) : (
-                      <div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center">
+                      <div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center hover:bg-muted/70 transition-colors">
                         <Camera className="h-5 w-5 text-muted-foreground" />
                       </div>
                     )}
-                    <button
-                      type="button"
-                      className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md"
-                      onClick={(e) => { e.stopPropagation(); builtInImageRef.current?.setAttribute("data-exercise", ex.name); builtInImageRef.current?.click(); }}
-                    >
-                      <Camera className="h-3 w-3" />
-                    </button>
                   </div>
                   <span className="font-medium flex-1" onClick={() => selectable && onSelect?.(ex.name, ex.muscleGroup)}>{t.exerciseNames[ex.name] || ex.name}</span>
                   {override && (
