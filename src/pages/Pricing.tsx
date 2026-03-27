@@ -42,18 +42,12 @@ const Pricing = () => {
     { feature: "Пріоритетна підтримка", free: false, pro: true },
   ];
 
-  const { activateMockPremium, cooldown } = usePremium();
-
-  const handleBuy = async (plan: "monthly" | "yearly") => {
-    if (cooldown) return;
-    setLoading(plan);
-    await activateMockPremium(plan);
+  const handleBuy = (plan: "monthly" | "yearly") => {
     toast({
-      title: `Welcome to Pro, ${profile?.full_name || "Champion"}! 🚀`,
-      description: "Premium subscription activated successfully! Your premium features are now unlocked.",
+      title: "Paddle Checkout",
+      description: "Paddle Checkout буде активний після завершення верифікації акаунта.",
     });
-    setLoading(null);
-    navigate("/welcome-pro");
+    // TODO: integrate Paddle checkout here
   };
 
   return (
