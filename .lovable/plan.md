@@ -1,55 +1,42 @@
 
 
-## Exercise Photos: Delete, Gallery, and In-Workout Management
+## Plan: Three Fixes
 
-### What changes
+### 1. Remove small camera icon overlay from exercise photos — tap photo directly to upload
 
-**1. Exercise Library — delete photo & gallery upload**
+**File:** `src/components/workout/ExerciseLibrary.tsx` (lines 480-503)
 
-In `ExerciseLibrary.tsx`:
-- Remove `capture="environment"` from both file inputs (add form line 244, edit form line 308) so users can choose from gallery
-- Add a "Delete photo" button next to the photo preview in the edit form — clears `image_url` from `custom_exercises` table and deletes the file from `exercise-images` storage bucket
-- Add a "Delete photo" button in the add form when a preview exists
+Remove the small floating camera button (`<button>` with `absolute -bottom-1 -right-1`). Instead, make the entire image container (or the placeholder when no image) clickable to trigger the file input. The existing `img` and the placeholder `div` with Camera icon both become the upload trigger.
 
-**2. Built-in exercises — allow replacing default photos**
+Same approach for custom exercise cards if they have a similar small camera button.
 
-- When viewing a built-in exercise in the exercise list (lines 412-430), add a small camera/edit icon overlay on the exercise thumbnail
-- Tapping it opens file picker (gallery), uploads to `exercise-images` bucket under a path like `{userId}/builtin-{exerciseName}.jpg`
-- Store the custom override URL in a local state map and also persist it in a new or existing mechanism (use `custom_exercises` table with a flag, or a simpler approach: store overrides in `localStorage` keyed by exercise name)
-- Better approach: use the `exercise-images` storage bucket with a convention `{userId}/override-{exerciseName}.jpg` and check for its existence. On upload, the override takes priority over the static import from `exerciseImages.ts`
-- Simplest reliable approach: add a state `overrideImages: Record<string, string>` loaded from localStorage on mount. When user uploads a replacement, save to storage bucket and update localStorage. Display override image if available, otherwise fall back to `EXERCISE_IMAGES[name]`.
+### 2. "Workout" quick action opens the workouts hub (not directly start)
 
-**3. During workout recording — photo per exercise**
+**File:** `src/components/AppLayout.tsx` (line 36)
 
-In `StartWorkout.tsx`:
-- Add a small camera button next to each exercise name in the workout card (line 670 area)
-- Tapping opens file picker (gallery), uploads compressed image to `exercise-images` bucket
-- Show thumbnail next to exercise name if photo exists
-- Use `EXERCISE_IMAGES` map + custom exercise `image_url` + override images to display existing photos
-- Allow deleting photo with a tap-to-remove or X button on the thumbnail
+Change the Workout quick action from `sessionStorage.setItem("workout-view", "start")` to `sessionStorage.setItem("workout-view", "hub")` — so tapping "Workout" opens the full workouts menu with all options (start, library, history, charts).
 
-### Technical details
+### 3. Fix "Save Goals" not persisting — refresh profile after save
 
-**Files to modify:**
-- `src/components/workout/ExerciseLibrary.tsx` — remove `capture` attrs, add delete photo buttons, add override photo for built-in exercises
-- `src/components/workout/StartWorkout.tsx` — add photo upload/delete UI per exercise during workout
-- `src/data/exerciseImages.ts` — no changes needed, used as fallback
+**File:** `src/pages/Profile.tsx` (lines 476-488)
 
-**Photo delete logic:**
-```typescript
-// Delete from storage
-await supabase.storage.from("exercise-images").remove([`${userId}/${exerciseId}.jpg`]);
-// Clear from DB
-await supabase.from("custom_exercises").update({ image_url: null }).eq("id", exerciseId);
-```
+The save works in the DB, but the `profile` object from `useAuth()` never refreshes, so the `useEffect` on line 152 resets local state to old values. Fix: after the `supabase.from("profiles").update(...)` call, also update the local profile state. Two options:
+- Re-fetch profile from DB and update context
+- Simpler: since `useAuth` doesn't expose a `setProfile`, manually prevent the `useEffect` from overwriting by checking if save just occurred
 
-**Override built-in photos:**
-- Store in localStorage: `exercise-photo-overrides` → `Record<string, string>`
-- Upload to `exercise-images/{userId}/override-{encodedName}.jpg`
-- On load, check localStorage for overrides before falling back to `EXERCISE_IMAGES`
+Best approach: export a `refreshProfile` function from `useAuth` hook. After saving goals, call `refreshProfile()` to sync the context. Then the `useEffect` will have the correct values.
 
-**Workout recording photos:**
-- Reuse the `uploadExerciseImage` function (or a similar one) in `StartWorkout.tsx`
-- Add `image?: string` field to `WorkoutExercise` interface
-- Display small thumbnail (h-10 w-10) in the exercise card header
+**File:** `src/hooks/useAuth.tsx`
+- Add a `refreshProfile` function that re-fetches the profile from `profiles` table and calls `setProfile`
+- Export it from the context
+
+**File:** `src/pages/Profile.tsx`
+- Import `refreshProfile` from `useAuth()`
+- Call `await refreshProfile()` after the update query succeeds
+
+### Files to modify
+- `src/components/workout/ExerciseLibrary.tsx` — remove camera overlay, make image area clickable
+- `src/components/AppLayout.tsx` — change workout action to open hub
+- `src/hooks/useAuth.tsx` — add `refreshProfile` to context
+- `src/pages/Profile.tsx` — call `refreshProfile` after saving goals
 
