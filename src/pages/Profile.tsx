@@ -478,11 +478,13 @@ const Profile = () => {
             onClick={async () => {
               if (!user) return;
               setSaving(true);
+              const { refreshProfile } = useAuth();
               await supabase.from("profiles").update({
                 primary_goal: primaryGoal,
                 training_frequency: Number(trainingFrequency),
                 experience_level: experienceLevel,
               } as any).eq("user_id", user.id);
+              await refreshProfile();
               setSaving(false);
               toast({ title: t.profile.profileUpdated });
             }}
