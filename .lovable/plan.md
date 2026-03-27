@@ -1,64 +1,103 @@
 
 
-## Localized PWA Install Button with Platform-Specific Behavior
+## Security Hardening & Pro-Only Custom Exercises
 
-### What changes
+### Current Issues Identified
 
-Rewrite `InstallPrompt.tsx` into a fully localized, platform-aware install component that uses the existing i18n system and shows contextual UI based on Android vs iOS.
+1. **`exercises` table**: INSERT policy uses `WITH CHECK (true)` — anyone authenticated can insert global exercises
+2. **`fitness_stats` table**: SELECT policy uses `USING (true)` for leaderboard — exposes all users' stats
+3. **`subscriptions` table**: Users have direct UPDATE access — can self-assign Pro status from client
+4. **`custom_exercises` table**: No Pro-subscription check on INSERT — any user can create custom exercises
+5. **Client-side subscription management**: `usePremium.tsx` has `activateMockPremium`, `activateMockTrial`, `cancelSubscription` that directly update the `subscriptions` table — must be removed or moved to backend
 
-### 1. Add i18n strings for install modal
+### Plan
 
-**Files:** `src/i18n/en.ts`, `src/i18n/uk.ts`
+#### 1. Database Migration — Fix RLS Policies
 
-Add a new `install` section with:
-- `title` — "Install the App" / "Встанови додаток"
-- `step1` — 'Tap "Share" (arrow icon)' / 'Натисни "Поширити" (іконка ↑)'
-- `step2` — 'Select "Add to Home Screen"' / 'Обери "На початковий екран"'
-- `step3` — 'Tap "Add"' / 'Натисни "Додати"'
-- `gotIt` — "Got it" / "Зрозуміло"
-- `installButton` — "Install App" / "Встановити додаток"
-- `androidDesc` — "Install for quick access and offline use" / "Встановіть для швидкого доступу та офлайн-режиму"
+**A) `exercises` table (global library)**
+- DROP the `Authenticated can insert exercises` policy (WITH CHECK true)
+- ADD admin-only INSERT: `has_role(auth.uid(), 'admin')`
+- ADD admin-only UPDATE and DELETE policies
+- Keep existing SELECT for all authenticated users (this is the shared library — read-only is correct)
 
-### 2. Rewrite `src/components/InstallPrompt.tsx`
+**B) `custom_exercises` table — Pro-only INSERT**
+- DROP existing INSERT policy
+- ADD new INSERT policy with check:
+  ```sql
+  user_id = auth.uid() AND EXISTS (
+    SELECT 1 FROM subscriptions s
+    WHERE s.user_id = auth.uid()
+      AND s.plan != 'free'
+      AND s.status IN ('active', 'trialing')
+  )
+  ```
+- Keep existing SELECT, UPDATE, DELETE policies (already scoped to `user_id = auth.uid()`)
 
-- Use `useTranslation()` for all text
-- Detect platform: Android (has `beforeinstallprompt`) vs iOS (Safari UA check)
-- Detect standalone mode — if already installed, hide entirely
-- Check `localStorage` key `install-prompt-dismissed` — if set, hide
-- **Show timing**: only show after first workout — check `localStorage` for `workoutCompleted` flag (set this flag in `StartWorkout.tsx` when a workout is saved)
+**C) `subscriptions` table — remove user UPDATE**
+- DROP `Users can update own subscription` policy
+- Keep SELECT (users can view their own)
+- Keep INSERT (created by trigger on signup)
+- Admin UPDATE policy: `has_role(auth.uid(), 'admin')`
+- This means only admins and backend (service role) can modify subscriptions
 
-**Android behavior:**
-- Capture `beforeinstallprompt` event
-- Button click triggers native install prompt
-- On accept, mark `install-prompt-dismissed` in localStorage
+**D) `fitness_stats` table — fix leaderboard SELECT**
+- DROP `Authenticated can read fitness_stats for leaderboard` (USING true)
+- The `Users can view own fitness stats` policy already exists — keep it
+- If leaderboard needs other users' stats, create a security definer function instead
 
-**iOS behavior (modal):**
-- Button click opens a centered Dialog/modal
-- Shows 3 steps with large icons (Share icon, plus-square icon, check icon)
-- Localized step text from i18n
-- "Got it" button closes modal and sets `install-prompt-dismissed` in localStorage
+**E) `exercises` table — remove open INSERT**
+- Already covered in (A)
 
-**UI:**
-- Minimal card at bottom of screen (current position is fine)
-- Clean white bg, emerald accent for install button
-- Dismiss (X) button saves state to localStorage
+#### 2. Code Changes — Remove Client-Side Subscription Writes
 
-### 3. Set workout completion flag
+**File: `src/hooks/usePremium.tsx`**
+- Remove `activateMockPremium`, `activateMockTrial`, `cancelSubscription` functions
+- These will fail anyway after RLS change
+- Replace with read-only subscription state + a `refresh` function
+- For actual subscription activation, this should go through Paddle/Stripe webhook or admin panel
 
-**File:** `src/components/workout/StartWorkout.tsx`
+**File: `src/components/subscription/Paywall.tsx`**
+- Remove direct calls to `activateMockPremium` / `activateMockTrial`
+- Replace with Paddle checkout redirect (or placeholder showing "Coming soon via payment")
+- Keep the UI layout, just change the button action
 
-After successful workout save, add:
-```typescript
-localStorage.setItem("workoutCompleted", "true");
-```
+**File: `src/pages/Pricing.tsx`**
+- Same — remove `activateMockPremium` call, replace with payment flow redirect
 
-### 4. Keep Profile install button
+**File: `src/components/subscription/SubscriptionManager.tsx`**
+- Remove `cancelSubscription` direct call if present
+- Replace with a message to contact support or use the payment provider's portal
 
-The existing install trigger in `Profile.tsx` stays as-is — it's a manual "Install App" option in settings.
+#### 3. Code Changes — Pro Gate on Custom Exercise Creation
+
+**File: `src/components/workout/ExerciseLibrary.tsx`**
+- Import `usePremium` hook
+- Wrap "Add custom exercise" button with Pro check
+- If not Pro, show a toast or paywall prompt instead of the add form
+- The DB policy is the real guard; this is UX-level gating
+
+#### 4. Admin Panel — Keep Subscription Management
+
+**File: `src/pages/AdminPanel.tsx`**
+- Ensure admin subscription updates use service role or the admin RLS policy
+- The admin UPDATE policy on subscriptions will allow this
+
+#### 5. Password Protection
+
+- Use `cloud--configure_auth` tool to enable leaked password protection (HIBP check)
+- Set minimum password length to 8+ characters
 
 ### Files to modify
-- `src/i18n/en.ts` — add `install` section
-- `src/i18n/uk.ts` — add `install` section  
-- `src/components/InstallPrompt.tsx` — full rewrite with i18n, iOS modal, conditional display
-- `src/components/workout/StartWorkout.tsx` — set `workoutCompleted` flag on save
+- **Database migration**: Fix RLS on `exercises`, `custom_exercises`, `subscriptions`, `fitness_stats`
+- `src/hooks/usePremium.tsx` — remove write functions
+- `src/components/subscription/Paywall.tsx` — remove mock activation
+- `src/pages/Pricing.tsx` — remove mock activation
+- `src/components/subscription/SubscriptionManager.tsx` — remove cancel direct call
+- `src/components/workout/ExerciseLibrary.tsx` — add Pro gate on custom exercise creation
+- Auth config — enable HIBP password check
+
+### Important Notes
+- After removing client-side subscription writes, the only ways to change subscriptions will be: admin panel (admin role) or backend/webhook (service role)
+- The `handle_new_user` trigger uses SECURITY DEFINER so it can still insert the initial free subscription
+- Leaderboard functionality may need a security definer function if cross-user stat reads are required
 
