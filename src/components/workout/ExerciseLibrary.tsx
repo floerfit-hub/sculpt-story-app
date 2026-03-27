@@ -448,7 +448,13 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
         {showAddForm ? (
           renderAddForm()
         ) : (
-          <Button variant="outline" className="w-full" onClick={() => setShowAddForm(true)}>
+          <Button variant="outline" className="w-full" onClick={() => {
+            if (!isPremium) {
+              toast({ title: lang === "uk" ? "Доступно лише для Pro" : "Pro feature only", description: lang === "uk" ? "Оновіть до Pro, щоб створювати власні вправи" : "Upgrade to Pro to create custom exercises" });
+              return;
+            }
+            setShowAddForm(true);
+          }}>
             <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
           </Button>
         )}
