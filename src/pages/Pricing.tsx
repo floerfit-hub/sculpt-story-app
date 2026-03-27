@@ -140,7 +140,7 @@ const Pricing = () => {
                   variant="outline"
                   className="w-full"
                   onClick={() => handleBuy("monthly")}
-                  disabled={loading !== null || cooldown}
+                  disabled={loading !== null}
                 >
                   {loading === "monthly" ? t.premium.activating : "Почати тріал"}
                 </Button>
@@ -159,7 +159,7 @@ const Pricing = () => {
                 <Button
                   className="w-full"
                   onClick={() => handleBuy("yearly")}
-                  disabled={loading !== null || cooldown}
+                  disabled={loading !== null}
                 >
                   {loading === "yearly" ? t.premium.activating : "Почати тріал"}
                 </Button>
