@@ -132,7 +132,7 @@ const HapticSettingsCard = () => {
 };
 
 const Profile = () => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
   const { isPremium } = usePremium();
   const { toast } = useToast();
   const { t, lang, setLanguage } = useTranslation();
@@ -478,7 +478,6 @@ const Profile = () => {
             onClick={async () => {
               if (!user) return;
               setSaving(true);
-              const { refreshProfile } = useAuth();
               await supabase.from("profiles").update({
                 primary_goal: primaryGoal,
                 training_frequency: Number(trainingFrequency),
