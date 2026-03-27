@@ -600,6 +600,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
 
         clearPersistedData();
         setFinalDuration(elapsed);
+        localStorage.setItem("workoutCompleted", "true");
         
         // Award XP for workout completion
         let earnedXP = 10; // base workout XP
