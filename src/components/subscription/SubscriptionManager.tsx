@@ -1,23 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { usePremium } from "@/hooks/usePremium";
 import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crown, CreditCard, Loader2 } from "lucide-react";
+import { Crown, CreditCard } from "lucide-react";
 import Paywall from "./Paywall";
 
 const SubscriptionManager = () => {
-  const { isPremium, isTrialing, subscription, trialDaysLeft, cancelSubscription, cooldown } = usePremium();
+  const { isPremium, isTrialing, subscription, trialDaysLeft } = usePremium();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
-  const [canceling, setCanceling] = useState(false);
-
-  const handleCancel = async () => {
-    setCanceling(true);
-    await cancelSubscription();
-    setCanceling(false);
-  };
 
   const planLabel = subscription?.plan === "yearly"
     ? t.premium.yearly
@@ -63,20 +58,11 @@ const SubscriptionManager = () => {
           )}
 
           {isPremium ? (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleCancel}
-              disabled={canceling || cooldown}
-            >
-              {canceling ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t.premium.canceling}</>
-              ) : (
-                t.premium.cancelSubscription
-              )}
-            </Button>
+            <p className="text-xs text-center text-muted-foreground">
+              {t.premium.cancelSubscription}: support@fittrack.app
+            </p>
           ) : (
-            <Button className="w-full" onClick={() => setShowPaywall(true)} disabled={cooldown}>
+            <Button className="w-full" onClick={() => setShowPaywall(true)}>
               <Crown className="mr-2 h-4 w-4" />
               {t.premium.upgrade}
             </Button>
