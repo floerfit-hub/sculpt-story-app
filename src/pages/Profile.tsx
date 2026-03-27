@@ -132,7 +132,7 @@ const HapticSettingsCard = () => {
 };
 
 const Profile = () => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
   const { isPremium } = usePremium();
   const { toast } = useToast();
   const { t, lang, setLanguage } = useTranslation();
@@ -483,6 +483,7 @@ const Profile = () => {
                 training_frequency: Number(trainingFrequency),
                 experience_level: experienceLevel,
               } as any).eq("user_id", user.id);
+              await refreshProfile();
               setSaving(false);
               toast({ title: t.profile.profileUpdated });
             }}
