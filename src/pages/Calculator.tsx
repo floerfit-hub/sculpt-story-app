@@ -68,6 +68,7 @@ function genInsights(d: FormData, w: number, cal: number, tdee: number, prot: nu
 
 const CalculatorPage = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [step, setStep] = useState(() => {
     try { const s = localStorage.getItem("calc_step"); return s ? Number(s) : 0; } catch { return 0; }
   });
