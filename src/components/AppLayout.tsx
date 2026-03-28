@@ -43,7 +43,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     {
       icon: Utensils,
       label: t.nav.quickLogNutrition || "Log Nutrition",
-      onClick: () => { setActionSheetOpen(false); navigate("/add-entry"); },
+      onClick: () => { setActionSheetOpen(false); navigate("/nutrition"); },
     },
     ...(isAdmin ? [{
       icon: Shield,
