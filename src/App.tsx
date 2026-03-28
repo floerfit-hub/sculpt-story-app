@@ -12,6 +12,7 @@ import AppLayout from "@/components/AppLayout";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import AddEntry from "@/pages/AddEntry";
+import Nutrition from "@/pages/Nutrition";
 import Charts from "@/pages/Charts";
 import Photos from "@/pages/Photos";
 import CoachView from "@/pages/CoachView";
@@ -85,6 +86,7 @@ const App = () => (
                 <Route path="/auth" element={<AuthRoute />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/add-entry" element={<ProtectedRoute><AddEntry /></ProtectedRoute>} />
+                <Route path="/nutrition" element={<ProtectedRoute><Nutrition /></ProtectedRoute>} />
                 <Route path="/charts" element={<ProtectedRoute><Charts /></ProtectedRoute>} />
                 <Route path="/photos" element={<ProtectedRoute><Photos /></ProtectedRoute>} />
                 <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
