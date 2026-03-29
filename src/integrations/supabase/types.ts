@@ -171,6 +171,7 @@ export type Database = {
           id: string
           image_url: string | null
           kcal: number
+          meal_type: string
           protein: number
           user_id: string
         }
@@ -183,6 +184,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           kcal?: number
+          meal_type?: string
           protein?: number
           user_id: string
         }
@@ -195,6 +197,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           kcal?: number
+          meal_type?: string
           protein?: number
           user_id?: string
         }

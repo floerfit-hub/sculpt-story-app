@@ -12,7 +12,7 @@ export const uk: Translations = {
     appName: "FitTrack",
     quickActions: "Швидкі дії",
     quickLogMeasurements: "Записати заміри",
-    quickLogNutrition: "Записати харчування",
+    quickLogNutrition: "Харчування",
     quickStartWorkout: "Тренування",
   },
 

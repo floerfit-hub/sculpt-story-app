@@ -1,4 +1,5 @@
 import NutritionTracker from "@/components/dashboard/NutritionTracker";
+import NutritionHistory from "@/components/dashboard/NutritionHistory";
 import { useTranslation } from "@/i18n";
 
 const Nutrition = () => {
@@ -10,6 +11,7 @@ const Nutrition = () => {
         {(t as any).nutrition?.title ?? "Харчування"}
       </h1>
       <NutritionTracker />
+      <NutritionHistory />
     </div>
   );
 };
