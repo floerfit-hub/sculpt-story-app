@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Image, Trash2, Loader2, Sparkles } from "lucide-react";
-import { format } from "date-fns";
+import { Camera, Image, Trash2, Loader2, Sparkles, Plus, X } from "lucide-react";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -23,6 +24,20 @@ interface NutritionGoals {
   daily_carbs: number;
 }
 
+interface FoodComponent {
+  name: string;
+  weight_g: number;
+  kcal: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+  _origWeight?: number;
+  _origKcal?: number;
+  _origProtein?: number;
+  _origFat?: number;
+  _origCarbs?: number;
+}
+
 interface FoodLogEntry {
   id: string;
   food_name: string;
@@ -33,6 +48,13 @@ interface FoodLogEntry {
   coach_advice: string | null;
   created_at: string;
   meal_type: string;
+}
+
+interface PendingScan {
+  food_name: string;
+  total_weight_g: number;
+  components: FoodComponent[];
+  coach_advice: string | null;
 }
 
 const DEFAULT_GOALS: NutritionGoals = { daily_calories: 2000, daily_protein: 150, daily_fat: 65, daily_carbs: 250 };
@@ -92,14 +114,19 @@ const NutritionTracker = () => {
   const [logs, setLogs] = useState<FoodLogEntry[]>([]);
   const [scanning, setScanning] = useState(false);
   const [lastAdvice, setLastAdvice] = useState<string | null>(null);
-  const [pendingScan, setPendingScan] = useState<{ food_name: string; kcal: number; protein: number; fat: number; carbs: number; coach_advice: string | null } | null>(null);
+  const [pendingScan, setPendingScan] = useState<PendingScan | null>(null);
   const [selectedMealType, setSelectedMealType] = useState(detectMealType());
+  const [addingComponent, setAddingComponent] = useState(false);
+  const [newComp, setNewComp] = useState({ name: "", weight_g: 100, kcal: 0, protein: 0, fat: 0, carbs: 0 });
 
   const lang = ((t as any)?.nav?.home === "Головна") ? "uk" : "en";
-  const todayStr = format(new Date(), "yyyy-MM-dd");
 
   const fetchData = useCallback(async () => {
     if (!user) return;
+
+    const now = new Date();
+    const dayStart = startOfDay(now).toISOString();
+    const dayEnd = endOfDay(now).toISOString();
 
     const [profileRes, logsRes] = await Promise.all([
       supabase
@@ -111,8 +138,8 @@ const NutritionTracker = () => {
         .from("food_logs" as any)
         .select("*")
         .eq("user_id", user.id)
-        .gte("created_at", `${todayStr}T00:00:00`)
-        .lte("created_at", `${todayStr}T23:59:59`)
+        .gte("created_at", dayStart)
+        .lte("created_at", dayEnd)
         .order("created_at", { ascending: false }),
     ]);
 
@@ -152,7 +179,7 @@ const NutritionTracker = () => {
     if (logsRes.data) {
       setLogs(logsRes.data as any);
     }
-  }, [user, todayStr]);
+  }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -165,6 +192,18 @@ const NutritionTracker = () => {
     }),
     { kcal: 0, protein: 0, fat: 0, carbs: 0 }
   );
+
+  const pendingTotals = pendingScan
+    ? pendingScan.components.reduce(
+        (acc, c) => ({
+          kcal: acc.kcal + Math.round(c.kcal),
+          protein: acc.protein + Math.round(c.protein * 10) / 10,
+          fat: acc.fat + Math.round(c.fat * 10) / 10,
+          carbs: acc.carbs + Math.round(c.carbs * 10) / 10,
+        }),
+        { kcal: 0, protein: 0, fat: 0, carbs: 0 }
+      )
+    : null;
 
   const processImage = async (file: File) => {
     if (!user) return;
@@ -190,9 +229,45 @@ const NutritionTracker = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      const { food_name, kcal, protein, fat, carbs, coach_advice } = data;
+      const { food_name, total_weight_g, components, coach_advice } = data;
+
+      const comps: FoodComponent[] = (components || []).map((c: any) => ({
+        name: c.name,
+        weight_g: c.weight_g || 0,
+        kcal: c.kcal || 0,
+        protein: c.protein || 0,
+        fat: c.fat || 0,
+        carbs: c.carbs || 0,
+        _origWeight: c.weight_g || 0,
+        _origKcal: c.kcal || 0,
+        _origProtein: c.protein || 0,
+        _origFat: c.fat || 0,
+        _origCarbs: c.carbs || 0,
+      }));
+
+      if (comps.length === 0) {
+        comps.push({
+          name: food_name || "Страва",
+          weight_g: total_weight_g || 100,
+          kcal: data.kcal || 0,
+          protein: data.protein || 0,
+          fat: data.fat || 0,
+          carbs: data.carbs || 0,
+          _origWeight: total_weight_g || 100,
+          _origKcal: data.kcal || 0,
+          _origProtein: data.protein || 0,
+          _origFat: data.fat || 0,
+          _origCarbs: data.carbs || 0,
+        });
+      }
+
       setSelectedMealType(detectMealType());
-      setPendingScan({ food_name, kcal: Math.round(kcal), protein: Math.round(protein * 10) / 10, fat: Math.round(fat * 10) / 10, carbs: Math.round(carbs * 10) / 10, coach_advice });
+      setPendingScan({
+        food_name: food_name || "Страва",
+        total_weight_g: total_weight_g || 0,
+        components: comps,
+        coach_advice,
+      });
     } catch (err: any) {
       console.error("Scan meal error:", err);
       toast({ title: (t as any).nutrition?.scanError ?? "Помилка сканування", description: err.message, variant: "destructive" });
@@ -201,32 +276,77 @@ const NutritionTracker = () => {
     }
   };
 
-  const confirmScan = async () => {
-    if (!pendingScan || !user) return;
-    const { food_name, kcal, protein, fat, carbs, coach_advice } = pendingScan;
+  const updateComponentWeight = (index: number, newWeight: number) => {
+    if (!pendingScan) return;
+    const updated = [...pendingScan.components];
+    const comp = { ...updated[index] };
+    const origW = comp._origWeight || comp.weight_g || 1;
+    const ratio = newWeight / origW;
+    comp.weight_g = newWeight;
+    comp.kcal = Math.round((comp._origKcal || 0) * ratio);
+    comp.protein = Math.round((comp._origProtein || 0) * ratio * 10) / 10;
+    comp.fat = Math.round((comp._origFat || 0) * ratio * 10) / 10;
+    comp.carbs = Math.round((comp._origCarbs || 0) * ratio * 10) / 10;
+    updated[index] = comp;
+    setPendingScan({ ...pendingScan, components: updated });
+  };
 
-    const { error: insertError } = await (supabase as any)
+  const removeComponent = (index: number) => {
+    if (!pendingScan) return;
+    const updated = pendingScan.components.filter((_, i) => i !== index);
+    setPendingScan({ ...pendingScan, components: updated });
+  };
+
+  const addCustomComponent = () => {
+    if (!pendingScan || !newComp.name.trim()) return;
+    const comp: FoodComponent = {
+      ...newComp,
+      _origWeight: newComp.weight_g,
+      _origKcal: newComp.kcal,
+      _origProtein: newComp.protein,
+      _origFat: newComp.fat,
+      _origCarbs: newComp.carbs,
+    };
+    setPendingScan({ ...pendingScan, components: [...pendingScan.components, comp] });
+    setNewComp({ name: "", weight_g: 100, kcal: 0, protein: 0, fat: 0, carbs: 0 });
+    setAddingComponent(false);
+  };
+
+  const confirmScan = async () => {
+    if (!pendingScan || !user || !pendingTotals) return;
+
+    const { food_name, coach_advice } = pendingScan;
+    const { kcal, protein, fat, carbs } = pendingTotals;
+
+    const { data: inserted, error: insertError } = await (supabase as any)
       .from("food_logs")
       .insert({
         user_id: user.id,
         food_name,
-        kcal,
-        protein,
-        fat,
-        carbs,
+        kcal: Math.round(kcal),
+        protein: Math.round(protein * 10) / 10,
+        fat: Math.round(fat * 10) / 10,
+        carbs: Math.round(carbs * 10) / 10,
         coach_advice,
         meal_type: selectedMealType,
-      });
+      })
+      .select()
+      .single();
 
     if (insertError) {
       toast({ title: "Помилка", description: insertError.message, variant: "destructive" });
       return;
     }
 
+    // Optimistic update
+    if (inserted) {
+      setLogs(prev => [inserted as FoodLogEntry, ...prev]);
+    }
+
     if (coach_advice) setLastAdvice(coach_advice);
-    toast({ title: `${food_name} додано ✅`, description: `${kcal} kcal · ${protein}g білка` });
+    toast({ title: `${food_name} додано ✅`, description: `${Math.round(kcal)} kcal · ${Math.round(protein)}g білка` });
     setPendingScan(null);
-    await fetchData();
+    setAddingComponent(false);
   };
 
   const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -272,13 +392,86 @@ const NutritionTracker = () => {
           <CircularProgress value={totals.carbs} max={goals.daily_carbs} label={(t as any).nutrition?.carbs ?? "Вугл"} current={Math.round(totals.carbs)} unit="g" color="stroke-amber-600" />
         </div>
 
-        {/* Pending scan confirmation */}
-        {pendingScan && (
+        {/* Pending scan confirmation with components */}
+        {pendingScan && pendingTotals && (
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-3 animate-fade-in">
             <p className="text-sm font-semibold">{pendingScan.food_name}</p>
-            <p className="text-xs text-muted-foreground">
-              {pendingScan.kcal} kcal · {pendingScan.protein}g · {pendingScan.fat}g · {pendingScan.carbs}g
+            <p className="text-xs text-muted-foreground font-medium">
+              {lang === "uk" ? "Разом:" : "Total:"} {Math.round(pendingTotals.kcal)} kcal · {Math.round(pendingTotals.protein)}g · {Math.round(pendingTotals.fat)}g · {Math.round(pendingTotals.carbs)}g
             </p>
+
+            {/* Components list */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                {lang === "uk" ? "Компоненти" : "Components"}
+              </p>
+              {pendingScan.components.map((comp, i) => (
+                <div key={i} className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/50 px-2 py-1.5">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{comp.name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {Math.round(comp.kcal)} kcal · {comp.protein}g · {comp.fat}g · {comp.carbs}g
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Input
+                      type="number"
+                      value={comp.weight_g}
+                      onChange={(e) => updateComponentWeight(i, Number(e.target.value) || 0)}
+                      className="h-7 w-16 text-xs text-center px-1"
+                    />
+                    <span className="text-[10px] text-muted-foreground">g</span>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => removeComponent(i)}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add component */}
+              {addingComponent ? (
+                <div className="space-y-2 rounded-lg border border-dashed border-primary/30 p-2">
+                  <Input placeholder={lang === "uk" ? "Назва" : "Name"} value={newComp.name} onChange={e => setNewComp(p => ({ ...p, name: e.target.value }))} className="h-7 text-xs" />
+                  <div className="grid grid-cols-5 gap-1">
+                    <div>
+                      <label className="text-[9px] text-muted-foreground">g</label>
+                      <Input type="number" value={newComp.weight_g} onChange={e => setNewComp(p => ({ ...p, weight_g: Number(e.target.value) || 0 }))} className="h-7 text-xs px-1" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-muted-foreground">kcal</label>
+                      <Input type="number" value={newComp.kcal} onChange={e => setNewComp(p => ({ ...p, kcal: Number(e.target.value) || 0 }))} className="h-7 text-xs px-1" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-muted-foreground">{lang === "uk" ? "Б" : "P"}</label>
+                      <Input type="number" value={newComp.protein} onChange={e => setNewComp(p => ({ ...p, protein: Number(e.target.value) || 0 }))} className="h-7 text-xs px-1" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-muted-foreground">{lang === "uk" ? "Ж" : "F"}</label>
+                      <Input type="number" value={newComp.fat} onChange={e => setNewComp(p => ({ ...p, fat: Number(e.target.value) || 0 }))} className="h-7 text-xs px-1" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-muted-foreground">{lang === "uk" ? "В" : "C"}</label>
+                      <Input type="number" value={newComp.carbs} onChange={e => setNewComp(p => ({ ...p, carbs: Number(e.target.value) || 0 }))} className="h-7 text-xs px-1" />
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="sm" className="h-7 text-xs flex-1" onClick={addCustomComponent}>
+                      {lang === "uk" ? "Додати" : "Add"}
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setAddingComponent(false)}>
+                      {lang === "uk" ? "Скасувати" : "Cancel"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button variant="ghost" size="sm" className="h-7 w-full text-xs gap-1 text-muted-foreground" onClick={() => setAddingComponent(true)}>
+                  <Plus className="h-3 w-3" />
+                  {lang === "uk" ? "Додати компонент" : "Add component"}
+                </Button>
+              )}
+            </div>
+
+            {/* Meal type + confirm */}
             <div className="flex items-center gap-2">
               <Select value={selectedMealType} onValueChange={setSelectedMealType}>
                 <SelectTrigger className="h-8 w-[140px] text-xs">
@@ -295,7 +488,7 @@ const NutritionTracker = () => {
               <Button size="sm" className="h-8 flex-1" onClick={confirmScan}>
                 {lang === "uk" ? "Додати" : "Add"}
               </Button>
-              <Button size="sm" variant="ghost" className="h-8" onClick={() => setPendingScan(null)}>
+              <Button size="sm" variant="ghost" className="h-8" onClick={() => { setPendingScan(null); setAddingComponent(false); }}>
                 ✕
               </Button>
             </div>

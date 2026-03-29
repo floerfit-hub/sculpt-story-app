@@ -23,7 +23,29 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are FloerFit AI Dietitian. Analyze the food image. Return ONLY a valid JSON object with no extra text: {"food_name": string, "kcal": number, "protein": number, "fat": number, "carbs": number, "coach_advice": string}. All numeric values should be reasonable estimates per serving shown in the image. coach_advice should be 1-2 sentences of dietary advice. Language: Ukrainian.`;
+    const systemPrompt = `You are FloerFit AI Dietitian. Analyze the food image. Return ONLY a valid JSON object with no extra text:
+{
+  "food_name": string,
+  "total_weight_g": number,
+  "components": [
+    { "name": string, "weight_g": number, "kcal": number, "protein": number, "fat": number, "carbs": number }
+  ],
+  "kcal": number,
+  "protein": number,
+  "fat": number,
+  "carbs": number,
+  "coach_advice": string
+}
+
+Rules:
+- "food_name" is the overall dish name
+- "total_weight_g" is estimated total weight of the serving in grams
+- "components" is an array of individual ingredients with their estimated weight and macros per that weight
+- The top-level kcal/protein/fat/carbs should be the SUM of all components
+- All numeric values should be reasonable estimates per serving shown in the image
+- "coach_advice" should be 1-2 sentences of dietary advice
+- Language: Ukrainian
+- Provide at least 2-5 components per dish`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -46,7 +68,7 @@ serve(async (req) => {
               },
               {
                 type: "text",
-                text: "Проаналізуй цю їжу та поверни JSON з калоріями та макронутрієнтами.",
+                text: "Проаналізуй цю їжу та поверни JSON з калоріями, макронутрієнтами та компонентами страви.",
               },
             ],
           },
@@ -78,7 +100,6 @@ serve(async (req) => {
     const data = await response.json();
     let content = data.choices?.[0]?.message?.content || "";
     
-    // Extract JSON from potential markdown code blocks
     const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (jsonMatch) {
       content = jsonMatch[1].trim();
@@ -93,6 +114,22 @@ serve(async (req) => {
         status: 422,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Ensure components array exists
+    if (!parsed.components || !Array.isArray(parsed.components)) {
+      parsed.components = [{
+        name: parsed.food_name || "Страва",
+        weight_g: parsed.total_weight_g || 100,
+        kcal: parsed.kcal || 0,
+        protein: parsed.protein || 0,
+        fat: parsed.fat || 0,
+        carbs: parsed.carbs || 0,
+      }];
+    }
+
+    if (!parsed.total_weight_g) {
+      parsed.total_weight_g = parsed.components.reduce((s: number, c: any) => s + (c.weight_g || 0), 0);
     }
 
     return new Response(JSON.stringify(parsed), {
