@@ -89,12 +89,36 @@ const NutritionTracker = () => {
 
     if (profileRes.data) {
       const p = profileRes.data as any;
-      setGoals({
+      let g = {
         daily_calories: p.daily_calories ?? 2000,
         daily_protein: p.daily_protein ?? 150,
         daily_fat: p.daily_fat ?? 65,
         daily_carbs: p.daily_carbs ?? 250,
-      });
+      };
+
+      // One-time migration: if profile still has defaults, pull from localStorage calculator results
+      try {
+        const saved = localStorage.getItem("nutrition_results");
+        if (saved) {
+          const calc = JSON.parse(saved);
+          if (calc.calories && g.daily_calories === 2000) {
+            g = {
+              daily_calories: calc.calories,
+              daily_protein: calc.protein,
+              daily_fat: calc.fat,
+              daily_carbs: calc.carbs,
+            };
+            supabase.from("profiles").update({
+              daily_calories: calc.calories,
+              daily_protein: calc.protein,
+              daily_fat: calc.fat,
+              daily_carbs: calc.carbs,
+            }).eq("user_id", user.id);
+          }
+        }
+      } catch {}
+
+      setGoals(g);
     }
 
     if (logsRes.data) {
