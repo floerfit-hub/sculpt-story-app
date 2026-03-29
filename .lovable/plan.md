@@ -1,41 +1,56 @@
 
 
-## Sync Calculator Results to Profile for Nutrition Tracker
+## Sync Nutrition Goals Between Tracker and Plan
 
 ### Problem
-
-The `NutritionTracker` component already reads personal goals from the `profiles` table (`daily_calories`, `daily_protein`, `daily_fat`, `daily_carbs`). However, the Calculator page only saves results to `localStorage` — it never writes them to the database. So the nutrition rings always show the default fallback values (2000/150/65/250) unless the user manually edits goals in Profile settings.
+`NutritionTracker` reads goals from `profiles` table (which still has defaults 2000/150/65/250 for users who calculated before the DB sync was added). `NutritionSummary` reads from `localStorage` which has the correct values (3207/176/80/446). They show different numbers.
 
 ### Fix
 
-**File: `src/pages/Calculator.tsx`** (lines 137-145)
+**File: `src/components/dashboard/NutritionTracker.tsx`** (~line 90-97)
 
-In the `handleCalculate` function, after computing results, save them to the user's profile in the database:
+In `fetchData`, after reading profile data, also check `localStorage` for `nutrition_results` as a secondary source. If profile values are still at defaults AND localStorage has calculated values, use the localStorage values instead. Then write them back to the profile so future loads use DB values directly.
 
 ```typescript
-const handleCalculate = async () => {
-  const res = calculate(form, t);
-  setResults(res);
-  // existing localStorage saves...
+// After profileRes check:
+if (profileRes.data) {
+  const p = profileRes.data as any;
+  let goals = {
+    daily_calories: p.daily_calories ?? 2000,
+    daily_protein: p.daily_protein ?? 150,
+    daily_fat: p.daily_fat ?? 65,
+    daily_carbs: p.daily_carbs ?? 250,
+  };
   
-  // NEW: sync to Supabase profile
-  if (user) {
-    await supabase.from("profiles").update({
-      daily_calories: res.calories,
-      daily_protein: res.protein,
-      daily_fat: res.fat,
-      daily_carbs: res.carbs,
-    }).eq("user_id", user.id);
-  }
-};
+  // If profile has defaults, check localStorage for calculator results
+  try {
+    const saved = localStorage.getItem("nutrition_results");
+    if (saved) {
+      const calc = JSON.parse(saved);
+      if (calc.calories && goals.daily_calories === 2000) {
+        goals = {
+          daily_calories: calc.calories,
+          daily_protein: calc.protein,
+          daily_fat: calc.fat,
+          daily_carbs: calc.carbs,
+        };
+        // Sync localStorage values to profile
+        supabase.from("profiles").update({
+          daily_calories: calc.calories,
+          daily_protein: calc.protein,
+          daily_fat: calc.fat,
+          daily_carbs: calc.carbs,
+        }).eq("user_id", user.id);
+      }
+    }
+  } catch {}
+  
+  setGoals(goals);
+}
 ```
 
-This requires importing `useAuth` and `supabase` in Calculator.tsx (supabase is likely already available, useAuth needs to be added).
-
-No database migration needed — the `daily_calories`, `daily_protein`, `daily_fat`, `daily_carbs` columns already exist on the `profiles` table.
-
-No changes needed in `NutritionTracker.tsx` — it already reads these fields correctly.
+This is a one-time migration: once the values are synced to the profile, subsequent loads will use DB values directly.
 
 ### Files to modify
-- `src/pages/Calculator.tsx` — import `useAuth`, get `user`, save results to `profiles` table on calculate
+- `src/components/dashboard/NutritionTracker.tsx` — add localStorage fallback + auto-sync to profile
 
