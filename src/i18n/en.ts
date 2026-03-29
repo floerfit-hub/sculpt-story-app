@@ -11,7 +11,7 @@ export const en = {
     appName: "FitTrack",
     quickActions: "Quick Actions",
     quickLogMeasurements: "Log Measurements",
-    quickLogNutrition: "Log Nutrition",
+    quickLogNutrition: "Nutrition",
     quickStartWorkout: "Workout",
   },
 
