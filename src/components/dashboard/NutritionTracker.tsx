@@ -6,7 +6,7 @@ import { useTranslation } from "@/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Image, Trash2, Loader2, Sparkles, Plus, X } from "lucide-react";
+import { Camera, Image, Trash2, Loader2, Sparkles, Plus, X, Pencil, Check } from "lucide-react";
 import { format, startOfDay, endOfDay } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -118,6 +118,8 @@ const NutritionTracker = () => {
   const [selectedMealType, setSelectedMealType] = useState(detectMealType());
   const [addingComponent, setAddingComponent] = useState(false);
   const [newComp, setNewComp] = useState({ name: "", weight_g: 100, kcal: 0, protein: 0, fat: 0, carbs: 0 });
+  const [editingGoals, setEditingGoals] = useState(false);
+  const [editGoals, setEditGoals] = useState<NutritionGoals>(DEFAULT_GOALS);
 
   const lang = ((t as any)?.nav?.home === "Головна") ? "uk" : "en";
 
@@ -391,6 +393,64 @@ const NutritionTracker = () => {
           <CircularProgress value={totals.fat} max={goals.daily_fat} label={(t as any).nutrition?.fat ?? "Жири"} current={Math.round(totals.fat)} unit="g" color="stroke-yellow-500" />
           <CircularProgress value={totals.carbs} max={goals.daily_carbs} label={(t as any).nutrition?.carbs ?? "Вугл"} current={Math.round(totals.carbs)} unit="g" color="stroke-amber-600" />
         </div>
+
+        {/* Edit goals inline */}
+        {editingGoals ? (
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2 animate-fade-in">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              {lang === "uk" ? "Редагувати цілі" : "Edit Goals"}
+            </p>
+            <div className="grid grid-cols-4 gap-2">
+              <div>
+                <label className="text-[9px] text-muted-foreground">Kcal</label>
+                <Input type="number" value={editGoals.daily_calories} onChange={e => setEditGoals(g => ({ ...g, daily_calories: Number(e.target.value) || 0 }))} className="h-8 text-xs px-1.5" />
+              </div>
+              <div>
+                <label className="text-[9px] text-muted-foreground">{lang === "uk" ? "Білок" : "Protein"}</label>
+                <Input type="number" value={editGoals.daily_protein} onChange={e => setEditGoals(g => ({ ...g, daily_protein: Number(e.target.value) || 0 }))} className="h-8 text-xs px-1.5" />
+              </div>
+              <div>
+                <label className="text-[9px] text-muted-foreground">{lang === "uk" ? "Жири" : "Fat"}</label>
+                <Input type="number" value={editGoals.daily_fat} onChange={e => setEditGoals(g => ({ ...g, daily_fat: Number(e.target.value) || 0 }))} className="h-8 text-xs px-1.5" />
+              </div>
+              <div>
+                <label className="text-[9px] text-muted-foreground">{lang === "uk" ? "Вугл" : "Carbs"}</label>
+                <Input type="number" value={editGoals.daily_carbs} onChange={e => setEditGoals(g => ({ ...g, daily_carbs: Number(e.target.value) || 0 }))} className="h-8 text-xs px-1.5" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" className="h-7 text-xs flex-1 gap-1" onClick={async () => {
+                if (!user) return;
+                await supabase.from("profiles").update({
+                  daily_calories: editGoals.daily_calories,
+                  daily_protein: editGoals.daily_protein,
+                  daily_fat: editGoals.daily_fat,
+                  daily_carbs: editGoals.daily_carbs,
+                } as any).eq("user_id", user.id);
+                localStorage.setItem("nutrition_results", JSON.stringify({
+                  calories: editGoals.daily_calories,
+                  protein: editGoals.daily_protein,
+                  fat: editGoals.daily_fat,
+                  carbs: editGoals.daily_carbs,
+                }));
+                setGoals(editGoals);
+                setEditingGoals(false);
+                toast({ title: lang === "uk" ? "Цілі збережено ✅" : "Goals saved ✅" });
+              }}>
+                <Check className="h-3 w-3" />
+                {lang === "uk" ? "Зберегти" : "Save"}
+              </Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditingGoals(false)}>
+                {lang === "uk" ? "Скасувати" : "Cancel"}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button variant="ghost" size="sm" className="h-7 w-full text-xs gap-1.5 text-muted-foreground" onClick={() => { setEditGoals(goals); setEditingGoals(true); }}>
+            <Pencil className="h-3 w-3" />
+            {lang === "uk" ? "Редагувати цілі КБЖВ" : "Edit KBJU goals"}
+          </Button>
+        )}
 
         {/* Pending scan confirmation with components */}
         {pendingScan && pendingTotals && (

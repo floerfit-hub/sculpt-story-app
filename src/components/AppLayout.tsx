@@ -33,7 +33,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     {
       icon: Zap,
       label: t.nav.quickStartWorkout || "Workout",
-      onClick: () => { setActionSheetOpen(false); navigate("/workouts"); sessionStorage.setItem("workout-view", "hub"); },
+      onClick: () => { setActionSheetOpen(false); sessionStorage.setItem("workout-view", "hub"); navigate("/workouts"); },
     },
     {
       icon: Scale,
