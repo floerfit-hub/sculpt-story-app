@@ -21,7 +21,6 @@ import WeightChart from "@/components/dashboard/WeightChart";
 import MeasurementsCard from "@/components/dashboard/MeasurementsCard";
 import MuscleHeatmap from "@/components/dashboard/MuscleHeatmap";
 import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
-import NutritionSummary from "@/components/dashboard/NutritionSummary";
 import NutritionTracker from "@/components/dashboard/NutritionTracker";
 
 import PremiumGate from "@/components/subscription/PremiumGate";
@@ -48,7 +47,7 @@ interface ExerciseInfo {
   muscle_group: string;
 }
 
-const PANEL_IDS = ["checkin", "fitnessScore", "levels", "bento", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutritionTracker", "nutrition", "insights", "recentEntries"] as const;
+const PANEL_IDS = ["checkin", "fitnessScore", "levels", "bento", "weightChart", "measurements", "muscleHeatmap", "workoutActivity", "personalRecords", "nutritionTracker", "insights", "recentEntries"] as const;
 type PanelId = typeof PANEL_IDS[number];
 
 interface PanelConfig { order: PanelId[]; hidden: PanelId[] }
@@ -125,7 +124,7 @@ const Dashboard = () => {
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [nutrition, setNutrition] = useState<{ calories: number; protein: number; fat: number; carbs: number } | null>(null);
+  
   const [workouts, setWorkouts] = useState<Tables<"workouts">[]>([]);
   const [perfData, setPerfData] = useState<PerfData[]>([]);
   const [exerciseMap, setExerciseMap] = useState<Map<string, ExerciseInfo>>(new Map());
@@ -134,12 +133,6 @@ const Dashboard = () => {
   const { stats: fitnessStatsData, weeklyChange, isInactive, coldStart, updateFitScore, profileGoals, fetchStats: refetchFitnessStats } = useFitnessStats();
   useNotificationScheduler();
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("nutrition_results");
-      if (saved) setNutrition(JSON.parse(saved));
-    } catch {}
-  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -453,7 +446,6 @@ const Dashboard = () => {
     workoutActivity: <WorkoutActivity workoutsThisMonth={workoutsThisMonth} totalSetsThisMonth={totalSetsThisMonth} lastWorkoutAt={fitnessStatsData?.last_workout_at || (workouts.length > 0 ? workouts[workouts.length - 1].started_at : null)} />,
     personalRecords: <PersonalRecords />,
     nutritionTracker: <NutritionTracker />,
-    nutrition: <NutritionSummary nutrition={nutrition} />,
     insights: null,
     recentEntries: (
       <Card>
