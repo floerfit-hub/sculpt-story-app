@@ -514,8 +514,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   if (activeGroup) {
     const groupExercises = getGroupExercises(activeGroup);
     const subGroups = getSubGroups(activeGroup);
-    const customInGroup = customExercises.filter((e) => e.muscle_group === activeGroup);
-
     const filteredExercises = activeSubGroup
       ? groupExercises.filter(e => e.subGroup === activeSubGroup)
       : groupExercises;
