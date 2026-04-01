@@ -100,11 +100,11 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   };
 
   // Get exercises for a group — prefer DB, fallback to static
-  const getGroupExercises = (group: MuscleGroup): { name: string; muscleGroup: string; subGroup?: string | null }[] => {
+  const getGroupExercises = (group: MuscleGroup): { name: string; muscleGroup: string; subGroup?: string | null; dbId?: string; animationUrl?: string | null; nameEn?: string | null }[] => {
     const dbGroups = DB_GROUP_MAP[group];
     const fromDb = dbExercises.filter(e => dbGroups.includes(e.muscle_group) && !e.is_deprecated);
     if (fromDb.length > 0) {
-      return fromDb.map(e => ({ name: e.name, muscleGroup: e.muscle_group, subGroup: e.sub_group }));
+      return fromDb.map(e => ({ name: e.name, muscleGroup: e.muscle_group, subGroup: e.sub_group, dbId: e.id, animationUrl: e.animation_url, nameEn: e.name_en }));
     }
     return getExercisesByGroup(group).map(e => ({ name: e.name, muscleGroup: e.muscleGroup, subGroup: undefined }));
   };
