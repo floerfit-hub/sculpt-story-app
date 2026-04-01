@@ -42,6 +42,8 @@ interface DbExercise {
   sub_group?: string | null;
   equipment?: string | null;
   is_deprecated?: boolean;
+  animation_url?: string | null;
+  name_en?: string | null;
 }
 
 const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
