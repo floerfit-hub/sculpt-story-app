@@ -161,8 +161,36 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     });
     toast({ title: lang === "uk" ? "Фото видалено" : "Photo deleted" });
   };
+  const syncAnimation = async (exerciseId: string, searchName: string) => {
+    if (!searchName.trim()) {
+      toast({ title: lang === "uk" ? "Введіть назву англійською" : "Enter English name", variant: "destructive" });
+      return;
+    }
+    setSyncingExerciseId(exerciseId);
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(`https://${projectId}.supabase.co/functions/v1/sync-exercise-animation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ exercise_id: exerciseId, search_name: searchName.trim() }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        toast({ title: lang === "uk" ? "Помилка синхронізації" : "Sync error", description: result.error, variant: "destructive" });
+      } else {
+        toast({ title: lang === "uk" ? "Анімацію завантажено" : "Animation synced", description: result.matched_name });
+        setDbExercises(prev => prev.map(e => e.id === exerciseId ? { ...e, animation_url: result.animation_url, name_en: searchName.trim() } : e));
+        setShowSyncInput(null);
+        setSyncSearchName("");
+      }
+    } catch (err: any) {
+      toast({ title: lang === "uk" ? "Помилка" : "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setSyncingExerciseId(null);
+    }
+  };
 
-  useEffect(() => {
+
     if (!user) return;
     const load = async () => {
       const { data } = await supabase
