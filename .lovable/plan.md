@@ -1,84 +1,35 @@
 
 
-## Scalable Exercise Library Upgrade
+## ExerciseDB API Integration for Exercise Animations
 
-### Overview
-Extend the `exercises` table with new metadata fields, add sub-group categorization, and create an import system that safely merges new exercises without breaking existing data. The user will then provide exercise lists group-by-group for import.
+### Current State
+- `exercises` table has `animation_url` and `thumbnail_url` columns (already exist)
+- Storage bucket `exercise-animations` exists and is public
+- No `name_en` column on `exercises` table — all names are in Ukrainian
+- **`EXERCISE_DB_KEY` secret is NOT configured** — needs to be added before proceeding
 
-### 1. Database Migration — New columns on `exercises`
+### Blocker: Missing API Key
 
+The `EXERCISE_DB_KEY` secret must be added first. I'll request it from you before writing any code.
+
+### Plan
+
+#### 1. DB Migration — Add `name_en` column
 ```sql
-ALTER TABLE public.exercises
-  ADD COLUMN IF NOT EXISTS normalized_name text,
-  ADD COLUMN IF NOT EXISTS aliases text[] DEFAULT '{}',
-  ADD COLUMN IF NOT EXISTS version integer NOT NULL DEFAULT 1,
-  ADD COLUMN IF NOT EXISTS is_deprecated boolean NOT NULL DEFAULT false,
-  ADD COLUMN IF NOT EXISTS equipment text,
-  ADD COLUMN IF NOT EXISTS difficulty text,
-  ADD COLUMN IF NOT EXISTS exercise_type text,
-  ADD COLUMN IF NOT EXISTS sub_group text,
-  ADD COLUMN IF NOT EXISTS animation_url text,
-  ADD COLUMN IF NOT EXISTS thumbnail_url text;
-
--- Backfill normalized_name for existing exercises
-UPDATE public.exercises
-SET normalized_name = lower(regexp_replace(name, '[^a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9 ]', '', 'g'))
-WHERE normalized_name IS NULL;
-
--- Create index for fast duplicate checking
-CREATE INDEX IF NOT EXISTS idx_exercises_normalized_name ON public.exercises (normalized_name);
-CREATE INDEX IF NOT EXISTS idx_exercises_muscle_group ON public.exercises (muscle_group);
+ALTER TABLE public.exercises ADD COLUMN name_en text;
 ```
+This column will store the English name used to search ExerciseDB.
 
-No existing rows are deleted or have their `id` changed.
+#### 2. Edge Function: `sync-exercise-animation`
+Create `supabase/functions/sync-exercise-animation/index.ts` that:
+- Accepts `{ exercise_id, search_name }` via POST
+- Calls ExerciseDB API (`https://exercisedb.p.rapidapi.com/exercises/name/{name}`) using `EXERCISE_DB_KEY` as `X-RapidAPI-Key`
+- Downloads the GIF from the first matching result
+- Uploads it to `exercise-animations` bucket as `{exercise_id}.gif`
+- Updates `exercises.animation_url` with the public URL
+- Returns success/failure
 
-### 2. Create import edge function `import-exercises`
-
-A backend function that accepts an array of exercise strings in format:
-`"Name | Muscle Group | Equipment | Difficulty | Type"`
-
-Logic per entry:
-1. Parse the 5 fields
-2. Compute `normalized_name` = lowercase, strip special chars, collapse spaces
-3. Query `exercises` for matching `normalized_name` AND `muscle_group`
-4. If match found → update `name` (if different), append old name to `aliases`, increment `version`
-5. If no match → insert new row with all fields
-6. Auto-determine `sub_group` based on `equipment`, `exercise_type`, and `muscle_group` rules:
-   - Legs: Сідниці / Квадрицепс / Задня поверхня / Тренажери / Вільна вага
-   - Others: Вільна вага / Тренажери / Ізоляція / Базові
-
-The function uses `SECURITY DEFINER` SQL or service role key to bypass admin-only INSERT policy.
-
-### 3. Update `ExerciseLibrary.tsx` — sub-group display
-
-- Fetch exercises from DB instead of static `EXERCISES` array (or merge both)
-- Add `sub_group` filter tabs within each muscle group
-- Filter out `is_deprecated = true` from selection lists
-- Keep deprecated exercises visible in workout history
-
-### 4. Update `exerciseLibrary.ts` — keep as fallback
-
-- Keep the static list as offline fallback
-- Primary source becomes the `exercises` table
-- Add `equipment`, `sub_group` to the `Exercise` interface
-
-### 5. Workout history — no changes needed
-
-- `workout_sets` references `exercise_id` which never changes
-- Exercise name displayed from `exercises.name` (which may update but ID stays)
-- `resolve_exercise_id` function already handles name→ID resolution
-
-### 6. Custom exercises — untouched
-
-- `custom_exercises` table and logic remain completely separate
-- No merging with global library
-
-### Files to modify
-- **Migration** — add columns, backfill, indexes
-- `supabase/functions/import-exercises/index.ts` — new edge function for batch import
-- `src/data/exerciseLibrary.ts` — extend `Exercise` interface with new fields
-- `src/components/workout/ExerciseLibrary.tsx` — fetch from DB, add sub-group filtering, hide deprecated
-
-### Import workflow (after implementation)
-User sends exercise lists per muscle group → call `import-exercises` edge function → exercises are safely upserted → UI reflects new entries automatically.
-
+#### 3. UI — "Sync Animation" button
+In `ExerciseLibrary.tsx`, when viewing an exercise detail or in admin/edit mode, add a button that:
+- Opens an input to specify the English search name (pre-filled from `name_en` if available)
+- Calls the edge function
