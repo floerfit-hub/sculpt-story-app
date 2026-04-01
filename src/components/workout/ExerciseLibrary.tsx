@@ -84,9 +84,20 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     loadDbExercises();
   }, []);
 
+  // Map English UI groups to Ukrainian DB muscle_group values
+  const DB_GROUP_MAP: Record<MuscleGroup, string[]> = {
+    "Legs & Glutes": ["Ноги"],
+    "Back": ["Спина"],
+    "Chest": ["Грудні"],
+    "Shoulders": ["Плечі"],
+    "Arms": ["Біцепс", "Трицепс", "Передпліччя"],
+    "Core": ["Кор"],
+  };
+
   // Get exercises for a group — prefer DB, fallback to static
   const getGroupExercises = (group: MuscleGroup): { name: string; muscleGroup: string; subGroup?: string | null }[] => {
-    const fromDb = dbExercises.filter(e => e.muscle_group === group && !e.is_deprecated);
+    const dbGroups = DB_GROUP_MAP[group];
+    const fromDb = dbExercises.filter(e => dbGroups.includes(e.muscle_group) && !e.is_deprecated);
     if (fromDb.length > 0) {
       return fromDb.map(e => ({ name: e.name, muscleGroup: e.muscle_group, subGroup: e.sub_group }));
     }

@@ -1,0 +1,1 @@
+UPDATE public.exercises SET is_deprecated = true WHERE muscle_group IN ('Arms', 'Back', 'Chest', 'Core', 'Legs & Glutes', 'Shoulders');
