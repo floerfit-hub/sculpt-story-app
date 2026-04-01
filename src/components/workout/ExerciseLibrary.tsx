@@ -206,11 +206,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
       return;
     }
 
-    await (supabase as any)
-      .from("exercises")
-      .insert({ name: newName.trim(), muscle_group: newGroup })
-      .select("id")
-      .single();
 
     if (data && newImageFile) {
       imageUrl = await uploadExerciseImage(newImageFile, (data as any).id);
