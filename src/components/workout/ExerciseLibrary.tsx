@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 
 import { supabase } from "@/integrations/supabase/client";
-import { MUSCLE_GROUPS, getExercisesByGroup, type MuscleGroup } from "@/data/exerciseLibrary";
+import { MUSCLE_GROUPS, EXERCISES, getExercisesByGroup, type MuscleGroup, type Exercise } from "@/data/exerciseLibrary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,13 +35,24 @@ interface CustomExercise {
   image_url?: string | null;
 }
 
+interface DbExercise {
+  id: string;
+  name: string;
+  muscle_group: string;
+  sub_group?: string | null;
+  equipment?: string | null;
+  is_deprecated?: boolean;
+}
+
 const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const { t, lang } = useTranslation();
   const { user } = useAuth();
   const { isPremium } = usePremium();
   const { toast } = useToast();
   const [activeGroup, setActiveGroup] = useState<MuscleGroup | "custom" | null>(null);
+  const [activeSubGroup, setActiveSubGroup] = useState<string | null>(null);
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
+  const [dbExercises, setDbExercises] = useState<DbExercise[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState("");
   const [newGroup, setNewGroup] = useState<MuscleGroup | "">("");
@@ -60,6 +71,35 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const [overrideImages, setOverrideImages] = useState<Record<string, string>>(() => {
     try { return JSON.parse(localStorage.getItem("exercise-photo-overrides") || "{}"); } catch { return {}; }
   });
+
+  // Fetch exercises from DB
+  useEffect(() => {
+    const loadDbExercises = async () => {
+      const { data } = await supabase
+        .from("exercises")
+        .select("id, name, muscle_group, sub_group, equipment, is_deprecated" as any)
+        .order("name");
+      if (data) setDbExercises(data as any);
+    };
+    loadDbExercises();
+  }, []);
+
+  // Get exercises for a group — prefer DB, fallback to static
+  const getGroupExercises = (group: MuscleGroup): { name: string; muscleGroup: string; subGroup?: string | null }[] => {
+    const fromDb = dbExercises.filter(e => e.muscle_group === group && !e.is_deprecated);
+    if (fromDb.length > 0) {
+      return fromDb.map(e => ({ name: e.name, muscleGroup: e.muscle_group, subGroup: e.sub_group }));
+    }
+    return getExercisesByGroup(group).map(e => ({ name: e.name, muscleGroup: e.muscleGroup, subGroup: undefined }));
+  };
+
+  // Get unique sub-groups for a muscle group
+  const getSubGroups = (group: MuscleGroup): string[] => {
+    const exercises = getGroupExercises(group);
+    const subs = new Set<string>();
+    exercises.forEach(e => { if (e.subGroup) subs.add(e.subGroup); });
+    return Array.from(subs);
+  };
 
   const uploadOverrideImage = async (file: File, exerciseName: string) => {
     if (!user) return;
@@ -472,17 +512,48 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
 
   // Exercise list for a built-in group
   if (activeGroup) {
-    const builtIn = getExercisesByGroup(activeGroup);
+    const groupExercises = getGroupExercises(activeGroup);
+    const subGroups = getSubGroups(activeGroup);
     const customInGroup = customExercises.filter((e) => e.muscle_group === activeGroup);
+
+    const filteredExercises = activeSubGroup
+      ? groupExercises.filter(e => e.subGroup === activeSubGroup)
+      : groupExercises;
+
     return (
       <div className="space-y-4 animate-fade-in">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => setActiveGroup(null)}><ArrowLeft className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => { setActiveGroup(null); setActiveSubGroup(null); }}><ArrowLeft className="h-5 w-5" /></Button>
           <h2 className="text-xl font-display font-bold flex-1">{getGroupLabel(activeGroup)}</h2>
         </div>
 
+        {/* Sub-group filter tabs */}
+        {subGroups.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <Button
+              variant={activeSubGroup === null ? "default" : "outline"}
+              size="sm"
+              className="shrink-0 h-8 text-xs"
+              onClick={() => setActiveSubGroup(null)}
+            >
+              {lang === "uk" ? "Всі" : "All"}
+            </Button>
+            {subGroups.map(sub => (
+              <Button
+                key={sub}
+                variant={activeSubGroup === sub ? "default" : "outline"}
+                size="sm"
+                className="shrink-0 h-8 text-xs"
+                onClick={() => setActiveSubGroup(sub)}
+              >
+                {sub}
+              </Button>
+            ))}
+          </div>
+        )}
+
         <div className="grid gap-2">
-          {builtIn.map((ex) => {
+          {filteredExercises.map((ex) => {
             const override = overrideImages[ex.name];
             const img = override || EXERCISE_IMAGES[ex.name];
             return (
@@ -505,7 +576,12 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                       </div>
                     )}
                   </div>
-                  <span className="font-medium flex-1" onClick={() => selectable && onSelect?.(ex.name, ex.muscleGroup)}>{t.exerciseNames[ex.name] || ex.name}</span>
+                  <div className="flex-1 min-w-0" onClick={() => selectable && onSelect?.(ex.name, ex.muscleGroup)}>
+                    <span className="font-medium">{t.exerciseNames[ex.name] || ex.name}</span>
+                    {ex.subGroup && (
+                      <p className="text-xs text-muted-foreground">{ex.subGroup}</p>
+                    )}
+                  </div>
                   {override && (
                     <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={(e) => { e.stopPropagation(); deleteOverrideImage(ex.name); }}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -516,7 +592,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               </Card>
             );
           })}
-          {customInGroup.map((ex) => renderCustomExerciseCard(ex, false))}
+          {!activeSubGroup && customInGroup.map((ex) => renderCustomExerciseCard(ex, false))}
         </div>
 
         {/* Hidden file input for built-in exercise photo override */}
@@ -534,12 +610,14 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
         />
 
         {/* Add custom exercise button at bottom */}
-        {showAddForm ? (
-          renderAddForm(activeGroup)
-        ) : (
-          <Button variant="outline" className="w-full border-dashed" onClick={() => { setShowAddForm(true); setNewGroup(activeGroup); }}>
-            <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
-          </Button>
+        {!activeSubGroup && (
+          showAddForm ? (
+            renderAddForm(activeGroup)
+          ) : (
+            <Button variant="outline" className="w-full border-dashed" onClick={() => { setShowAddForm(true); setNewGroup(activeGroup); }}>
+              <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
+            </Button>
+          )
         )}
       </div>
     );
@@ -555,7 +633,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
       <div className="grid gap-2">
         {MUSCLE_GROUPS.map((group) => {
           const customCount = customExercises.filter((e) => e.muscle_group === group).length;
-          const totalCount = getExercisesByGroup(group).length + customCount;
+          const totalCount = getGroupExercises(group).length + customCount;
           return (
             <Card key={group} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => setActiveGroup(group)}>
               <CardContent className="flex items-center justify-between p-4">
