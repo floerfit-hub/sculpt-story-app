@@ -618,8 +618,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
       </div>
       <div className="grid gap-2">
         {MUSCLE_GROUPS.map((group) => {
-          const customCount = customExercises.filter((e) => e.muscle_group === group).length;
-          const totalCount = getGroupExercises(group).length + customCount;
+          const totalCount = getGroupExercises(group).length;
           return (
             <Card key={group} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => setActiveGroup(group)}>
               <CardContent className="flex items-center justify-between p-4">
