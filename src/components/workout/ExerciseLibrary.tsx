@@ -82,7 +82,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     const loadDbExercises = async () => {
       const { data } = await supabase
         .from("exercises")
-        .select("id, name, muscle_group, sub_group, equipment, is_deprecated" as any)
+        .select("id, name, muscle_group, sub_group, equipment, is_deprecated, animation_url, name_en" as any)
         .order("name");
       if (data) setDbExercises(data as any);
     };
