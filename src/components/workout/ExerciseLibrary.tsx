@@ -592,7 +592,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               </Card>
             );
           })}
-          {!activeSubGroup && customInGroup.map((ex) => renderCustomExerciseCard(ex, false))}
         </div>
 
         {/* Hidden file input for built-in exercise photo override */}
@@ -608,17 +607,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             if (e.target) e.target.value = "";
           }}
         />
-
-        {/* Add custom exercise button at bottom */}
-        {!activeSubGroup && (
-          showAddForm ? (
-            renderAddForm(activeGroup)
-          ) : (
-            <Button variant="outline" className="w-full border-dashed" onClick={() => { setShowAddForm(true); setNewGroup(activeGroup); }}>
-              <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
-            </Button>
-          )
-        )}
       </div>
     );
   }
