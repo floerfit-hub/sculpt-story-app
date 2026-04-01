@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.analyze-meal]
 verify_jwt = false
+
+[functions.import-exercises]
+verify_jwt = false

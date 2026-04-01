@@ -3,6 +3,11 @@ export type MuscleGroup = "Chest" | "Back" | "Shoulders" | "Arms" | "Legs & Glut
 export interface Exercise {
   name: string;
   muscleGroup: MuscleGroup;
+  equipment?: string;
+  difficulty?: string;
+  exerciseType?: string;
+  subGroup?: string;
+  isDeprecated?: boolean;
 }
 
 export const MUSCLE_GROUPS: MuscleGroup[] = [
