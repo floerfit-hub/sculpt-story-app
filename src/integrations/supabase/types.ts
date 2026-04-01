@@ -110,6 +110,7 @@ export type Database = {
           is_deprecated: boolean
           muscle_group: string
           name: string
+          name_en: string | null
           normalized_name: string | null
           sub_group: string | null
           thumbnail_url: string | null
@@ -126,6 +127,7 @@ export type Database = {
           is_deprecated?: boolean
           muscle_group: string
           name: string
+          name_en?: string | null
           normalized_name?: string | null
           sub_group?: string | null
           thumbnail_url?: string | null
@@ -142,6 +144,7 @@ export type Database = {
           is_deprecated?: boolean
           muscle_group?: string
           name?: string
+          name_en?: string | null
           normalized_name?: string | null
           sub_group?: string | null
           thumbnail_url?: string | null
