@@ -190,7 +190,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     }
   };
 
-
+  useEffect(() => {
     if (!user) return;
     const load = async () => {
       const { data } = await supabase
