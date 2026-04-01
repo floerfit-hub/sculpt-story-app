@@ -206,11 +206,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
       return;
     }
 
-    await (supabase as any)
-      .from("exercises")
-      .insert({ name: newName.trim(), muscle_group: newGroup })
-      .select("id")
-      .single();
 
     if (data && newImageFile) {
       imageUrl = await uploadExerciseImage(newImageFile, (data as any).id);
@@ -514,8 +509,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   if (activeGroup) {
     const groupExercises = getGroupExercises(activeGroup);
     const subGroups = getSubGroups(activeGroup);
-    const customInGroup = customExercises.filter((e) => e.muscle_group === activeGroup);
-
     const filteredExercises = activeSubGroup
       ? groupExercises.filter(e => e.subGroup === activeSubGroup)
       : groupExercises;
@@ -592,7 +585,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               </Card>
             );
           })}
-          {!activeSubGroup && customInGroup.map((ex) => renderCustomExerciseCard(ex, false))}
         </div>
 
         {/* Hidden file input for built-in exercise photo override */}
@@ -608,47 +600,49 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             if (e.target) e.target.value = "";
           }}
         />
-
-        {/* Add custom exercise button at bottom */}
-        {!activeSubGroup && (
-          showAddForm ? (
-            renderAddForm(activeGroup)
-          ) : (
-            <Button variant="outline" className="w-full border-dashed" onClick={() => { setShowAddForm(true); setNewGroup(activeGroup); }}>
-              <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
-            </Button>
-          )
-        )}
       </div>
     );
   }
 
-  // Muscle group list
+  // Muscle group list with separate sections
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft className="h-5 w-5" /></Button>
         <h2 className="text-xl font-display font-bold">{t.exerciseLib.title}</h2>
       </div>
-      <div className="grid gap-2">
-        {MUSCLE_GROUPS.map((group) => {
-          const customCount = customExercises.filter((e) => e.muscle_group === group).length;
-          const totalCount = getGroupExercises(group).length + customCount;
-          return (
-            <Card key={group} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => setActiveGroup(group)}>
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{MUSCLE_EMOJIS[group]}</span>
-                  <div>
-                    <p className="font-display font-semibold">{getGroupLabel(group)}</p>
-                    <p className="text-sm text-muted-foreground">{totalCount} {t.workouts.exercises}</p>
+
+      {/* Section 1: Exercise Library */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+          {lang === "uk" ? "Бібліотека вправ" : "Exercise Library"}
+        </h3>
+        <div className="grid gap-2">
+          {MUSCLE_GROUPS.map((group) => {
+            const totalCount = getGroupExercises(group).length;
+            return (
+              <Card key={group} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => setActiveGroup(group)}>
+                <CardContent className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{MUSCLE_EMOJIS[group]}</span>
+                    <div>
+                      <p className="font-display font-semibold">{getGroupLabel(group)}</p>
+                      <p className="text-sm text-muted-foreground">{totalCount} {t.workouts.exercises}</p>
+                    </div>
                   </div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-              </CardContent>
-            </Card>
-          );
-        })}
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Section 2: My Exercises */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+          {lang === "uk" ? "Мої вправи" : "My Exercises"}
+        </h3>
         <Card className="cursor-pointer active:scale-[0.98] transition-transform border-primary/20" onClick={() => setActiveGroup("custom")}>
           <CardContent className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
