@@ -100,22 +100,52 @@ export type Database = {
       }
       exercises: {
         Row: {
+          aliases: string[] | null
+          animation_url: string | null
           created_at: string
+          difficulty: string | null
+          equipment: string | null
+          exercise_type: string | null
           id: string
+          is_deprecated: boolean
           muscle_group: string
           name: string
+          normalized_name: string | null
+          sub_group: string | null
+          thumbnail_url: string | null
+          version: number
         }
         Insert: {
+          aliases?: string[] | null
+          animation_url?: string | null
           created_at?: string
+          difficulty?: string | null
+          equipment?: string | null
+          exercise_type?: string | null
           id?: string
+          is_deprecated?: boolean
           muscle_group: string
           name: string
+          normalized_name?: string | null
+          sub_group?: string | null
+          thumbnail_url?: string | null
+          version?: number
         }
         Update: {
+          aliases?: string[] | null
+          animation_url?: string | null
           created_at?: string
+          difficulty?: string | null
+          equipment?: string | null
+          exercise_type?: string | null
           id?: string
+          is_deprecated?: boolean
           muscle_group?: string
           name?: string
+          normalized_name?: string | null
+          sub_group?: string | null
+          thumbnail_url?: string | null
+          version?: number
         }
         Relationships: []
       }
