@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ChevronRight, Plus, Trash2, Pencil, Check, X, Camera, RefreshCw } from "lucide-react";
+import { ArrowLeft, ChevronRight, Plus, Trash2, Pencil, Check, X, Camera, RefreshCw, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EXERCISE_IMAGES } from "@/data/exerciseImages";
 
