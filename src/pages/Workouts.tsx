@@ -53,6 +53,26 @@ const Workouts = () => {
     setView("start");
   };
 
+  const handleSaveAsProgram = async (exercises: { name: string; muscleGroup: string; sets: number; reps: number; weight: number }[], name: string) => {
+    if (!user) return;
+    const { data: tmpl } = await supabase
+      .from("workout_templates")
+      .insert({ user_id: user.id, name } as any)
+      .select("id")
+      .single();
+    if (!tmpl) return;
+    const rows = exercises.map((ex, i) => ({
+      template_id: (tmpl as any).id,
+      exercise_name: ex.name,
+      muscle_group: ex.muscleGroup,
+      sort_order: i,
+      default_sets: ex.sets,
+      default_reps: ex.reps,
+      default_weight: ex.weight,
+    }));
+    await (supabase as any).from("workout_template_exercises").insert(rows);
+  };
+
   const handleStartFromTemplate = (exercises: RepeatData["exercises"], name: string) => {
     setRepeatData({ exercises, name });
     setView("start");
