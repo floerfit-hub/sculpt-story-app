@@ -22,6 +22,7 @@ import MeasurementsCard from "@/components/dashboard/MeasurementsCard";
 import MuscleHeatmap from "@/components/dashboard/MuscleHeatmap";
 import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
 import NutritionTracker from "@/components/dashboard/NutritionTracker";
+import LastWorkoutPanel from "@/components/dashboard/LastWorkoutPanel";
 
 import PremiumGate from "@/components/subscription/PremiumGate";
 import { useFitnessStats, calculateFitScore, detectPRsLast30Days, getWeights } from "@/hooks/useFitnessStats";
