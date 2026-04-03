@@ -70,7 +70,7 @@ const Workouts = () => {
   }
   if (view === "edit") return <StartWorkout onBack={() => { setEditData(undefined); setView("history"); }} editData={editData} />;
   if (view === "library") return <ExerciseLibrary onBack={() => setView("hub")} />;
-  if (view === "history") return <WorkoutHistory onBack={() => setView("hub")} onEdit={handleEdit} onRepeat={handleRepeatWorkout} />;
+  if (view === "history") return <WorkoutHistory onBack={() => setView("hub")} onEdit={handleEdit} onRepeat={handleRepeatWorkout} onSaveAsProgram={handleSaveAsProgram} />;
   if (view === "charts") return <WorkoutProgressCharts onBack={() => setView("hub")} />;
   if (view === "programs") return (
     <div className="space-y-5 animate-fade-in">
