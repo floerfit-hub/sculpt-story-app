@@ -314,7 +314,7 @@ const WorkoutHistory = ({ onBack, onEdit, onRepeat, onSaveAsProgram }: WorkoutHi
                         }}
                       >
                         <FileText className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{t.templates.saveAsProgram || (lang === "uk" ? "Зберегти як програму" : "Save as Program")}</span>
+                        <span className="truncate">{lang === "uk" ? "Зберегти як програму" : "Save as Program"}</span>
                       </Button>
                     )}
                     {onRepeat && (
