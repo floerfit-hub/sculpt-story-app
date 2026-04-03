@@ -94,6 +94,7 @@ export const en = {
       insights: "AI Insights",
       recentEntries: "Recent Entries",
       bento: "Steps & Calories",
+      lastWorkout: "Last Workout",
     },
   },
 
