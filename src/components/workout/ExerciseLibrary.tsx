@@ -694,6 +694,24 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               {filteredCustom.map(ex => renderCustomExerciseCard(ex, false))}
             </>
           )}
+
+          {/* Add custom exercise button at the bottom of each group */}
+          <div className="pt-2">
+            {showAddForm ? (
+              renderAddForm(activeGroup)
+            ) : (
+              <Button variant="outline" className="w-full touch-manipulation" onClick={() => {
+                if (!isPremium) {
+                  toast({ title: lang === "uk" ? "Доступно лише для Pro" : "Pro feature only", description: lang === "uk" ? "Оновіть до Pro, щоб створювати власні вправи" : "Upgrade to Pro to create custom exercises" });
+                  return;
+                }
+                setNewGroup(activeGroup);
+                setShowAddForm(true);
+              }}>
+                <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
+              </Button>
+            )}
+          </div>
         </div>
 
         {filteredExercises.length === 0 && filteredCustom.length === 0 && (
