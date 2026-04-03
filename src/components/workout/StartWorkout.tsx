@@ -141,10 +141,28 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     try { return JSON.parse(localStorage.getItem("exercise-photo-overrides") || "{}"); } catch { return {}; }
   };
 
+  // Cache DB exercise animation URLs
+  const [dbAnimationMap, setDbAnimationMap] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const loadAnimations = async () => {
+      const { data } = await supabase
+        .from("exercises")
+        .select("name, animation_url" as any)
+        .not("animation_url", "is", null);
+      if (data) {
+        const map: Record<string, string> = {};
+        (data as any[]).forEach((e: any) => { if (e.animation_url) map[e.name] = e.animation_url; });
+        setDbAnimationMap(map);
+      }
+    };
+    loadAnimations();
+  }, []);
+
   const getExerciseImage = (ex: WorkoutExercise): string | undefined => {
     if (ex.image) return ex.image;
     const overrides = getOverrideImages();
     if (overrides[ex.name]) return overrides[ex.name];
+    if (dbAnimationMap[ex.name]) return dbAnimationMap[ex.name];
     return EXERCISE_IMAGES[ex.name];
   };
 
