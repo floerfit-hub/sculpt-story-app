@@ -93,6 +93,7 @@ export const uk: Translations = {
       insights: "ШІ поради",
       recentEntries: "Останні записи",
       bento: "Кроки та калорії",
+      lastWorkout: "Останнє тренування",
     },
   },
 

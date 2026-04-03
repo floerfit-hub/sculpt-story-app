@@ -4,14 +4,15 @@ import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, BookOpen, History, BarChart3 } from "lucide-react";
+import { Play, BookOpen, History, BarChart3, FileText } from "lucide-react";
 import StartWorkout from "@/components/workout/StartWorkout";
 import type { EditWorkoutData } from "@/components/workout/StartWorkout";
 import ExerciseLibrary from "@/components/workout/ExerciseLibrary";
 import WorkoutHistory from "@/components/workout/WorkoutHistory";
 import WorkoutProgressCharts from "@/components/workout/WorkoutProgressCharts";
+import WorkoutTemplates from "@/components/workout/WorkoutTemplates";
 
-type WorkoutView = "hub" | "start" | "library" | "history" | "charts" | "edit";
+type WorkoutView = "hub" | "start" | "library" | "history" | "charts" | "edit" | "programs";
 
 interface RepeatData {
   exercises: { name: string; muscleGroup: string; sets: { weight: number | ""; reps: number | ""; rest_time: null }[] }[];
@@ -20,7 +21,7 @@ interface RepeatData {
 
 const Workouts = () => {
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [view, setView] = useState<WorkoutView>(() => {
     const saved = sessionStorage.getItem("workout-view");
     return (saved as WorkoutView) || "hub";
@@ -52,6 +53,11 @@ const Workouts = () => {
     setView("start");
   };
 
+  const handleStartFromTemplate = (exercises: RepeatData["exercises"], name: string) => {
+    setRepeatData({ exercises, name });
+    setView("start");
+  };
+
   if (view === "start") {
     const initialData = repeatData;
     return (
@@ -66,9 +72,23 @@ const Workouts = () => {
   if (view === "library") return <ExerciseLibrary onBack={() => setView("hub")} />;
   if (view === "history") return <WorkoutHistory onBack={() => setView("hub")} onEdit={handleEdit} onRepeat={handleRepeatWorkout} />;
   if (view === "charts") return <WorkoutProgressCharts onBack={() => setView("hub")} />;
+  if (view === "programs") return (
+    <div className="space-y-5 animate-fade-in">
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={() => setView("hub")}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </Button>
+        <h1 className="text-2xl font-display font-bold">
+          {lang === "uk" ? "Програми тренувань" : "Training Programs"}
+        </h1>
+      </div>
+      <WorkoutTemplates onStartFromTemplate={handleStartFromTemplate} />
+    </div>
+  );
 
   const menuItems = [
     { key: "start" as const, icon: Play, label: t.workouts.startWorkout, desc: t.workouts.beginSession, color: "bg-primary text-primary-foreground" },
+    { key: "programs" as const, icon: FileText, label: lang === "uk" ? "Програми тренувань" : "Training Programs", desc: lang === "uk" ? "Створюйте та використовуйте програми" : "Create and use workout programs", color: "bg-accent text-accent-foreground" },
     { key: "library" as const, icon: BookOpen, label: t.workouts.exerciseLibrary, desc: t.workouts.browseExercises, color: "bg-accent text-accent-foreground" },
     { key: "history" as const, icon: History, label: t.workouts.workoutHistory, desc: `${workoutCount} ${t.workouts.workoutsLogged}`, color: "bg-accent text-accent-foreground" },
     { key: "charts" as const, icon: BarChart3, label: t.workouts.progressCharts, desc: t.workouts.trackStrength, color: "bg-accent text-accent-foreground" },
