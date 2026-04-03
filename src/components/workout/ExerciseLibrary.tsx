@@ -554,19 +554,44 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   if (activeGroup) {
     const groupExercises = getGroupExercises(activeGroup);
     const subGroups = getSubGroups(activeGroup);
-    const filteredExercises = activeSubGroup
-      ? groupExercises.filter(e => e.subGroup === activeSubGroup)
+    const q = searchQuery.toLowerCase();
+    const searchFiltered = q
+      ? groupExercises.filter(ex => {
+          const translated = t.exerciseNames[ex.name] || ex.name;
+          return ex.name.toLowerCase().includes(q) || translated.toLowerCase().includes(q);
+        })
       : groupExercises;
+    const filteredExercises = activeSubGroup
+      ? searchFiltered.filter(e => e.subGroup === activeSubGroup)
+      : searchFiltered;
+
+    // Custom exercises for this group
+    const dbGroups = DB_GROUP_MAP[activeGroup];
+    const groupCustomExercises = customExercises.filter(ce => dbGroups.includes(ce.muscle_group) || ce.muscle_group === activeGroup);
+    const filteredCustom = q
+      ? groupCustomExercises.filter(ce => ce.exercise_name.toLowerCase().includes(q))
+      : groupCustomExercises;
 
     return (
       <div className="space-y-4 animate-fade-in">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => { setActiveGroup(null); setActiveSubGroup(null); }}><ArrowLeft className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => { setActiveGroup(null); setActiveSubGroup(null); setSearchQuery(""); }}><ArrowLeft className="h-5 w-5" /></Button>
           <h2 className="text-xl font-display font-bold flex-1">{getGroupLabel(activeGroup)}</h2>
         </div>
 
+        {/* Search bar inside group */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={lang === "uk" ? "Пошук вправ..." : "Search exercises..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
         {/* Sub-group filter tabs */}
-        {subGroups.length > 0 && (
+        {subGroups.length > 0 && !q && (
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
             <Button
               variant={activeSubGroup === null ? "default" : "outline"}
@@ -657,7 +682,23 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               </div>
             );
           })}
+
+          {/* Custom exercises at the bottom of this group */}
+          {filteredCustom.length > 0 && (
+            <>
+              <div className="pt-2 pb-1">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">
+                  {lang === "uk" ? "Мої вправи" : "My Exercises"}
+                </h4>
+              </div>
+              {filteredCustom.map(ex => renderCustomExerciseCard(ex, false))}
+            </>
+          )}
         </div>
+
+        {filteredExercises.length === 0 && filteredCustom.length === 0 && (
+          <p className="py-8 text-center text-muted-foreground">{t.workouts.noExercises}</p>
+        )}
 
         {/* Hidden file input for built-in exercise photo override */}
         <input
