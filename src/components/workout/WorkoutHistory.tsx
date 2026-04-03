@@ -295,7 +295,28 @@ const WorkoutHistory = ({ onBack, onEdit, onRepeat, onSaveAsProgram }: WorkoutHi
                       {ex.notes && <p className="text-xs text-muted-foreground italic">"{ex.notes}"</p>}
                     </div>
                   ))}
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {onSaveAsProgram && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 min-w-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const mapped = w.exercises.map(ex => ({
+                            name: ex.exercise_name,
+                            muscleGroup: ex.muscle_group,
+                            sets: ex.sets.length,
+                            reps: ex.sets.length > 0 ? Math.round(ex.sets.reduce((s, set) => s + set.reps, 0) / ex.sets.length) : 10,
+                            weight: ex.sets.length > 0 ? Math.round(ex.sets.reduce((s, set) => s + set.weight, 0) / ex.sets.length) : 0,
+                          }));
+                          onSaveAsProgram(mapped, w.name || format(new Date(w.started_at), "d MMM yyyy", { locale: ukLocale }));
+                        }}
+                      >
+                        <FileText className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{t.templates.saveAsProgram || (lang === "uk" ? "Зберегти як програму" : "Save as Program")}</span>
+                      </Button>
+                    )}
                     {onRepeat && (
                       <Button
                         variant="outline"
