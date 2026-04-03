@@ -11,7 +11,16 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { exercise_id, search_name } = await req.json();
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid or empty JSON body" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { exercise_id, search_name } = body;
     if (!exercise_id || !search_name) {
       return new Response(JSON.stringify({ error: "exercise_id and search_name required" }), {
         status: 400,
