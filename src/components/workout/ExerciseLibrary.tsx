@@ -676,6 +676,12 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     );
   }
 
+  // Helper: get custom exercises matching a muscle group
+  const getCustomExercisesForGroup = (group: MuscleGroup): CustomExercise[] => {
+    const dbGroups = DB_GROUP_MAP[group];
+    return customExercises.filter(ce => dbGroups.includes(ce.muscle_group) || ce.muscle_group === group);
+  };
+
   // Muscle group list with separate sections
   return (
     <div className="space-y-4 animate-fade-in">
@@ -684,50 +690,113 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
         <h2 className="text-xl font-display font-bold">{t.exerciseLib.title}</h2>
       </div>
 
-      {/* Section 1: Exercise Library */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
-          {lang === "uk" ? "Бібліотека вправ" : "Exercise Library"}
-        </h3>
-        <div className="grid gap-2">
-          {MUSCLE_GROUPS.map((group) => {
-            const totalCount = getGroupExercises(group).length;
-            return (
-              <Card key={group} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => setActiveGroup(group)}>
-                <CardContent className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{MUSCLE_EMOJIS[group]}</span>
-                    <div>
-                      <p className="font-display font-semibold">{getGroupLabel(group)}</p>
-                      <p className="text-sm text-muted-foreground">{totalCount} {t.workouts.exercises}</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+      {/* Search bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder={lang === "uk" ? "Пошук вправ..." : "Search exercises..."}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
       </div>
 
-      {/* Section 2: My Exercises */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
-          {lang === "uk" ? "Мої вправи" : "My Exercises"}
-        </h3>
-        <Card className="cursor-pointer active:scale-[0.98] transition-transform border-primary/20" onClick={() => setActiveGroup("custom")}>
-          <CardContent className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">⭐</span>
-              <div>
-                <p className="font-display font-semibold">{t.workouts.customExercises}</p>
-                <p className="text-sm text-muted-foreground">{customExercises.length} {t.workouts.exercises}</p>
-              </div>
+      {/* If searching — show flat results */}
+      {searchQuery.trim() ? (
+        <div className="space-y-2">
+          <div className="grid gap-2">
+            {(() => {
+              const q = searchQuery.toLowerCase();
+              const results: { name: string; muscleGroup: string; subGroup?: string | null; dbId?: string; animationUrl?: string | null; nameEn?: string | null }[] = [];
+              MUSCLE_GROUPS.forEach(group => {
+                getGroupExercises(group).forEach(ex => {
+                  const translated = t.exerciseNames[ex.name] || ex.name;
+                  if (ex.name.toLowerCase().includes(q) || translated.toLowerCase().includes(q)) {
+                    results.push(ex);
+                  }
+                });
+              });
+              const customResults = customExercises.filter(ce => ce.exercise_name.toLowerCase().includes(q));
+              if (results.length === 0 && customResults.length === 0) {
+                return <p className="py-8 text-center text-muted-foreground">{t.workouts.noExercises}</p>;
+              }
+              return (
+                <>
+                  {results.map(ex => {
+                    const override = overrideImages[ex.name];
+                    const img = ex.animationUrl || override || EXERCISE_IMAGES[ex.name];
+                    return (
+                      <Card key={ex.name} className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform`}>
+                        <CardContent className="flex items-center gap-3 p-3">
+                          {img ? (
+                            <img src={img} alt={t.exerciseNames[ex.name] || ex.name} className="h-12 w-12 rounded-lg object-contain bg-muted" loading="lazy" />
+                          ) : (
+                            <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center"><Camera className="h-4 w-4 text-muted-foreground" /></div>
+                          )}
+                          <div className="flex-1 min-w-0" onClick={() => selectable && onSelect?.(ex.name, ex.muscleGroup)}>
+                            <span className="font-medium">{t.exerciseNames[ex.name] || ex.name}</span>
+                            <p className="text-xs text-muted-foreground">{ex.muscleGroup}{ex.subGroup ? ` · ${ex.subGroup}` : ""}</p>
+                          </div>
+                          {selectable && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                  {customResults.map(ex => renderCustomExerciseCard(ex, true))}
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Section 1: Exercise Library */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+              {lang === "uk" ? "Бібліотека вправ" : "Exercise Library"}
+            </h3>
+            <div className="grid gap-2">
+              {MUSCLE_GROUPS.map((group) => {
+                const totalCount = getGroupExercises(group).length;
+                const customCount = getCustomExercisesForGroup(group).length;
+                return (
+                  <Card key={group} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => { setActiveGroup(group); setSearchQuery(""); }}>
+                    <CardContent className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{MUSCLE_EMOJIS[group]}</span>
+                        <div>
+                          <p className="font-display font-semibold">{getGroupLabel(group)}</p>
+                          <p className="text-sm text-muted-foreground">{totalCount + customCount} {t.workouts.exercises}</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+
+          {/* Section 2: My Exercises */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
+              {lang === "uk" ? "Мої вправи" : "My Exercises"}
+            </h3>
+            <Card className="cursor-pointer active:scale-[0.98] transition-transform border-primary/20" onClick={() => { setActiveGroup("custom"); setSearchQuery(""); }}>
+              <CardContent className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">⭐</span>
+                  <div>
+                    <p className="font-display font-semibold">{t.workouts.customExercises}</p>
+                    <p className="text-sm text-muted-foreground">{customExercises.length} {t.workouts.exercises}</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
     </div>
   );
 };
