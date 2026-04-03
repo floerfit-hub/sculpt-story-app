@@ -494,8 +494,6 @@ const Dashboard = () => {
     ),
   };
 
-      <LastWorkoutPanel />
-
 
   return (
     <div className="flex flex-col gap-[calc(var(--gap-section)/2)] animate-fade-in">
