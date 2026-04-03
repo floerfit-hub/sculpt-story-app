@@ -4,14 +4,14 @@ import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Dumbbell, Clock, Timer } from "lucide-react";
+import { ChevronDown, ChevronUp, Dumbbell, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { uk as ukLocale } from "date-fns/locale";
 
-interface WorkoutExerciseData {
-  exercise_name: string;
+interface GroupedExercise {
+  name: string;
   muscle_group: string;
-  sets: any;
+  sets: { weight: number; reps: number }[];
 }
 
 const LastWorkoutPanel = () => {
@@ -19,12 +19,12 @@ const LastWorkoutPanel = () => {
   const { t, lang } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [lastWorkout, setLastWorkout] = useState<any>(null);
-  const [exercises, setExercises] = useState<WorkoutExerciseData[]>([]);
+  const [exercises, setExercises] = useState<GroupedExercise[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
+    const load = async () => {
       const { data: w } = await supabase
         .from("workouts")
         .select("*")
@@ -37,16 +37,64 @@ const LastWorkoutPanel = () => {
       if (!w) { setLoading(false); return; }
       setLastWorkout(w);
 
-      const { data: exs } = await supabase
-        .from("workout_exercises")
-        .select("exercise_name, muscle_group, sets")
+      // Use workout_sets + exercises (same as WorkoutHistory)
+      const { data: setsData } = await (supabase as any)
+        .from("workout_sets")
+        .select("exercise_id, set_number, weight, reps, sort_order")
         .eq("workout_id", w.id)
-        .order("sort_order", { ascending: true });
+        .order("sort_order", { ascending: true })
+        .order("set_number", { ascending: true });
 
-      setExercises(exs || []);
+      if (!setsData?.length) {
+        // Fallback to workout_exercises table
+        const { data: exs } = await supabase
+          .from("workout_exercises")
+          .select("exercise_name, muscle_group, sets")
+          .eq("workout_id", w.id)
+          .order("sort_order", { ascending: true });
+
+        const fallback: GroupedExercise[] = (exs || []).map((ex: any) => {
+          const sets = Array.isArray(ex.sets) ? ex.sets : [];
+          return {
+            name: ex.exercise_name,
+            muscle_group: ex.muscle_group,
+            sets: sets.map((s: any) => ({ weight: Number(s.weight) || 0, reps: Number(s.reps) || 0 })),
+          };
+        });
+        setExercises(fallback);
+        setLoading(false);
+        return;
+      }
+
+      const exerciseIds = [...new Set(setsData.map((s: any) => s.exercise_id))];
+      const { data: exData } = await (supabase as any)
+        .from("exercises")
+        .select("id, name, muscle_group")
+        .in("id", exerciseIds);
+
+      const exMap = new Map((exData || []).map((e: any) => [e.id, e]));
+
+      // Group by exercise_id preserving sort_order
+      const groups = new Map<string, { info: any; sets: { weight: number; reps: number }[]; sortOrder: number }>();
+      for (const s of setsData) {
+        if (!groups.has(s.exercise_id)) {
+          groups.set(s.exercise_id, { info: exMap.get(s.exercise_id), sets: [], sortOrder: s.sort_order });
+        }
+        groups.get(s.exercise_id)!.sets.push({ weight: Number(s.weight), reps: Number(s.reps) });
+      }
+
+      const result: GroupedExercise[] = [...groups.values()]
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map(g => ({
+          name: g.info?.name || "",
+          muscle_group: g.info?.muscle_group || "",
+          sets: g.sets,
+        }));
+
+      setExercises(result);
       setLoading(false);
     };
-    fetch();
+    load();
   }, [user]);
 
   if (loading || !lastWorkout) return null;
@@ -61,10 +109,7 @@ const LastWorkoutPanel = () => {
     { locale: lang === "uk" ? ukLocale : undefined }
   );
 
-  const totalSets = exercises.reduce((sum, ex) => {
-    const sets = Array.isArray(ex.sets) ? ex.sets : [];
-    return sum + sets.length;
-  }, 0);
+  const totalSets = exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
 
   return (
     <Card>
@@ -104,21 +149,18 @@ const LastWorkoutPanel = () => {
           {lastWorkout.name && (
             <p className="text-xs text-muted-foreground">{dateStr}</p>
           )}
-          {exercises.map((ex, i) => {
-            const sets = Array.isArray(ex.sets) ? ex.sets : [];
-            return (
-              <div key={i} className="rounded-lg border border-border/50 p-2.5">
-                <p className="text-sm font-medium">{t.exerciseNames[ex.exercise_name] || ex.exercise_name}</p>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {sets.map((s: any, j: number) => (
-                    <span key={j} className="text-[10px] rounded-md bg-accent px-1.5 py-0.5 text-accent-foreground">
-                      {s.weight || 0}{lang === "uk" ? "кг" : "kg"} × {s.reps || 0}
-                    </span>
-                  ))}
-                </div>
+          {exercises.map((ex, i) => (
+            <div key={i} className="rounded-lg border border-border/50 p-2.5">
+              <p className="text-sm font-medium">{t.exerciseNames[ex.name] || ex.name}</p>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {ex.sets.map((s, j) => (
+                  <span key={j} className="text-[10px] rounded-md bg-accent px-1.5 py-0.5 text-accent-foreground">
+                    {s.weight}{lang === "uk" ? "кг" : "kg"} × {s.reps}
+                  </span>
+                ))}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </CardContent>
       )}
     </Card>
