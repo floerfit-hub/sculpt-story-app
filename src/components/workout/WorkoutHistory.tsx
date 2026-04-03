@@ -75,6 +75,7 @@ interface WorkoutHistoryProps {
   onBack: () => void;
   onEdit?: (data: EditWorkoutData) => void;
   onRepeat?: (exercises: { name: string; muscleGroup: string; sets: { weight: number | ""; reps: number | ""; rest_time: null }[] }[], name: string) => void;
+  onSaveAsProgram?: (exercises: { name: string; muscleGroup: string; sets: number; reps: number; weight: number }[], name: string) => void;
 }
 
 const WorkoutHistory = ({ onBack, onEdit, onRepeat }: WorkoutHistoryProps) => {
