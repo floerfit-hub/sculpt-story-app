@@ -81,7 +81,7 @@ interface WorkoutHistoryProps {
 const WorkoutHistory = ({ onBack, onEdit, onRepeat, onSaveAsProgram }: WorkoutHistoryProps) => {
   
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { toast } = useToast();
   const [workouts, setWorkouts] = useState<WorkoutWithExercises[]>([]);
   const [loading, setLoading] = useState(true);
