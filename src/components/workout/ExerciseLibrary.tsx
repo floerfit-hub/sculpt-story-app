@@ -763,6 +763,8 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               }
               return (
                 <>
+                  {/* Custom exercises shown FIRST */}
+                  {customResults.map(ex => renderCustomExerciseCard(ex, true))}
                   {results.map(ex => {
                     const override = overrideImages[ex.name];
                     const img = ex.animationUrl || override || EXERCISE_IMAGES[ex.name];
@@ -783,7 +785,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                       </Card>
                     );
                   })}
-                  {customResults.map(ex => renderCustomExerciseCard(ex, true))}
                 </>
               );
             })()}
