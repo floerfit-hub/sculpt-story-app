@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ChevronRight, Clock, Pencil, Trash2, Check, X, RotateCcw } from "lucide-react";
+import { ArrowLeft, ChevronRight, Clock, Pencil, Trash2, Check, X, RotateCcw, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { uk as ukLocale } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
