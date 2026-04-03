@@ -441,7 +441,7 @@ const Dashboard = () => {
         />
       </div>
     ),
-    lastWorkout: <LastWorkoutPanel />,
+    lastWorkout: null,
     weightChart: <WeightChart entries={entries} />,
     measurements: <PremiumGate feature="Body Composition Dashboard"><MeasurementsCard latest={latest} previous={previous} /></PremiumGate>,
     muscleHeatmap: <PremiumGate feature="Muscle Heatmap Analytics"><MuscleHeatmap muscleData={muscleData} /></PremiumGate>,
@@ -567,6 +567,8 @@ const Dashboard = () => {
           })}
         </>
       )}
+
+      <LastWorkoutPanel />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent className="glass-strong rounded-2xl">

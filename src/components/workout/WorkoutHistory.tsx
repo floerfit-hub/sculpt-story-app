@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ChevronRight, Clock, Pencil, Trash2, Check, X, RotateCcw } from "lucide-react";
+import { ArrowLeft, ChevronRight, Clock, Pencil, Trash2, Check, X, RotateCcw, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { uk as ukLocale } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -75,12 +75,13 @@ interface WorkoutHistoryProps {
   onBack: () => void;
   onEdit?: (data: EditWorkoutData) => void;
   onRepeat?: (exercises: { name: string; muscleGroup: string; sets: { weight: number | ""; reps: number | ""; rest_time: null }[] }[], name: string) => void;
+  onSaveAsProgram?: (exercises: { name: string; muscleGroup: string; sets: number; reps: number; weight: number }[], name: string) => void;
 }
 
-const WorkoutHistory = ({ onBack, onEdit, onRepeat }: WorkoutHistoryProps) => {
+const WorkoutHistory = ({ onBack, onEdit, onRepeat, onSaveAsProgram }: WorkoutHistoryProps) => {
   
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { toast } = useToast();
   const [workouts, setWorkouts] = useState<WorkoutWithExercises[]>([]);
   const [loading, setLoading] = useState(true);
@@ -294,7 +295,28 @@ const WorkoutHistory = ({ onBack, onEdit, onRepeat }: WorkoutHistoryProps) => {
                       {ex.notes && <p className="text-xs text-muted-foreground italic">"{ex.notes}"</p>}
                     </div>
                   ))}
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {onSaveAsProgram && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 min-w-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const mapped = w.exercises.map(ex => ({
+                            name: ex.exercise_name,
+                            muscleGroup: ex.muscle_group,
+                            sets: ex.sets.length,
+                            reps: ex.sets.length > 0 ? Math.round(ex.sets.reduce((s, set) => s + set.reps, 0) / ex.sets.length) : 10,
+                            weight: ex.sets.length > 0 ? Math.round(ex.sets.reduce((s, set) => s + set.weight, 0) / ex.sets.length) : 0,
+                          }));
+                          onSaveAsProgram(mapped, w.name || format(new Date(w.started_at), "d MMM yyyy", { locale: ukLocale }));
+                        }}
+                      >
+                        <FileText className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{lang === "uk" ? "Зберегти як програму" : "Save as Program"}</span>
+                      </Button>
+                    )}
                     {onRepeat && (
                       <Button
                         variant="outline"
