@@ -568,6 +568,8 @@ const Dashboard = () => {
         </>
       )}
 
+      <LastWorkoutPanel />
+
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent className="glass-strong rounded-2xl">
           <AlertDialogHeader>
