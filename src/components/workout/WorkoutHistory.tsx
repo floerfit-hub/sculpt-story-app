@@ -78,7 +78,7 @@ interface WorkoutHistoryProps {
   onSaveAsProgram?: (exercises: { name: string; muscleGroup: string; sets: number; reps: number; weight: number }[], name: string) => void;
 }
 
-const WorkoutHistory = ({ onBack, onEdit, onRepeat }: WorkoutHistoryProps) => {
+const WorkoutHistory = ({ onBack, onEdit, onRepeat, onSaveAsProgram }: WorkoutHistoryProps) => {
   
   const { user } = useAuth();
   const { t } = useTranslation();
