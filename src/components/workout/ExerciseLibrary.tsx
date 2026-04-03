@@ -52,6 +52,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const { isPremium } = usePremium();
   const { toast } = useToast();
   const [activeGroup, setActiveGroup] = useState<MuscleGroup | "custom" | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [activeSubGroup, setActiveSubGroup] = useState<string | null>(null);
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
   const [dbExercises, setDbExercises] = useState<DbExercise[]>([]);
