@@ -441,6 +441,7 @@ const Dashboard = () => {
         />
       </div>
     ),
+    lastWorkout: <LastWorkoutPanel />,
     weightChart: <WeightChart entries={entries} />,
     measurements: <PremiumGate feature="Body Composition Dashboard"><MeasurementsCard latest={latest} previous={previous} /></PremiumGate>,
     muscleHeatmap: <PremiumGate feature="Muscle Heatmap Analytics"><MuscleHeatmap muscleData={muscleData} /></PremiumGate>,

@@ -11,7 +11,7 @@ import { uk as ukLocale } from "date-fns/locale";
 interface WorkoutExerciseData {
   exercise_name: string;
   muscle_group: string;
-  sets: any[];
+  sets: any;
 }
 
 const LastWorkoutPanel = () => {
