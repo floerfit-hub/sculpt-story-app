@@ -541,10 +541,22 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     const subGroups = getSubGroups(activeGroup);
     const q = searchQuery.toLowerCase();
     const searchFiltered = q
-      ? groupExercises.filter(ex => {
-          const translated = t.exerciseNames[ex.name] || ex.name;
-          return ex.name.toLowerCase().includes(q) || translated.toLowerCase().includes(q);
-        })
+      ? groupExercises
+          .filter(ex => {
+            const translated = t.exerciseNames[ex.name] || ex.name;
+            return ex.name.toLowerCase().includes(q) || translated.toLowerCase().includes(q);
+          })
+          .sort((a, b) => {
+            const aName = (t.exerciseNames[a.name] || a.name).toLowerCase();
+            const bName = (t.exerciseNames[b.name] || b.name).toLowerCase();
+            const aStarts = aName.startsWith(q) || a.name.toLowerCase().startsWith(q);
+            const bStarts = bName.startsWith(q) || b.name.toLowerCase().startsWith(q);
+            if (aStarts && !bStarts) return -1;
+            if (!aStarts && bStarts) return 1;
+            const aIdx = Math.min(aName.indexOf(q), a.name.toLowerCase().indexOf(q) >= 0 ? a.name.toLowerCase().indexOf(q) : 999);
+            const bIdx = Math.min(bName.indexOf(q), b.name.toLowerCase().indexOf(q) >= 0 ? b.name.toLowerCase().indexOf(q) : 999);
+            return aIdx - bIdx;
+          })
       : groupExercises;
     const filteredExercises = activeSubGroup
       ? searchFiltered.filter(e => e.subGroup === activeSubGroup)
