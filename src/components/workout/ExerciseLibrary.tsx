@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 
 import { supabase } from "@/integrations/supabase/client";
-import { MUSCLE_GROUPS, EXERCISES, getExercisesByGroup, type MuscleGroup, type Exercise } from "@/data/exerciseLibrary";
+import { MUSCLE_GROUPS, type MuscleGroup } from "@/data/exerciseLibrary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
