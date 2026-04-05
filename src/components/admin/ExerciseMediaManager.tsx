@@ -110,6 +110,39 @@ const ExerciseMediaManager = () => {
     }
   };
 
+  const handleAddExercise = async () => {
+    if (!newName.trim() || !newGroup) return;
+    setAddingExercise(true);
+    try {
+      const normalized = newName.toLowerCase().replace(/[^a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9 ]/g, "").replace(/\s+/g, " ").trim();
+      const { data, error } = await supabase
+        .from("exercises")
+        .insert({
+          name: newName.trim(),
+          muscle_group: newGroup,
+          normalized_name: normalized,
+          equipment: newEquipment.trim() || null,
+          difficulty: newDifficulty || null,
+        } as any)
+        .select("id, name, muscle_group, gif_url, is_deprecated")
+        .single();
+
+      if (error) throw error;
+
+      setExercises(prev => [...prev, data as any]);
+      toast({ title: "Вправу додано ✅" });
+      setAddOpen(false);
+      setNewName("");
+      setNewGroup("");
+      setNewEquipment("");
+      setNewDifficulty("");
+    } catch (err: any) {
+      toast({ title: "Помилка", description: err.message, variant: "destructive" });
+    } finally {
+      setAddingExercise(false);
+    }
+  };
+
   const q = search.toLowerCase();
   const filtered = exercises.filter(e => {
     if (q && !e.name.toLowerCase().includes(q)) return false;
