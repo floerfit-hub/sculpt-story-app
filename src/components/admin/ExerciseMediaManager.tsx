@@ -25,6 +25,8 @@ const getFullGifUrl = (gifUrl: string | null): string | null => {
   return `${SUPABASE_URL}/storage/v1/object/public/exercise-gifs/${gifUrl}`;
 };
 
+const MUSCLE_GROUPS_DB = ["Ноги", "Спина", "Грудні", "Плечі", "Біцепс", "Трицепс", "Передпліччя", "Кор"];
+
 const ExerciseMediaManager = () => {
   const { toast } = useToast();
   const [exercises, setExercises] = useState<DbExercise[]>([]);
@@ -35,6 +37,14 @@ const ExerciseMediaManager = () => {
   const [urlInput, setUrlInput] = useState<{ id: string; value: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [targetExerciseId, setTargetExerciseId] = useState<string | null>(null);
+
+  // Add exercise dialog
+  const [addOpen, setAddOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newGroup, setNewGroup] = useState("");
+  const [newEquipment, setNewEquipment] = useState("");
+  const [newDifficulty, setNewDifficulty] = useState("");
+  const [addingExercise, setAddingExercise] = useState(false);
 
   const fetchExercises = async () => {
     setLoading(true);
