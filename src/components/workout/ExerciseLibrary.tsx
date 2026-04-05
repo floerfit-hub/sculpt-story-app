@@ -43,8 +43,15 @@ interface DbExercise {
   equipment?: string | null;
   is_deprecated?: boolean;
   animation_url?: string | null;
+  gif_url?: string | null;
   name_en?: string | null;
 }
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const getGifUrl = (gifUrl: string | null | undefined): string | null => {
+  if (!gifUrl) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/exercise-gifs/${gifUrl}`;
+};
 
 const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const { t, lang } = useTranslation();
