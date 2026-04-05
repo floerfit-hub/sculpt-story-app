@@ -798,6 +798,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                   const aIdx = a.exercise_name.toLowerCase().indexOf(q);
                   const bIdx = b.exercise_name.toLowerCase().indexOf(q);
                   return aIdx - bIdx;
+                });
               if (results.length === 0 && customResults.length === 0) {
                 return <p className="py-8 text-center text-muted-foreground">{t.workouts.noExercises}</p>;
               }
