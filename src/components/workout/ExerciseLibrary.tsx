@@ -625,15 +625,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      {ex.dbId && !ex.animationUrl && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => {
-                          e.stopPropagation();
-                          setShowSyncInput(showSyncInput === ex.dbId ? null : ex.dbId!);
-                          setSyncSearchName(ex.nameEn || "");
-                        }}>
-                          <RefreshCw className={`h-3.5 w-3.5 text-muted-foreground ${isSyncing ? "animate-spin" : ""}`} />
-                        </Button>
-                      )}
                       {override && (
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); deleteOverrideImage(ex.name); }}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -643,19 +634,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                     </div>
                   </CardContent>
                 </Card>
-                {showSyncInput === ex.dbId && (
-                  <div className="flex gap-2 px-2">
-                    <Input
-                      placeholder="English name (e.g. barbell squat)"
-                      value={syncSearchName}
-                      onChange={(e) => setSyncSearchName(e.target.value)}
-                      className="h-9 text-xs"
-                    />
-                    <Button size="sm" className="h-9 shrink-0" disabled={isSyncing} onClick={() => syncAnimation(ex.dbId!, syncSearchName)}>
-                      {isSyncing ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : (lang === "uk" ? "Синхр." : "Sync")}
-                    </Button>
-                  </div>
-                )}
               </div>
             );
           })}
