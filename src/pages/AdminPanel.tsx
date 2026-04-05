@@ -248,28 +248,29 @@ const AdminPanel = () => {
           <h1 className="text-2xl font-display font-bold">{t.admin.title}</h1>
           <p className="text-sm text-muted-foreground">{t.admin.subtitle}</p>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExportUsers}>
-            <Download className="h-3.5 w-3.5 mr-1" />
-            Export CSV
-          </Button>
-          <Badge variant="secondary" className="text-sm">
-            <Users className="h-3.5 w-3.5 mr-1" />
-            {clients.length}
-          </Badge>
-        </div>
       </div>
 
-      {/* Search bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder={t.admin.searchUsers || "Пошук за ім'ям..."}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-        />
-      </div>
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="w-full">
+          <TabsTrigger value="users" className="flex-1 gap-1">
+            <Users className="h-3.5 w-3.5" /> Користувачі
+          </TabsTrigger>
+          <TabsTrigger value="exercises" className="flex-1 gap-1">
+            <Film className="h-3.5 w-3.5" /> Медіа вправ
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users" className="space-y-4 mt-4">
+          <div className="flex items-center gap-2 justify-end">
+            <Button variant="outline" size="sm" onClick={handleExportUsers}>
+              <Download className="h-3.5 w-3.5 mr-1" />
+              Export CSV
+            </Button>
+            <Badge variant="secondary" className="text-sm">
+              <Users className="h-3.5 w-3.5 mr-1" />
+              {clients.length}
+            </Badge>
+          </div>
 
       {clients.filter((c) => !searchQuery || (c.profile.full_name || "").toLowerCase().includes(searchQuery.toLowerCase())).map((client) => {
         const isExpanded = expanded === client.profile.id;
