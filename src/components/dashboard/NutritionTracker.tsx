@@ -531,6 +531,16 @@ const NutritionTracker = () => {
               )}
             </div>
 
+            {/* Coach advice in pending scan */}
+            {pendingScan.coach_advice && (
+              <div className="rounded-lg bg-primary/5 border border-primary/10 p-2.5 animate-fade-in">
+                <p className="text-xs text-muted-foreground flex items-start gap-2">
+                  <Sparkles className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                  <span>{pendingScan.coach_advice}</span>
+                </p>
+              </div>
+            )}
+
             {/* Meal type + confirm */}
             <div className="flex items-center gap-2">
               <Select value={selectedMealType} onValueChange={setSelectedMealType}>
