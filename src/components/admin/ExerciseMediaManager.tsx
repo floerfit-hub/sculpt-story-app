@@ -323,6 +323,57 @@ const ExerciseMediaManager = () => {
           if (e.target) e.target.value = "";
         }}
       />
+
+      {/* Add Exercise Dialog */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Додати нову вправу</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Назва вправи"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+            <Select value={newGroup} onValueChange={setNewGroup}>
+              <SelectTrigger>
+                <SelectValue placeholder="Група м'язів" />
+              </SelectTrigger>
+              <SelectContent>
+                {MUSCLE_GROUPS_DB.map(g => (
+                  <SelectItem key={g} value={g}>{g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Обладнання (необов'язково)"
+              value={newEquipment}
+              onChange={(e) => setNewEquipment(e.target.value)}
+            />
+            <Select value={newDifficulty} onValueChange={setNewDifficulty}>
+              <SelectTrigger>
+                <SelectValue placeholder="Рівень складності (необов'язково)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Початківець">Початківець</SelectItem>
+                <SelectItem value="Середній">Середній</SelectItem>
+                <SelectItem value="Просунутий">Просунутий</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>Скасувати</Button>
+            <Button
+              disabled={!newName.trim() || !newGroup || addingExercise}
+              onClick={handleAddExercise}
+            >
+              {addingExercise ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
+              Додати
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
