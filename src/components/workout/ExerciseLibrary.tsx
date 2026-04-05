@@ -773,14 +773,32 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                   }
                 });
               });
-              const customResults = customExercises.filter(ce => ce.exercise_name.toLowerCase().includes(q));
-              if (results.length === 0 && customResults.length === 0) {
-                return <p className="py-8 text-center text-muted-foreground">{t.workouts.noExercises}</p>;
-              }
-              return (
-                <>
-                  {/* Custom exercises shown FIRST */}
-                  {customResults.map(ex => renderCustomExerciseCard(ex, true))}
+              // Sort by word position priority
+              results.sort((a, b) => {
+                const aName = (t.exerciseNames[a.name] || a.name).toLowerCase();
+                const bName = (t.exerciseNames[b.name] || b.name).toLowerCase();
+                const aStarts = aName.startsWith(q) || a.name.toLowerCase().startsWith(q);
+                const bStarts = bName.startsWith(q) || b.name.toLowerCase().startsWith(q);
+                if (aStarts && !bStarts) return -1;
+                if (!aStarts && bStarts) return 1;
+                const aIdx = Math.min(
+                  aName.indexOf(q) >= 0 ? aName.indexOf(q) : 999,
+                  a.name.toLowerCase().indexOf(q) >= 0 ? a.name.toLowerCase().indexOf(q) : 999
+                );
+                const bIdx = Math.min(
+                  bName.indexOf(q) >= 0 ? bName.indexOf(q) : 999,
+                  b.name.toLowerCase().indexOf(q) >= 0 ? b.name.toLowerCase().indexOf(q) : 999
+                );
+                return aIdx - bIdx;
+              });
+              // Sort custom exercises by priority too
+              const customResults = customExercises
+                .filter(ce => ce.exercise_name.toLowerCase().includes(q))
+                .sort((a, b) => {
+                  const aIdx = a.exercise_name.toLowerCase().indexOf(q);
+                  const bIdx = b.exercise_name.toLowerCase().indexOf(q);
+                  return aIdx - bIdx;
+                });
                   {results.map(ex => {
                     const override = overrideImages[ex.name];
                     const img = ex.animationUrl || override || EXERCISE_IMAGES[ex.name];
