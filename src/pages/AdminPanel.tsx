@@ -577,6 +577,12 @@ const AdminPanel = () => {
           </Card>
         );
       })}
+        </TabsContent>
+
+        <TabsContent value="exercises" className="mt-4">
+          <ExerciseMediaManager />
+        </TabsContent>
+      </Tabs>
 
       {/* Role Management Dialog */}
       <Dialog open={!!roleDialog} onOpenChange={() => { setRoleDialog(null); setNewRole(""); }}>
