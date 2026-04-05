@@ -164,8 +164,8 @@ const ExerciseMediaManager = () => {
 
   return (
     <div className="space-y-4">
-      {/* Stats */}
-      <div className="flex gap-2 flex-wrap">
+      {/* Stats + Add button */}
+      <div className="flex gap-2 flex-wrap items-center">
         <Badge variant="secondary" className="text-xs">
           Всього: {exercises.length}
         </Badge>
@@ -175,6 +175,9 @@ const ExerciseMediaManager = () => {
         <Badge className="bg-orange-500/20 text-orange-600 border-orange-500/30 text-xs">
           Без медіа: {withoutMedia}
         </Badge>
+        <Button size="sm" className="ml-auto h-8 text-xs" onClick={() => setAddOpen(true)}>
+          <Plus className="h-3.5 w-3.5 mr-1" /> Додати вправу
+        </Button>
       </div>
 
       {/* Search */}
