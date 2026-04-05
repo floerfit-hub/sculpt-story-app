@@ -106,6 +106,7 @@ export type Database = {
           difficulty: string | null
           equipment: string | null
           exercise_type: string | null
+          gif_url: string | null
           id: string
           is_deprecated: boolean
           muscle_group: string
@@ -123,6 +124,7 @@ export type Database = {
           difficulty?: string | null
           equipment?: string | null
           exercise_type?: string | null
+          gif_url?: string | null
           id?: string
           is_deprecated?: boolean
           muscle_group: string
@@ -140,6 +142,7 @@ export type Database = {
           difficulty?: string | null
           equipment?: string | null
           exercise_type?: string | null
+          gif_url?: string | null
           id?: string
           is_deprecated?: boolean
           muscle_group?: string
