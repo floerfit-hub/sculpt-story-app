@@ -328,32 +328,17 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           maxLength={100}
-          autoFocus
         />
-        {!presetGroup && (
-          <Select value={newGroup} onValueChange={(v) => setNewGroup(v as MuscleGroup)}>
-            <SelectTrigger>
-              <SelectValue placeholder={t.workouts.selectMuscleGroup} />
-            </SelectTrigger>
-            <SelectContent>
-              {MUSCLE_GROUPS.map((g) => (
-                <SelectItem key={g} value={g}>{getGroupLabel(g)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        {presetGroup && (
-          <Select value={newGroup} onValueChange={(v) => setNewGroup(v as MuscleGroup)}>
-            <SelectTrigger>
-              <SelectValue placeholder={t.workouts.selectMuscleGroup} />
-            </SelectTrigger>
-            <SelectContent>
-              {MUSCLE_GROUPS.map((g) => (
-                <SelectItem key={g} value={g}>{getGroupLabel(g)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <Select value={newGroup} onValueChange={(v) => setNewGroup(v as MuscleGroup)}>
+          <SelectTrigger>
+            <SelectValue placeholder={t.workouts.selectMuscleGroup} />
+          </SelectTrigger>
+          <SelectContent>
+            {MUSCLE_GROUPS.map((g) => (
+              <SelectItem key={g} value={g}>{getGroupLabel(g)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {/* Photo upload */}
         <div className="flex items-center gap-3">
           <button
