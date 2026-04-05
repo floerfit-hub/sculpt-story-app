@@ -596,7 +596,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           {filteredExercises.map((ex) => {
             const override = overrideImages[ex.name];
             const img = ex.animationUrl || override || EXERCISE_IMAGES[ex.name];
-            const isSyncing = syncingExerciseId === ex.dbId;
+            
             return (
               <div key={ex.name} className="space-y-1">
                 <Card className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform overflow-hidden`}>
