@@ -272,6 +272,17 @@ const AdminPanel = () => {
             </Badge>
           </div>
 
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t.admin.searchUsers || "Пошук за ім'ям..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+
       {clients.filter((c) => !searchQuery || (c.profile.full_name || "").toLowerCase().includes(searchQuery.toLowerCase())).map((client) => {
         const isExpanded = expanded === client.profile.id;
         const latestEntry = client.entries[0];
