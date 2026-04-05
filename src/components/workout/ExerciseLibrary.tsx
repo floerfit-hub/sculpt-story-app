@@ -4,12 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 
 import { supabase } from "@/integrations/supabase/client";
-import { MUSCLE_GROUPS, EXERCISES, getExercisesByGroup, type MuscleGroup, type Exercise } from "@/data/exerciseLibrary";
+import { MUSCLE_GROUPS, type MuscleGroup } from "@/data/exerciseLibrary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ChevronRight, Plus, Trash2, Pencil, Check, X, Camera, RefreshCw, Search } from "lucide-react";
+import { ArrowLeft, ChevronRight, Plus, Trash2, Pencil, Check, X, Camera, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EXERCISE_IMAGES } from "@/data/exerciseImages";
 
@@ -43,8 +43,15 @@ interface DbExercise {
   equipment?: string | null;
   is_deprecated?: boolean;
   animation_url?: string | null;
+  gif_url?: string | null;
   name_en?: string | null;
 }
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const getGifUrl = (gifUrl: string | null | undefined): string | null => {
+  if (!gifUrl) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/exercise-gifs/${gifUrl}`;
+};
 
 const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const { t, lang } = useTranslation();
@@ -74,16 +81,13 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const [overrideImages, setOverrideImages] = useState<Record<string, string>>(() => {
     try { return JSON.parse(localStorage.getItem("exercise-photo-overrides") || "{}"); } catch { return {}; }
   });
-  const [syncingExerciseId, setSyncingExerciseId] = useState<string | null>(null);
-  const [syncSearchName, setSyncSearchName] = useState("");
-  const [showSyncInput, setShowSyncInput] = useState<string | null>(null);
 
   // Fetch exercises from DB
   useEffect(() => {
     const loadDbExercises = async () => {
       const { data } = await supabase
         .from("exercises")
-        .select("id, name, muscle_group, sub_group, equipment, is_deprecated, animation_url, name_en" as any)
+        .select("id, name, muscle_group, sub_group, equipment, is_deprecated, animation_url, gif_url, name_en" as any)
         .order("name");
       if (data) setDbExercises(data as any);
     };
@@ -100,14 +104,18 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     "Core": ["Кор"],
   };
 
-  // Get exercises for a group — prefer DB, fallback to static
+  // Get exercises for a group from DB only
   const getGroupExercises = (group: MuscleGroup): { name: string; muscleGroup: string; subGroup?: string | null; dbId?: string; animationUrl?: string | null; nameEn?: string | null }[] => {
     const dbGroups = DB_GROUP_MAP[group];
     const fromDb = dbExercises.filter(e => dbGroups.includes(e.muscle_group) && !e.is_deprecated);
-    if (fromDb.length > 0) {
-      return fromDb.map(e => ({ name: e.name, muscleGroup: e.muscle_group, subGroup: e.sub_group, dbId: e.id, animationUrl: e.animation_url, nameEn: e.name_en }));
-    }
-    return getExercisesByGroup(group).map(e => ({ name: e.name, muscleGroup: e.muscleGroup, subGroup: undefined }));
+    return fromDb.map(e => ({
+      name: e.name,
+      muscleGroup: e.muscle_group,
+      subGroup: e.sub_group,
+      dbId: e.id,
+      animationUrl: getGifUrl(e.gif_url) || e.animation_url,
+      nameEn: e.name_en,
+    }));
   };
 
   // Get unique sub-groups for a muscle group
@@ -161,34 +169,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
       return next;
     });
     toast({ title: lang === "uk" ? "Фото видалено" : "Photo deleted" });
-  };
-  const syncAnimation = async (exerciseId: string, searchName: string) => {
-    if (!searchName.trim()) {
-      toast({ title: lang === "uk" ? "Введіть назву англійською" : "Enter English name", variant: "destructive" });
-      return;
-    }
-    setSyncingExerciseId(exerciseId);
-    try {
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const res = await fetch(`https://${projectId}.supabase.co/functions/v1/sync-exercise-animation`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exercise_id: exerciseId, search_name: searchName.trim() }),
-      });
-      const result = await res.json();
-      if (!res.ok) {
-        toast({ title: lang === "uk" ? "Помилка синхронізації" : "Sync error", description: result.error, variant: "destructive" });
-      } else {
-        toast({ title: lang === "uk" ? "Анімацію завантажено" : "Animation synced", description: result.matched_name });
-        setDbExercises(prev => prev.map(e => e.id === exerciseId ? { ...e, animation_url: result.animation_url, name_en: searchName.trim() } : e));
-        setShowSyncInput(null);
-        setSyncSearchName("");
-      }
-    } catch (err: any) {
-      toast({ title: lang === "uk" ? "Помилка" : "Error", description: err.message, variant: "destructive" });
-    } finally {
-      setSyncingExerciseId(null);
-    }
   };
 
   useEffect(() => {
@@ -616,7 +596,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           {filteredExercises.map((ex) => {
             const override = overrideImages[ex.name];
             const img = ex.animationUrl || override || EXERCISE_IMAGES[ex.name];
-            const isSyncing = syncingExerciseId === ex.dbId;
+            
             return (
               <div key={ex.name} className="space-y-1">
                 <Card className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform overflow-hidden`}>
@@ -645,15 +625,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      {ex.dbId && !ex.animationUrl && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => {
-                          e.stopPropagation();
-                          setShowSyncInput(showSyncInput === ex.dbId ? null : ex.dbId!);
-                          setSyncSearchName(ex.nameEn || "");
-                        }}>
-                          <RefreshCw className={`h-3.5 w-3.5 text-muted-foreground ${isSyncing ? "animate-spin" : ""}`} />
-                        </Button>
-                      )}
                       {override && (
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); deleteOverrideImage(ex.name); }}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -663,19 +634,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                     </div>
                   </CardContent>
                 </Card>
-                {showSyncInput === ex.dbId && (
-                  <div className="flex gap-2 px-2">
-                    <Input
-                      placeholder="English name (e.g. barbell squat)"
-                      value={syncSearchName}
-                      onChange={(e) => setSyncSearchName(e.target.value)}
-                      className="h-9 text-xs"
-                    />
-                    <Button size="sm" className="h-9 shrink-0" disabled={isSyncing} onClick={() => syncAnimation(ex.dbId!, syncSearchName)}>
-                      {isSyncing ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : (lang === "uk" ? "Синхр." : "Sync")}
-                    </Button>
-                  </div>
-                )}
               </div>
             );
           })}
