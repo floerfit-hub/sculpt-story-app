@@ -81,9 +81,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const [overrideImages, setOverrideImages] = useState<Record<string, string>>(() => {
     try { return JSON.parse(localStorage.getItem("exercise-photo-overrides") || "{}"); } catch { return {}; }
   });
-  const [syncingExerciseId, setSyncingExerciseId] = useState<string | null>(null);
-  const [syncSearchName, setSyncSearchName] = useState("");
-  const [showSyncInput, setShowSyncInput] = useState<string | null>(null);
 
   // Fetch exercises from DB
   useEffect(() => {
