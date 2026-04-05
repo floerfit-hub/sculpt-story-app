@@ -5,7 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Upload, Link, Check, X, Loader2, Film, Image as ImageIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Upload, Link, Check, X, Loader2, Film, Image as ImageIcon, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 interface DbExercise {
   id: string;
@@ -23,6 +25,8 @@ const getFullGifUrl = (gifUrl: string | null): string | null => {
   return `${SUPABASE_URL}/storage/v1/object/public/exercise-gifs/${gifUrl}`;
 };
 
+const MUSCLE_GROUPS_DB = ["Ноги", "Спина", "Грудні", "Плечі", "Біцепс", "Трицепс", "Передпліччя", "Кор"];
+
 const ExerciseMediaManager = () => {
   const { toast } = useToast();
   const [exercises, setExercises] = useState<DbExercise[]>([]);
@@ -33,6 +37,14 @@ const ExerciseMediaManager = () => {
   const [urlInput, setUrlInput] = useState<{ id: string; value: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [targetExerciseId, setTargetExerciseId] = useState<string | null>(null);
+
+  // Add exercise dialog
+  const [addOpen, setAddOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newGroup, setNewGroup] = useState("");
+  const [newEquipment, setNewEquipment] = useState("");
+  const [newDifficulty, setNewDifficulty] = useState("");
+  const [addingExercise, setAddingExercise] = useState(false);
 
   const fetchExercises = async () => {
     setLoading(true);
@@ -98,6 +110,39 @@ const ExerciseMediaManager = () => {
     }
   };
 
+  const handleAddExercise = async () => {
+    if (!newName.trim() || !newGroup) return;
+    setAddingExercise(true);
+    try {
+      const normalized = newName.toLowerCase().replace(/[^a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9 ]/g, "").replace(/\s+/g, " ").trim();
+      const { data, error } = await supabase
+        .from("exercises")
+        .insert({
+          name: newName.trim(),
+          muscle_group: newGroup,
+          normalized_name: normalized,
+          equipment: newEquipment.trim() || null,
+          difficulty: newDifficulty || null,
+        } as any)
+        .select("id, name, muscle_group, gif_url, is_deprecated")
+        .single();
+
+      if (error) throw error;
+
+      setExercises(prev => [...prev, data as any]);
+      toast({ title: "Вправу додано ✅" });
+      setAddOpen(false);
+      setNewName("");
+      setNewGroup("");
+      setNewEquipment("");
+      setNewDifficulty("");
+    } catch (err: any) {
+      toast({ title: "Помилка", description: err.message, variant: "destructive" });
+    } finally {
+      setAddingExercise(false);
+    }
+  };
+
   const q = search.toLowerCase();
   const filtered = exercises.filter(e => {
     if (q && !e.name.toLowerCase().includes(q)) return false;
@@ -119,8 +164,8 @@ const ExerciseMediaManager = () => {
 
   return (
     <div className="space-y-4">
-      {/* Stats */}
-      <div className="flex gap-2 flex-wrap">
+      {/* Stats + Add button */}
+      <div className="flex gap-2 flex-wrap items-center">
         <Badge variant="secondary" className="text-xs">
           Всього: {exercises.length}
         </Badge>
@@ -130,6 +175,9 @@ const ExerciseMediaManager = () => {
         <Badge className="bg-orange-500/20 text-orange-600 border-orange-500/30 text-xs">
           Без медіа: {withoutMedia}
         </Badge>
+        <Button size="sm" className="ml-auto h-8 text-xs" onClick={() => setAddOpen(true)}>
+          <Plus className="h-3.5 w-3.5 mr-1" /> Додати вправу
+        </Button>
       </div>
 
       {/* Search */}
@@ -275,6 +323,57 @@ const ExerciseMediaManager = () => {
           if (e.target) e.target.value = "";
         }}
       />
+
+      {/* Add Exercise Dialog */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Додати нову вправу</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Назва вправи"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+            <Select value={newGroup} onValueChange={setNewGroup}>
+              <SelectTrigger>
+                <SelectValue placeholder="Група м'язів" />
+              </SelectTrigger>
+              <SelectContent>
+                {MUSCLE_GROUPS_DB.map(g => (
+                  <SelectItem key={g} value={g}>{g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Обладнання (необов'язково)"
+              value={newEquipment}
+              onChange={(e) => setNewEquipment(e.target.value)}
+            />
+            <Select value={newDifficulty} onValueChange={setNewDifficulty}>
+              <SelectTrigger>
+                <SelectValue placeholder="Рівень складності (необов'язково)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Початківець">Початківець</SelectItem>
+                <SelectItem value="Середній">Середній</SelectItem>
+                <SelectItem value="Просунутий">Просунутий</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>Скасувати</Button>
+            <Button
+              disabled={!newName.trim() || !newGroup || addingExercise}
+              onClick={handleAddExercise}
+            >
+              {addingExercise ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
+              Додати
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
