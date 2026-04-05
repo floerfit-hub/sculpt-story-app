@@ -19,11 +19,13 @@ import type { Tables } from "@/integrations/supabase/types";
 import { Input } from "@/components/ui/input";
 import {
   Shield, Users, ChevronDown, ChevronUp, Trash2, UserCog,
-  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download, Search, Crown, Loader2,
+  Weight, Ruler, Camera, Dumbbell, TrendingUp, TrendingDown, Download, Search, Crown, Loader2, Film,
 } from "lucide-react";
 import { toCsv, downloadCsv, buildFilename } from "@/lib/csvExport";
 import { exportClientPdf } from "@/lib/pdfExport";
 import { FileText } from "lucide-react";
+import ExerciseMediaManager from "@/components/admin/ExerciseMediaManager";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Profile = Tables<"profiles">;
 type ProgressEntry = Tables<"progress_entries">;
