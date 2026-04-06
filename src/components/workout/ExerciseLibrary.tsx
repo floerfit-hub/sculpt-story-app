@@ -718,6 +718,11 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
+                      {isAdmin && ex.dbId && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); openAdminEdit(ex); }}>
+                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Button>
+                      )}
                       {override && (
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); deleteOverrideImage(ex.name); }}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
