@@ -56,7 +56,7 @@ const getGifUrl = (gifUrl: string | null | undefined): string | null => {
 
 const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const { t, lang } = useTranslation();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { isPremium } = usePremium();
   const { toast } = useToast();
   const [activeGroup, setActiveGroup] = useState<MuscleGroup | "custom" | null>(null);
