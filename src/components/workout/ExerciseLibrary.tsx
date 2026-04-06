@@ -942,6 +942,74 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           </div>
         </>
       )}
+
+      {/* Admin Edit Dialog */}
+      {adminEditDialog && (
+        <Dialog open={!!adminEditDialog} onOpenChange={(open) => !open && setAdminEditDialog(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{lang === "uk" ? "Редагувати вправу" : "Edit Exercise"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Input
+                value={adminEditName}
+                onChange={(e) => setAdminEditName(e.target.value)}
+                placeholder={lang === "uk" ? "Назва вправи" : "Exercise name"}
+              />
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => adminImageRef.current?.click()}
+                  className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-accent/50 overflow-hidden"
+                >
+                  {adminEditImagePreview ? (
+                    <img src={adminEditImagePreview} alt="" className="h-full w-full object-contain" />
+                  ) : (
+                    <Camera className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </button>
+                <div className="flex-1 space-y-1">
+                  <p className="text-xs text-muted-foreground">{lang === "uk" ? "Натисніть щоб замінити фото" : "Click to replace photo"}</p>
+                  {(adminEditDialog.gifUrl || adminEditImagePreview) && (
+                    <Button variant="ghost" size="sm" className="text-destructive text-xs h-7" onClick={adminDeletePhoto} disabled={adminSaving}>
+                      <Trash2 className="h-3 w-3 mr-1" /> {lang === "uk" ? "Видалити фото" : "Delete photo"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <input
+                ref={adminImageRef}
+                type="file"
+                accept="image/gif,video/mp4,video/webm,image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setAdminEditImageFile(file);
+                    const reader = new FileReader();
+                    reader.onload = () => setAdminEditImagePreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                  if (e.target) e.target.value = "";
+                }}
+              />
+            </div>
+            <DialogFooter className="flex-col gap-2 sm:flex-col">
+              <div className="flex gap-2 w-full">
+                <Button variant="outline" className="flex-1" onClick={() => setAdminEditDialog(null)}>
+                  {lang === "uk" ? "Скасувати" : "Cancel"}
+                </Button>
+                <Button className="flex-1" onClick={saveAdminEdit} disabled={adminSaving || !adminEditName.trim()}>
+                  <Check className="h-4 w-4 mr-1" /> {lang === "uk" ? "Зберегти" : "Save"}
+                </Button>
+              </div>
+              <Button variant="destructive" className="w-full" onClick={adminDeleteExercise} disabled={adminSaving}>
+                <Trash2 className="h-4 w-4 mr-1" /> {lang === "uk" ? "Видалити вправу" : "Delete Exercise"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
