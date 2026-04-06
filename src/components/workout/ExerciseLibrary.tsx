@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 import { supabase } from "@/integrations/supabase/client";
 import { MUSCLE_GROUPS, type MuscleGroup } from "@/data/exerciseLibrary";
@@ -55,7 +56,7 @@ const getGifUrl = (gifUrl: string | null | undefined): string | null => {
 
 const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const { t, lang } = useTranslation();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { isPremium } = usePremium();
   const { toast } = useToast();
   const [activeGroup, setActiveGroup] = useState<MuscleGroup | "custom" | null>(null);
@@ -81,6 +82,98 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const [overrideImages, setOverrideImages] = useState<Record<string, string>>(() => {
     try { return JSON.parse(localStorage.getItem("exercise-photo-overrides") || "{}"); } catch { return {}; }
   });
+
+  // Admin edit state for global exercises
+  const [adminEditDialog, setAdminEditDialog] = useState<{ id: string; name: string; gifUrl: string | null } | null>(null);
+  const [adminEditName, setAdminEditName] = useState("");
+  const [adminEditImageFile, setAdminEditImageFile] = useState<File | null>(null);
+  const [adminEditImagePreview, setAdminEditImagePreview] = useState<string | null>(null);
+  const [adminSaving, setAdminSaving] = useState(false);
+  const adminImageRef = useRef<HTMLInputElement>(null);
+
+  const openAdminEdit = (ex: { dbId?: string; name: string; animationUrl?: string | null }) => {
+    if (!ex.dbId) return;
+    const dbEx = dbExercises.find(d => d.id === ex.dbId);
+    setAdminEditDialog({ id: ex.dbId, name: ex.name, gifUrl: dbEx?.gif_url || null });
+    setAdminEditName(ex.name);
+    setAdminEditImagePreview(ex.animationUrl || null);
+    setAdminEditImageFile(null);
+  };
+
+  const saveAdminEdit = async () => {
+    if (!adminEditDialog || !adminEditName.trim()) return;
+    setAdminSaving(true);
+    try {
+      const updateData: any = { name: adminEditName.trim() };
+
+      if (adminEditImageFile) {
+        // Delete old file from storage if it exists
+        if (adminEditDialog.gifUrl && !adminEditDialog.gifUrl.startsWith("http")) {
+          await supabase.storage.from("exercise-gifs").remove([adminEditDialog.gifUrl]);
+        }
+        // Upload new file
+        const ext = adminEditImageFile.name.split(".").pop()?.toLowerCase() || "gif";
+        const fileName = `${adminEditDialog.id}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("exercise-gifs")
+          .upload(fileName, adminEditImageFile, { upsert: true, contentType: adminEditImageFile.type });
+        if (uploadError) throw uploadError;
+        updateData.gif_url = fileName;
+      }
+
+      const { error } = await supabase.from("exercises").update(updateData).eq("id", adminEditDialog.id);
+      if (error) throw error;
+
+      setDbExercises(prev => prev.map(e => e.id === adminEditDialog.id ? { ...e, name: adminEditName.trim(), gif_url: updateData.gif_url ?? e.gif_url } : e));
+      toast({ title: lang === "uk" ? "Вправу оновлено ✅" : "Exercise updated ✅" });
+      setAdminEditDialog(null);
+    } catch (err: any) {
+      toast({ title: lang === "uk" ? "Помилка" : "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setAdminSaving(false);
+    }
+  };
+
+  const adminDeletePhoto = async () => {
+    if (!adminEditDialog) return;
+    setAdminSaving(true);
+    try {
+      if (adminEditDialog.gifUrl && !adminEditDialog.gifUrl.startsWith("http")) {
+        await supabase.storage.from("exercise-gifs").remove([adminEditDialog.gifUrl]);
+      }
+      const { error } = await supabase.from("exercises").update({ gif_url: null } as any).eq("id", adminEditDialog.id);
+      if (error) throw error;
+      setDbExercises(prev => prev.map(e => e.id === adminEditDialog.id ? { ...e, gif_url: null } : e));
+      setAdminEditImagePreview(null);
+      setAdminEditDialog(prev => prev ? { ...prev, gifUrl: null } : null);
+      toast({ title: lang === "uk" ? "Фото видалено ✅" : "Photo deleted ✅" });
+    } catch (err: any) {
+      toast({ title: lang === "uk" ? "Помилка" : "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setAdminSaving(false);
+    }
+  };
+
+  const adminDeleteExercise = async () => {
+    if (!adminEditDialog) return;
+    setAdminSaving(true);
+    try {
+      // Delete photo from storage
+      if (adminEditDialog.gifUrl && !adminEditDialog.gifUrl.startsWith("http")) {
+        await supabase.storage.from("exercise-gifs").remove([adminEditDialog.gifUrl]);
+      }
+      // Mark as deprecated instead of hard delete to preserve history
+      const { error } = await supabase.from("exercises").update({ is_deprecated: true } as any).eq("id", adminEditDialog.id);
+      if (error) throw error;
+      setDbExercises(prev => prev.filter(e => e.id !== adminEditDialog.id));
+      toast({ title: lang === "uk" ? "Вправу видалено ✅" : "Exercise deleted ✅" });
+      setAdminEditDialog(null);
+    } catch (err: any) {
+      toast({ title: lang === "uk" ? "Помилка" : "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setAdminSaving(false);
+    }
+  };
 
   // Fetch exercises from DB
   useEffect(() => {
@@ -625,6 +718,11 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
+                      {isAdmin && ex.dbId && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); openAdminEdit(ex); }}>
+                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Button>
+                      )}
                       {override && (
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); deleteOverrideImage(ex.name); }}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -778,7 +876,14 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                             <span className="font-medium">{t.exerciseNames[ex.name] || ex.name}</span>
                             <p className="text-xs text-muted-foreground">{ex.muscleGroup}{ex.subGroup ? ` · ${ex.subGroup}` : ""}</p>
                           </div>
-                          {selectable && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                          <div className="flex items-center gap-1 shrink-0">
+                            {isAdmin && ex.dbId && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); openAdminEdit(ex); }}>
+                                <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                              </Button>
+                            )}
+                            {selectable && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                          </div>
                         </CardContent>
                       </Card>
                     );
@@ -836,6 +941,74 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             </Card>
           </div>
         </>
+      )}
+
+      {/* Admin Edit Dialog */}
+      {adminEditDialog && (
+        <Dialog open={!!adminEditDialog} onOpenChange={(open) => !open && setAdminEditDialog(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{lang === "uk" ? "Редагувати вправу" : "Edit Exercise"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Input
+                value={adminEditName}
+                onChange={(e) => setAdminEditName(e.target.value)}
+                placeholder={lang === "uk" ? "Назва вправи" : "Exercise name"}
+              />
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => adminImageRef.current?.click()}
+                  className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-accent/50 overflow-hidden"
+                >
+                  {adminEditImagePreview ? (
+                    <img src={adminEditImagePreview} alt="" className="h-full w-full object-contain" />
+                  ) : (
+                    <Camera className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </button>
+                <div className="flex-1 space-y-1">
+                  <p className="text-xs text-muted-foreground">{lang === "uk" ? "Натисніть щоб замінити фото" : "Click to replace photo"}</p>
+                  {(adminEditDialog.gifUrl || adminEditImagePreview) && (
+                    <Button variant="ghost" size="sm" className="text-destructive text-xs h-7" onClick={adminDeletePhoto} disabled={adminSaving}>
+                      <Trash2 className="h-3 w-3 mr-1" /> {lang === "uk" ? "Видалити фото" : "Delete photo"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <input
+                ref={adminImageRef}
+                type="file"
+                accept="image/gif,video/mp4,video/webm,image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setAdminEditImageFile(file);
+                    const reader = new FileReader();
+                    reader.onload = () => setAdminEditImagePreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                  if (e.target) e.target.value = "";
+                }}
+              />
+            </div>
+            <DialogFooter className="flex-col gap-2 sm:flex-col">
+              <div className="flex gap-2 w-full">
+                <Button variant="outline" className="flex-1" onClick={() => setAdminEditDialog(null)}>
+                  {lang === "uk" ? "Скасувати" : "Cancel"}
+                </Button>
+                <Button className="flex-1" onClick={saveAdminEdit} disabled={adminSaving || !adminEditName.trim()}>
+                  <Check className="h-4 w-4 mr-1" /> {lang === "uk" ? "Зберегти" : "Save"}
+                </Button>
+              </div>
+              <Button variant="destructive" className="w-full" onClick={adminDeleteExercise} disabled={adminSaving}>
+                <Trash2 className="h-4 w-4 mr-1" /> {lang === "uk" ? "Видалити вправу" : "Delete Exercise"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
