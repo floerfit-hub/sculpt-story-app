@@ -876,7 +876,14 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                             <span className="font-medium">{t.exerciseNames[ex.name] || ex.name}</span>
                             <p className="text-xs text-muted-foreground">{ex.muscleGroup}{ex.subGroup ? ` · ${ex.subGroup}` : ""}</p>
                           </div>
-                          {selectable && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                          <div className="flex items-center gap-1 shrink-0">
+                            {isAdmin && ex.dbId && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); openAdminEdit(ex); }}>
+                                <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                              </Button>
+                            )}
+                            {selectable && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                          </div>
                         </CardContent>
                       </Card>
                     );
