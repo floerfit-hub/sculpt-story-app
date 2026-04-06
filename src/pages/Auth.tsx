@@ -133,22 +133,7 @@ const Auth = () => {
             <div className="mt-4 text-center">
               <button
                 type="button"
-                onClick={async () => {
-                  if (!email) {
-                    toast({ title: t.common.error, description: t.auth.enterEmailForReset, variant: "destructive" });
-                    return;
-                  }
-                  setLoading(true);
-                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin,
-                  });
-                  setLoading(false);
-                  if (error) {
-                    toast({ title: t.common.error, description: error.message, variant: "destructive" });
-                  } else {
-                    toast({ title: t.auth.checkEmail, description: t.auth.resetPasswordSent });
-                  }
-                }}
+                onClick={() => navigate("/forgot-password")}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
               >
                 {t.auth.forgotPassword}

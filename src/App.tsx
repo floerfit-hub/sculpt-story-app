@@ -86,6 +86,8 @@ const App = () => (
                 <Route path="/landing" element={<LandingRoute />} />
                 <Route path="/onboarding" element={<OnboardingRoute />} />
                 <Route path="/auth" element={<AuthRoute />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/add-entry" element={<ProtectedRoute><AddEntry /></ProtectedRoute>} />
                 <Route path="/nutrition" element={<ProtectedRoute><Nutrition /></ProtectedRoute>} />
