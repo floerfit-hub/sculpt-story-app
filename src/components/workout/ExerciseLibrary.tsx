@@ -83,6 +83,98 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     try { return JSON.parse(localStorage.getItem("exercise-photo-overrides") || "{}"); } catch { return {}; }
   });
 
+  // Admin edit state for global exercises
+  const [adminEditDialog, setAdminEditDialog] = useState<{ id: string; name: string; gifUrl: string | null } | null>(null);
+  const [adminEditName, setAdminEditName] = useState("");
+  const [adminEditImageFile, setAdminEditImageFile] = useState<File | null>(null);
+  const [adminEditImagePreview, setAdminEditImagePreview] = useState<string | null>(null);
+  const [adminSaving, setAdminSaving] = useState(false);
+  const adminImageRef = useRef<HTMLInputElement>(null);
+
+  const openAdminEdit = (ex: { dbId?: string; name: string; animationUrl?: string | null }) => {
+    if (!ex.dbId) return;
+    const dbEx = dbExercises.find(d => d.id === ex.dbId);
+    setAdminEditDialog({ id: ex.dbId, name: ex.name, gifUrl: dbEx?.gif_url || null });
+    setAdminEditName(ex.name);
+    setAdminEditImagePreview(ex.animationUrl || null);
+    setAdminEditImageFile(null);
+  };
+
+  const saveAdminEdit = async () => {
+    if (!adminEditDialog || !adminEditName.trim()) return;
+    setAdminSaving(true);
+    try {
+      const updateData: any = { name: adminEditName.trim() };
+
+      if (adminEditImageFile) {
+        // Delete old file from storage if it exists
+        if (adminEditDialog.gifUrl && !adminEditDialog.gifUrl.startsWith("http")) {
+          await supabase.storage.from("exercise-gifs").remove([adminEditDialog.gifUrl]);
+        }
+        // Upload new file
+        const ext = adminEditImageFile.name.split(".").pop()?.toLowerCase() || "gif";
+        const fileName = `${adminEditDialog.id}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("exercise-gifs")
+          .upload(fileName, adminEditImageFile, { upsert: true, contentType: adminEditImageFile.type });
+        if (uploadError) throw uploadError;
+        updateData.gif_url = fileName;
+      }
+
+      const { error } = await supabase.from("exercises").update(updateData).eq("id", adminEditDialog.id);
+      if (error) throw error;
+
+      setDbExercises(prev => prev.map(e => e.id === adminEditDialog.id ? { ...e, name: adminEditName.trim(), gif_url: updateData.gif_url ?? e.gif_url } : e));
+      toast({ title: lang === "uk" ? "Вправу оновлено ✅" : "Exercise updated ✅" });
+      setAdminEditDialog(null);
+    } catch (err: any) {
+      toast({ title: lang === "uk" ? "Помилка" : "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setAdminSaving(false);
+    }
+  };
+
+  const adminDeletePhoto = async () => {
+    if (!adminEditDialog) return;
+    setAdminSaving(true);
+    try {
+      if (adminEditDialog.gifUrl && !adminEditDialog.gifUrl.startsWith("http")) {
+        await supabase.storage.from("exercise-gifs").remove([adminEditDialog.gifUrl]);
+      }
+      const { error } = await supabase.from("exercises").update({ gif_url: null } as any).eq("id", adminEditDialog.id);
+      if (error) throw error;
+      setDbExercises(prev => prev.map(e => e.id === adminEditDialog.id ? { ...e, gif_url: null } : e));
+      setAdminEditImagePreview(null);
+      setAdminEditDialog(prev => prev ? { ...prev, gifUrl: null } : null);
+      toast({ title: lang === "uk" ? "Фото видалено ✅" : "Photo deleted ✅" });
+    } catch (err: any) {
+      toast({ title: lang === "uk" ? "Помилка" : "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setAdminSaving(false);
+    }
+  };
+
+  const adminDeleteExercise = async () => {
+    if (!adminEditDialog) return;
+    setAdminSaving(true);
+    try {
+      // Delete photo from storage
+      if (adminEditDialog.gifUrl && !adminEditDialog.gifUrl.startsWith("http")) {
+        await supabase.storage.from("exercise-gifs").remove([adminEditDialog.gifUrl]);
+      }
+      // Mark as deprecated instead of hard delete to preserve history
+      const { error } = await supabase.from("exercises").update({ is_deprecated: true } as any).eq("id", adminEditDialog.id);
+      if (error) throw error;
+      setDbExercises(prev => prev.filter(e => e.id !== adminEditDialog.id));
+      toast({ title: lang === "uk" ? "Вправу видалено ✅" : "Exercise deleted ✅" });
+      setAdminEditDialog(null);
+    } catch (err: any) {
+      toast({ title: lang === "uk" ? "Помилка" : "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setAdminSaving(false);
+    }
+  };
+
   // Fetch exercises from DB
   useEffect(() => {
     const loadDbExercises = async () => {
