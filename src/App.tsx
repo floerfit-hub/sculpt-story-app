@@ -30,6 +30,8 @@ import WelcomePro from "@/pages/WelcomePro";
 import Contact from "@/pages/Contact";
 import Index from "@/pages/Index";
 import Onboarding from "@/pages/Onboarding";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
