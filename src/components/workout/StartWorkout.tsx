@@ -127,7 +127,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   });
   const [showLibrary, setShowLibrary] = useState(false);
 
-  const [showTimer, setShowTimer] = useState(false);
+  const [timerExIdx, setTimerExIdx] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [finalDuration, setFinalDuration] = useState<number>(0);
@@ -721,7 +721,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                 <span className="text-sm font-display font-semibold tabular-nums text-foreground">{formatTime(elapsed)}</span>
               </div>
             )}
-            <Button variant="ghost" size="icon" onClick={() => setShowTimer(true)}><Timer className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => setTimerExIdx(prev => prev !== null ? null : 0)}><Timer className="h-5 w-5" /></Button>
           </div>
         </div>
 
@@ -831,6 +831,11 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
               )}
             </CardContent>
           </Card>
+          {/* Inline rest timer under active exercise */}
+          {timerExIdx === exIdx && (
+            <RestTimer inline onClose={() => setTimerExIdx(null)} />
+          )}
+        </React.Fragment>
         ))}
 
         {/* Finish button at bottom */}
