@@ -313,9 +313,12 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
 
     let imageUrl: string | null = null;
 
+    // Map MuscleGroup UI key to DB group name
+    const dbGroupName = DB_GROUP_MAP[newGroup as MuscleGroup]?.[0] || newGroup;
+
     const { data, error } = await supabase
       .from("custom_exercises")
-      .insert({ user_id: user.id, exercise_name: newName.trim(), muscle_group: newGroup } as any)
+      .insert({ user_id: user.id, exercise_name: newName.trim(), muscle_group: dbGroupName } as any)
       .select("id, exercise_name, muscle_group" as any)
       .single();
 
@@ -573,13 +576,57 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     );
   };
 
-  // Custom exercises view
+  // Custom exercises view with search and muscle group grouping
   if (activeGroup === "custom") {
+    const customSearchQuery = searchQuery.toLowerCase();
+    const filteredCustom = customSearchQuery
+      ? customExercises
+          .filter(ce => ce.exercise_name.toLowerCase().includes(customSearchQuery))
+          .sort((a, b) => {
+            const aIdx = a.exercise_name.toLowerCase().indexOf(customSearchQuery);
+            const bIdx = b.exercise_name.toLowerCase().indexOf(customSearchQuery);
+            const aStarts = a.exercise_name.toLowerCase().startsWith(customSearchQuery);
+            const bStarts = b.exercise_name.toLowerCase().startsWith(customSearchQuery);
+            if (aStarts && !bStarts) return -1;
+            if (!aStarts && bStarts) return 1;
+            return aIdx - bIdx;
+          })
+      : customExercises;
+
+    // Group custom exercises by muscle group
+    const groupedCustom: Record<string, CustomExercise[]> = {};
+    filteredCustom.forEach(ce => {
+      const groupKey = ce.muscle_group;
+      if (!groupedCustom[groupKey]) groupedCustom[groupKey] = [];
+      groupedCustom[groupKey].push(ce);
+    });
+
+    // Map DB group names to display labels
+    const getCustomGroupLabel = (dbGroup: string): string => {
+      for (const [uiGroup, dbGroups] of Object.entries(DB_GROUP_MAP)) {
+        if (dbGroups.includes(dbGroup) || uiGroup === dbGroup) {
+          return getGroupLabel(uiGroup as MuscleGroup);
+        }
+      }
+      return dbGroup;
+    };
+
     return (
       <div className="space-y-4 animate-fade-in">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => setActiveGroup(null)}><ArrowLeft className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => { setActiveGroup(null); setSearchQuery(""); }}><ArrowLeft className="h-5 w-5" /></Button>
           <h2 className="text-xl font-display font-bold">{t.workouts.customExercises}</h2>
+        </div>
+
+        {/* Search bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={lang === "uk" ? "Пошук вправ..." : "Search exercises..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
         </div>
 
         {/* Add button at top */}
@@ -597,13 +644,21 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           </Button>
         )}
 
-        {customExercises.length === 0 && !showAddForm && (
+        {filteredCustom.length === 0 && !showAddForm && (
           <p className="py-8 text-center text-muted-foreground">{t.workouts.noExercises}</p>
         )}
 
-        <div className="grid gap-2">
-          {customExercises.map((ex) => renderCustomExerciseCard(ex, true))}
-        </div>
+        {/* Grouped by muscle group */}
+        {Object.entries(groupedCustom).map(([group, exercises]) => (
+          <div key={group} className="space-y-2">
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">
+              {getCustomGroupLabel(group)}
+            </h4>
+            <div className="grid gap-2">
+              {exercises.map(ex => renderCustomExerciseCard(ex, false))}
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -758,8 +813,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                   toast({ title: lang === "uk" ? "Доступно лише для Pro" : "Pro feature only", description: lang === "uk" ? "Оновіть до Pro, щоб створювати власні вправи" : "Upgrade to Pro to create custom exercises" });
                   return;
                 }
-                const dbGroups2 = DB_GROUP_MAP[activeGroup];
-                setNewGroup(dbGroups2[0] as any || activeGroup);
+                setNewGroup(activeGroup);
                 setShowAddForm(true);
               }}>
                 <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}

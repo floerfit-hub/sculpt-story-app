@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { EXERCISE_IMAGES } from "@/data/exerciseImages";
 import { useAuth } from "@/hooks/useAuth";
 import { useFitnessStats, getPRXP } from "@/hooks/useFitnessStats";
@@ -127,7 +127,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   });
   const [showLibrary, setShowLibrary] = useState(false);
 
-  const [showTimer, setShowTimer] = useState(false);
+  const [timerExIdx, setTimerExIdx] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [finalDuration, setFinalDuration] = useState<number>(0);
@@ -721,7 +721,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                 <span className="text-sm font-display font-semibold tabular-nums text-foreground">{formatTime(elapsed)}</span>
               </div>
             )}
-            <Button variant="ghost" size="icon" onClick={() => setShowTimer(true)}><Timer className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => setTimerExIdx(prev => prev !== null ? null : 0)}><Timer className="h-5 w-5" /></Button>
           </div>
         </div>
 
@@ -741,7 +741,8 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
         {exercises.length === 0 && <div className="py-12 text-center text-muted-foreground"><p className="mb-4">{t.workouts.noExercises}</p></div>}
 
         {exercises.map((ex, exIdx) => (
-          <Card key={exIdx}>
+          <React.Fragment key={exIdx}>
+          <Card>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -812,8 +813,13 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
               </div>
               <Textarea placeholder={t.workouts.notesTip} value={ex.notes} onChange={(e) => updateNotes(exIdx, e.target.value)} className="min-h-[60px] text-sm" />
 
-              {/* Auto rest timer inside last exercise card */}
-              {exIdx === 0 && autoRestSeconds !== null && autoRestSeconds > 0 && (
+              {/* Rest timer button per exercise */}
+              <Button variant="outline" size="sm" className="w-full" onClick={() => setTimerExIdx(timerExIdx === exIdx ? null : exIdx)}>
+                <Timer className="h-3.5 w-3.5 mr-1.5" /> {t.workouts.restTimer}
+              </Button>
+
+              {/* Auto rest timer counter */}
+              {autoRestSeconds !== null && autoRestSeconds > 0 && (
                 <div className="flex items-center justify-center gap-2 rounded-xl bg-accent/50 border border-border/50 px-3 py-2">
                   <Timer className="h-4 w-4 text-primary animate-pulse" />
                   <span className="text-sm font-display font-semibold tabular-nums">
@@ -831,6 +837,11 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
               )}
             </CardContent>
           </Card>
+          {/* Inline rest timer under active exercise */}
+          {timerExIdx === exIdx && (
+            <RestTimer inline onClose={() => setTimerExIdx(null)} />
+          )}
+          </React.Fragment>
         ))}
 
         {/* Finish button at bottom */}
@@ -839,8 +850,6 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
             <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.updatingDots : isEditing ? t.workouts.updateWorkout : t.workouts.finishSave}
           </Button>
         )}
-
-        {showTimer && <RestTimer onClose={() => setShowTimer(false)} />}
 
         {/* Hidden file input for exercise photos */}
         <input
