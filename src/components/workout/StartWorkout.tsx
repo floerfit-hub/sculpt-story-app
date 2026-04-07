@@ -843,6 +843,13 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           </React.Fragment>
         ))}
 
+        {/* Finish button at bottom */}
+        {exercises.length > 0 && (
+          <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
+            <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.updatingDots : isEditing ? t.workouts.updateWorkout : t.workouts.finishSave}
+          </Button>
+        )}
+
         {/* Hidden file input for exercise photos */}
         <input
           ref={exerciseImageRef}
