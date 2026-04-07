@@ -741,7 +741,8 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
         {exercises.length === 0 && <div className="py-12 text-center text-muted-foreground"><p className="mb-4">{t.workouts.noExercises}</p></div>}
 
         {exercises.map((ex, exIdx) => (
-          <Card key={exIdx}>
+          <React.Fragment key={exIdx}>
+          <Card>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
