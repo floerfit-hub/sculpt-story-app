@@ -810,8 +810,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                   toast({ title: lang === "uk" ? "Доступно лише для Pro" : "Pro feature only", description: lang === "uk" ? "Оновіть до Pro, щоб створювати власні вправи" : "Upgrade to Pro to create custom exercises" });
                   return;
                 }
-                const dbGroups2 = DB_GROUP_MAP[activeGroup];
-                setNewGroup(dbGroups2[0] as any || activeGroup);
+                setNewGroup(activeGroup);
                 setShowAddForm(true);
               }}>
                 <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
