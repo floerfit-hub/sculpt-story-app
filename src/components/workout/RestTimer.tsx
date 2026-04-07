@@ -27,7 +27,12 @@ const requestNotificationPermission = async () => {
   return result === "granted";
 };
 
-const RestTimer = ({ onClose }: { onClose: () => void }) => {
+interface RestTimerProps {
+  onClose: () => void;
+  inline?: boolean;
+}
+
+const RestTimer = ({ onClose, inline }: RestTimerProps) => {
   const { t } = useTranslation();
   const { trigger: haptic } = useHaptics();
   const [seconds, setSeconds] = useState<number | null>(null);
@@ -39,11 +44,14 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
   );
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const audioCtxRef = useRef<AudioContext | null>(null);
+  // Use absolute end time so timer survives screen-off on Android
+  const endTimeRef = useRef<number>(0);
 
   const playBeep = () => {
     try {
       const ctx = audioCtxRef.current || new AudioContext();
       audioCtxRef.current = ctx;
+      if (ctx.state === "suspended") ctx.resume();
       const playTone = (freq: number, start: number, dur: number) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -62,88 +70,135 @@ const RestTimer = ({ onClose }: { onClose: () => void }) => {
     } catch { /* audio not available */ }
   };
 
+  // Use absolute time calculation to survive screen off
   useEffect(() => {
-    if (!running || remaining <= 0) return;
-    intervalRef.current = setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) {
+    if (!running || endTimeRef.current <= 0) return;
+
+    const tick = () => {
+      const now = Date.now();
+      const left = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000));
+      setRemaining(left);
+
+      if (left <= 0) {
+        clearInterval(intervalRef.current);
+        setRunning(false);
+        haptic("medium");
+        playBeep();
+        sendTimerNotification();
+        return;
+      }
+      if (left <= 5) {
+        haptic("countdown");
+      }
+    };
+
+    // Tick immediately, then every 250ms for accuracy after screen wake
+    tick();
+    intervalRef.current = setInterval(tick, 250);
+    return () => clearInterval(intervalRef.current);
+  }, [running]);
+
+  // Also recalculate on visibility change (Android screen on)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && running && endTimeRef.current > 0) {
+        const left = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
+        setRemaining(left);
+        if (left <= 0) {
           clearInterval(intervalRef.current);
           setRunning(false);
           haptic("medium");
           playBeep();
           sendTimerNotification();
-          return 0;
         }
-        // Countdown haptic for last 5 seconds
-        if (r <= 6) {
-          haptic("countdown");
-        }
-        return r - 1;
-      });
-    }, 1000);
-    return () => clearInterval(intervalRef.current);
-  }, [running, remaining]);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [running]);
 
-  const start = (s: number) => { setSeconds(s); setRemaining(s); setRunning(true); haptic("light"); };
+  const start = (s: number) => {
+    setSeconds(s);
+    setRemaining(s);
+    endTimeRef.current = Date.now() + s * 1000;
+    setRunning(true);
+    haptic("light");
+  };
+
+  const cancel = () => {
+    clearInterval(intervalRef.current);
+    setRunning(false);
+    setSeconds(null);
+    endTimeRef.current = 0;
+  };
+
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
   const pct = seconds ? ((seconds - remaining) / seconds) * 100 : 0;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-lg space-y-5">
-          <div className="flex items-center justify-between">
-          <h3 className="font-display font-bold text-lg flex items-center gap-2">
-            <Timer className="h-5 w-5 text-primary" /> {t.workouts.restTimer}
-          </h3>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={notifEnabled ? "text-primary" : "text-muted-foreground"}
-              onClick={async () => {
-                const granted = await requestNotificationPermission();
-                setNotifEnabled(granted);
-              }}
-              title={notifEnabled ? "Сповіщення увімкнено" : "Увімкнути сповіщення"}
-            >
-              <Bell className={`h-4 w-4 ${notifEnabled ? "" : "opacity-40"}`} />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
+  const content = (
+    <div className={`w-full ${inline ? "" : "max-w-sm"} rounded-2xl border bg-card ${inline ? "p-4" : "p-6"} shadow-lg space-y-4`}>
+      <div className="flex items-center justify-between">
+        <h3 className={`font-display font-bold ${inline ? "text-base" : "text-lg"} flex items-center gap-2`}>
+          <Timer className={`${inline ? "h-4 w-4" : "h-5 w-5"} text-primary`} /> {t.workouts.restTimer}
+        </h3>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 ${notifEnabled ? "text-primary" : "text-muted-foreground"}`}
+            onClick={async () => {
+              const granted = await requestNotificationPermission();
+              setNotifEnabled(granted);
+            }}
+            title={notifEnabled ? "Сповіщення увімкнено" : "Увімкнути сповіщення"}
+          >
+            <Bell className={`h-4 w-4 ${notifEnabled ? "" : "opacity-40"}`} />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}><X className="h-4 w-4" /></Button>
+        </div>
+      </div>
+
+      {running || (remaining === 0 && seconds) ? (
+        <div className="flex flex-col items-center gap-3">
+          <div className={`relative flex ${inline ? "h-24 w-24" : "h-32 w-32"} items-center justify-center`}>
+            <svg className="absolute inset-0 -rotate-90" viewBox="0 0 128 128">
+              <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
+              <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--primary))" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 58}`} strokeDashoffset={`${2 * Math.PI * 58 * (1 - pct / 100)}`} className="transition-all duration-300" />
+            </svg>
+            <span className={`${inline ? "text-2xl" : "text-3xl"} font-display font-bold`}>{remaining === 0 ? "🔔" : formatTime(remaining)}</span>
+          </div>
+          {remaining === 0 ? (
+            <div className="space-y-2 w-full">
+              <p className="text-center font-display font-semibold text-primary text-sm">{t.workouts.timeToStartSet}</p>
+              <Button className="w-full" size={inline ? "sm" : "default"} onClick={onClose}>{t.workouts.continueWorkout}</Button>
+            </div>
+          ) : (
+            <Button variant="outline" className="w-full" size={inline ? "sm" : "default"} onClick={cancel}>{t.workouts.cancel}</Button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="grid grid-cols-4 gap-2">
+            {PRESETS.map((p) => (
+              <Button key={p} variant="outline" className={`${inline ? "h-10 text-sm" : "h-14 text-lg"} font-display`} onClick={() => start(p)}>{PRESET_LABELS[p] || formatTime(p)}</Button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input type="number" placeholder={t.workouts.customSec} value={customInput} onChange={(e) => setCustomInput(e.target.value)} className={`flex-1 ${inline ? "h-10" : "h-12"} rounded-lg border border-input bg-background px-3 text-base`} />
+            <Button className={`${inline ? "h-10" : "h-12"} px-5`} disabled={!customInput || Number(customInput) <= 0} onClick={() => start(Number(customInput))}>{t.workouts.start}</Button>
           </div>
         </div>
+      )}
+    </div>
+  );
 
-        {running || (remaining === 0 && seconds) ? (
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative flex h-32 w-32 items-center justify-center">
-              <svg className="absolute inset-0 -rotate-90" viewBox="0 0 128 128">
-                <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
-                <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--primary))" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 58}`} strokeDashoffset={`${2 * Math.PI * 58 * (1 - pct / 100)}`} className="transition-all duration-1000" />
-              </svg>
-              <span className="text-3xl font-display font-bold">{remaining === 0 ? "🔔" : formatTime(remaining)}</span>
-            </div>
-            {remaining === 0 ? (
-              <div className="space-y-2 w-full">
-                <p className="text-center font-display font-semibold text-primary">{t.workouts.timeToStartSet}</p>
-                <Button className="w-full" onClick={onClose}>{t.workouts.continueWorkout}</Button>
-              </div>
-            ) : (
-              <Button variant="outline" className="w-full" onClick={() => { clearInterval(intervalRef.current); setRunning(false); setSeconds(null); }}>{t.workouts.cancel}</Button>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              {PRESETS.map((p) => (
-                <Button key={p} variant="outline" className="h-14 text-lg font-display" onClick={() => start(p)}>{PRESET_LABELS[p] || formatTime(p)}</Button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input type="number" placeholder={t.workouts.customSec} value={customInput} onChange={(e) => setCustomInput(e.target.value)} className="flex-1 h-12 rounded-lg border border-input bg-background px-3 text-base" />
-              <Button className="h-12 px-6" disabled={!customInput || Number(customInput) <= 0} onClick={() => start(Number(customInput))}>{t.workouts.start}</Button>
-            </div>
-          </div>
-        )}
-      </div>
+  if (inline) {
+    return content;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+      {content}
     </div>
   );
 };
