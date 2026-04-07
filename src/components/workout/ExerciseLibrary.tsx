@@ -313,9 +313,12 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
 
     let imageUrl: string | null = null;
 
+    // Map MuscleGroup UI key to DB group name
+    const dbGroupName = DB_GROUP_MAP[newGroup as MuscleGroup]?.[0] || newGroup;
+
     const { data, error } = await supabase
       .from("custom_exercises")
-      .insert({ user_id: user.id, exercise_name: newName.trim(), muscle_group: newGroup } as any)
+      .insert({ user_id: user.id, exercise_name: newName.trim(), muscle_group: dbGroupName } as any)
       .select("id, exercise_name, muscle_group" as any)
       .single();
 
