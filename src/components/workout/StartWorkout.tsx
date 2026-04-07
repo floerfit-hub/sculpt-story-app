@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { EXERCISE_IMAGES } from "@/data/exerciseImages";
 import { useAuth } from "@/hooks/useAuth";
 import { useFitnessStats, getPRXP } from "@/hooks/useFitnessStats";
@@ -812,8 +812,13 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
               </div>
               <Textarea placeholder={t.workouts.notesTip} value={ex.notes} onChange={(e) => updateNotes(exIdx, e.target.value)} className="min-h-[60px] text-sm" />
 
-              {/* Auto rest timer inside last exercise card */}
-              {exIdx === 0 && autoRestSeconds !== null && autoRestSeconds > 0 && (
+              {/* Rest timer button per exercise */}
+              <Button variant="outline" size="sm" className="w-full" onClick={() => setTimerExIdx(timerExIdx === exIdx ? null : exIdx)}>
+                <Timer className="h-3.5 w-3.5 mr-1.5" /> {t.workouts.restTimer}
+              </Button>
+
+              {/* Auto rest timer counter */}
+              {autoRestSeconds !== null && autoRestSeconds > 0 && (
                 <div className="flex items-center justify-center gap-2 rounded-xl bg-accent/50 border border-border/50 px-3 py-2">
                   <Timer className="h-4 w-4 text-primary animate-pulse" />
                   <span className="text-sm font-display font-semibold tabular-nums">
@@ -835,17 +840,8 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           {timerExIdx === exIdx && (
             <RestTimer inline onClose={() => setTimerExIdx(null)} />
           )}
-        </React.Fragment>
+          </React.Fragment>
         ))}
-
-        {/* Finish button at bottom */}
-        {exercises.length > 0 && (
-          <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
-            <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.updatingDots : isEditing ? t.workouts.updateWorkout : t.workouts.finishSave}
-          </Button>
-        )}
-
-        {showTimer && <RestTimer onClose={() => setShowTimer(false)} />}
 
         {/* Hidden file input for exercise photos */}
         <input
