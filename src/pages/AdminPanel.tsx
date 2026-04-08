@@ -585,6 +585,10 @@ const AdminPanel = () => {
         <TabsContent value="exercises" className="mt-4">
           <ExerciseMediaManager />
         </TabsContent>
+
+        <TabsContent value="reviews" className="mt-4">
+          <AdminReviewsTab />
+        </TabsContent>
       </Tabs>
 
       {/* Role Management Dialog */}
