@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Info, X } from "lucide-react";
+import { Info, X, Trophy } from "lucide-react";
 
 interface PrevSet {
   set_number: number;
@@ -16,6 +16,11 @@ interface PrevData {
   date: string;
 }
 
+interface BestSet {
+  weight: number;
+  reps: number;
+}
+
 interface Props {
   exerciseName: string;
   muscleGroup: string;
@@ -23,8 +28,9 @@ interface Props {
 
 const PreviousWorkoutInfo = ({ exerciseName, muscleGroup }: Props) => {
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [data, setData] = useState<PrevData | null>(null);
+  const [bestSet, setBestSet] = useState<BestSet | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -33,7 +39,6 @@ const PreviousWorkoutInfo = ({ exerciseName, muscleGroup }: Props) => {
     if (!user || loaded) return;
     setLoading(true);
     try {
-      // Find exercise id
       const { data: exercises } = await (supabase as any)
         .from("exercises")
         .select("id")
@@ -43,7 +48,6 @@ const PreviousWorkoutInfo = ({ exerciseName, muscleGroup }: Props) => {
       if (!exercises?.length) { setLoaded(true); setLoading(false); return; }
       const exerciseId = exercises[0].id;
 
-      // Get user's workouts to filter by user
       const { data: userWorkouts } = await supabase
         .from("workouts")
         .select("id, started_at")
@@ -54,16 +58,26 @@ const PreviousWorkoutInfo = ({ exerciseName, muscleGroup }: Props) => {
 
       const workoutIds = userWorkouts.map(w => w.id);
 
-      // Get sets for this exercise from user's workouts
       const { data: sets } = await supabase
         .from("workout_sets")
         .select("weight, reps, set_number, workout_id, created_at")
         .eq("exercise_id", exerciseId)
         .in("workout_id", workoutIds)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(200);
 
       if (!sets?.length) { setLoaded(true); setLoading(false); return; }
+
+      // Find all-time best set (highest weight, or highest reps if same weight)
+      let best: BestSet = { weight: 0, reps: 0 };
+      for (const s of sets) {
+        const w = Number(s.weight);
+        const r = Number(s.reps);
+        if (w > best.weight || (w === best.weight && r > best.reps)) {
+          best = { weight: w, reps: r };
+        }
+      }
+      if (best.weight > 0) setBestSet(best);
 
       // Find the most recent workout that has this exercise
       const firstWorkoutId = sets[0].workout_id;
@@ -71,7 +85,6 @@ const PreviousWorkoutInfo = ({ exerciseName, muscleGroup }: Props) => {
         .filter(s => s.workout_id === firstWorkoutId)
         .sort((a, b) => a.set_number - b.set_number);
 
-      // Get workout date
       const workout = userWorkouts.find(w => w.id === firstWorkoutId);
 
       setData({
@@ -90,8 +103,8 @@ const PreviousWorkoutInfo = ({ exerciseName, muscleGroup }: Props) => {
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
     const diffDays = Math.floor(diffMs / 86400000);
-    if (diffDays === 0) return "Сьогодні";
-    if (diffDays === 1) return "Вчора";
+    if (diffDays === 0) return lang === "uk" ? "Сьогодні" : "Today";
+    if (diffDays === 1) return lang === "uk" ? "Вчора" : "Yesterday";
     return d.toLocaleDateString();
   };
 
@@ -132,6 +145,23 @@ const PreviousWorkoutInfo = ({ exerciseName, muscleGroup }: Props) => {
                   </div>
                 ))}
               </div>
+
+              {/* All-time best set */}
+              {bestSet && (
+                <div className="border-t border-border pt-2 mt-2">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Trophy className="h-3 w-3 text-amber-500" />
+                    <span className="text-[10px] font-bold text-amber-500 uppercase">
+                      {lang === "uk" ? "Найкращий підхід" : "Best Set"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs rounded-lg bg-amber-500/10 px-2 py-1.5">
+                    <span className="font-bold text-foreground">{bestSet.weight} {t.common.kg}</span>
+                    <span className="text-muted-foreground">×</span>
+                    <span className="font-bold text-foreground">{bestSet.reps} {lang === "uk" ? "повт." : "reps"}</span>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
