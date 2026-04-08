@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "@/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 import { supabase } from "@/integrations/supabase/client";
 import { MUSCLE_GROUPS, type MuscleGroup } from "@/data/exerciseLibrary";
@@ -71,6 +71,9 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
   const [newImagePreview, setNewImagePreview] = useState<string | null>(null);
   const addImageRef = useRef<HTMLInputElement>(null);
 
+  // Fullscreen lightbox state
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
@@ -105,13 +108,10 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     setAdminSaving(true);
     try {
       const updateData: any = { name: adminEditName.trim() };
-
       if (adminEditImageFile) {
-        // Delete old file from storage if it exists
         if (adminEditDialog.gifUrl && !adminEditDialog.gifUrl.startsWith("http")) {
           await supabase.storage.from("exercise-gifs").remove([adminEditDialog.gifUrl]);
         }
-        // Upload new file
         const ext = adminEditImageFile.name.split(".").pop()?.toLowerCase() || "gif";
         const fileName = `${adminEditDialog.id}.${ext}`;
         const { error: uploadError } = await supabase.storage
@@ -120,10 +120,8 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
         if (uploadError) throw uploadError;
         updateData.gif_url = fileName;
       }
-
       const { error } = await supabase.from("exercises").update(updateData).eq("id", adminEditDialog.id);
       if (error) throw error;
-
       setDbExercises(prev => prev.map(e => e.id === adminEditDialog.id ? { ...e, name: adminEditName.trim(), gif_url: updateData.gif_url ?? e.gif_url } : e));
       toast({ title: lang === "uk" ? "Вправу оновлено ✅" : "Exercise updated ✅" });
       setAdminEditDialog(null);
@@ -158,11 +156,9 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     if (!adminEditDialog) return;
     setAdminSaving(true);
     try {
-      // Delete photo from storage
       if (adminEditDialog.gifUrl && !adminEditDialog.gifUrl.startsWith("http")) {
         await supabase.storage.from("exercise-gifs").remove([adminEditDialog.gifUrl]);
       }
-      // Mark as deprecated instead of hard delete to preserve history
       const { error } = await supabase.from("exercises").update({ is_deprecated: true } as any).eq("id", adminEditDialog.id);
       if (error) throw error;
       setDbExercises(prev => prev.filter(e => e.id !== adminEditDialog.id));
@@ -187,7 +183,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     loadDbExercises();
   }, []);
 
-  // Map English UI groups to Ukrainian DB muscle_group values
   const DB_GROUP_MAP: Record<MuscleGroup, string[]> = {
     "Legs & Glutes": ["Ноги"],
     "Back": ["Спина"],
@@ -197,7 +192,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     "Core": ["Кор"],
   };
 
-  // Get exercises for a group from DB only
   const getGroupExercises = (group: MuscleGroup): { name: string; muscleGroup: string; subGroup?: string | null; dbId?: string; animationUrl?: string | null; nameEn?: string | null }[] => {
     const dbGroups = DB_GROUP_MAP[group];
     const fromDb = dbExercises.filter(e => dbGroups.includes(e.muscle_group) && !e.is_deprecated);
@@ -211,7 +205,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     }));
   };
 
-  // Get unique sub-groups for a muscle group
   const getSubGroups = (group: MuscleGroup): string[] => {
     const exercises = getGroupExercises(group);
     const subs = new Set<string>();
@@ -310,31 +303,23 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
 
   const addCustomExercise = async () => {
     if (!user || !newName.trim() || !newGroup) return;
-
     let imageUrl: string | null = null;
-
-    // Map MuscleGroup UI key to DB group name
     const dbGroupName = DB_GROUP_MAP[newGroup as MuscleGroup]?.[0] || newGroup;
-
     const { data, error } = await supabase
       .from("custom_exercises")
       .insert({ user_id: user.id, exercise_name: newName.trim(), muscle_group: dbGroupName } as any)
       .select("id, exercise_name, muscle_group" as any)
       .single();
-
     if (error) {
       toast({ title: t.workouts.errorSaving, variant: "destructive" });
       return;
     }
-
-
     if (data && newImageFile) {
       imageUrl = await uploadExerciseImage(newImageFile, (data as any).id);
       if (imageUrl) {
         await supabase.from("custom_exercises").update({ image_url: imageUrl } as any).eq("id", (data as any).id);
       }
     }
-
     if (data) {
       setCustomExercises((prev) => [...prev, { ...(data as any), image_url: imageUrl }]);
       toast({ title: t.workouts.customExerciseAdded });
@@ -370,30 +355,38 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
 
   const saveEdit = async () => {
     if (!editingId || !editName.trim() || !editGroup) return;
-    
     let imageUrl = editImagePreview;
     if (editImageFile) {
       imageUrl = await uploadExerciseImage(editImageFile, editingId);
     }
-
     const updateData: any = { exercise_name: editName.trim(), muscle_group: editGroup };
     if (editImageFile && imageUrl) updateData.image_url = imageUrl;
-
     const { error } = await supabase
       .from("custom_exercises")
       .update(updateData)
       .eq("id", editingId);
-
     if (error) {
       toast({ title: t.workouts.errorSaving, variant: "destructive" });
       return;
     }
-
     setCustomExercises((prev) =>
       prev.map((e) => e.id === editingId ? { ...e, exercise_name: editName.trim(), muscle_group: editGroup, image_url: imageUrl } : e)
     );
     toast({ title: t.workouts.exerciseUpdated });
     cancelEdit();
+  };
+
+  // Handle image tap — fullscreen for users, upload for admin
+  const handleImageTap = (e: React.MouseEvent, exerciseName: string, imgUrl: string | null | undefined) => {
+    e.stopPropagation();
+    if (isAdmin) {
+      // Admin can upload
+      builtInImageRef.current?.setAttribute("data-exercise", exerciseName);
+      builtInImageRef.current?.click();
+    } else if (imgUrl) {
+      // Users see fullscreen
+      setLightboxUrl(imgUrl);
+    }
   };
 
   const renderAddForm = (presetGroup?: MuscleGroup) => (
@@ -467,51 +460,21 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
       return (
         <Card key={ex.id} className="border-primary/20">
           <CardContent className="p-4 space-y-3">
-            <Input
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              maxLength={100}
-              autoFocus
-            />
+            <Input value={editName} onChange={(e) => setEditName(e.target.value)} maxLength={100} autoFocus />
             <Select value={editGroup} onValueChange={(v) => setEditGroup(v as MuscleGroup)}>
-              <SelectTrigger>
-                <SelectValue placeholder={t.workouts.selectMuscleGroup} />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t.workouts.selectMuscleGroup} /></SelectTrigger>
               <SelectContent>
                 {MUSCLE_GROUPS.map((g) => (
                   <SelectItem key={g} value={g}>{getGroupLabel(g)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {/* Photo upload for edit */}
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => editImageRef.current?.click()}
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-accent/50 overflow-hidden"
-              >
-                {editImagePreview ? (
-                  <img src={editImagePreview} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <Camera className="h-5 w-5 text-muted-foreground" />
-                )}
+              <button type="button" onClick={() => editImageRef.current?.click()} className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-accent/50 overflow-hidden">
+                {editImagePreview ? <img src={editImagePreview} alt="" className="h-full w-full object-cover" /> : <Camera className="h-5 w-5 text-muted-foreground" />}
               </button>
               <p className="text-xs text-muted-foreground">{lang === "uk" ? "Змінити фото" : "Change photo"}</p>
-              <input
-                ref={editImageRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setEditImageFile(file);
-                    const reader = new FileReader();
-                    reader.onload = () => setEditImagePreview(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                }}
-              />
+              <input ref={editImageRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) { setEditImageFile(file); const reader = new FileReader(); reader.onload = () => setEditImagePreview(reader.result as string); reader.readAsDataURL(file); } }} />
               {editImagePreview && (
                 <Button variant="ghost" size="sm" className="text-destructive text-xs h-7" onClick={async () => {
                   if (editingId && user) {
@@ -519,8 +482,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                     await supabase.from("custom_exercises").update({ image_url: null } as any).eq("id", editingId);
                     setCustomExercises(prev => prev.map(e => e.id === editingId ? { ...e, image_url: null } : e));
                   }
-                  setEditImageFile(null);
-                  setEditImagePreview(null);
+                  setEditImageFile(null); setEditImagePreview(null);
                 }}>
                   <Trash2 className="h-3 w-3 mr-1" /> {lang === "uk" ? "Видалити фото" : "Delete photo"}
                 </Button>
@@ -530,9 +492,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               <Button className="flex-1" onClick={saveEdit} disabled={!editName.trim() || !editGroup}>
                 <Check className="h-4 w-4 mr-1" /> {t.workouts.saveExercise}
               </Button>
-              <Button variant="outline" onClick={cancelEdit}>
-                <X className="h-4 w-4" />
-              </Button>
+              <Button variant="outline" onClick={cancelEdit}><X className="h-4 w-4" /></Button>
             </div>
           </CardContent>
         </Card>
@@ -546,14 +506,12 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             <img
               src={ex.image_url}
               alt={ex.exercise_name}
-              className="h-14 w-14 rounded-lg object-cover shrink-0 bg-muted"
+              className="h-14 w-14 rounded-lg object-cover shrink-0 bg-muted cursor-pointer"
               loading="lazy"
+              onClick={(e) => { e.stopPropagation(); setLightboxUrl(ex.image_url!); }}
             />
           )}
-          <div
-            className="flex-1 min-w-0"
-            onClick={() => selectable && onSelect?.(ex.exercise_name, ex.muscle_group)}
-          >
+          <div className="flex-1 min-w-0" onClick={() => selectable && onSelect?.(ex.exercise_name, ex.muscle_group)}>
             <span className="font-medium">{ex.exercise_name}</span>
             {showGroup && (
               <span className="text-xs text-muted-foreground ml-2">
@@ -576,37 +534,30 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
     );
   };
 
-  // Custom exercises view with search and muscle group grouping
+  // Custom exercises view
   if (activeGroup === "custom") {
     const customSearchQuery = searchQuery.toLowerCase();
     const filteredCustom = customSearchQuery
       ? customExercises
           .filter(ce => ce.exercise_name.toLowerCase().includes(customSearchQuery))
           .sort((a, b) => {
-            const aIdx = a.exercise_name.toLowerCase().indexOf(customSearchQuery);
-            const bIdx = b.exercise_name.toLowerCase().indexOf(customSearchQuery);
             const aStarts = a.exercise_name.toLowerCase().startsWith(customSearchQuery);
             const bStarts = b.exercise_name.toLowerCase().startsWith(customSearchQuery);
             if (aStarts && !bStarts) return -1;
             if (!aStarts && bStarts) return 1;
-            return aIdx - bIdx;
+            return a.exercise_name.toLowerCase().indexOf(customSearchQuery) - b.exercise_name.toLowerCase().indexOf(customSearchQuery);
           })
       : customExercises;
 
-    // Group custom exercises by muscle group
     const groupedCustom: Record<string, CustomExercise[]> = {};
     filteredCustom.forEach(ce => {
-      const groupKey = ce.muscle_group;
-      if (!groupedCustom[groupKey]) groupedCustom[groupKey] = [];
-      groupedCustom[groupKey].push(ce);
+      if (!groupedCustom[ce.muscle_group]) groupedCustom[ce.muscle_group] = [];
+      groupedCustom[ce.muscle_group].push(ce);
     });
 
-    // Map DB group names to display labels
     const getCustomGroupLabel = (dbGroup: string): string => {
       for (const [uiGroup, dbGroups] of Object.entries(DB_GROUP_MAP)) {
-        if (dbGroups.includes(dbGroup) || uiGroup === dbGroup) {
-          return getGroupLabel(uiGroup as MuscleGroup);
-        }
+        if (dbGroups.includes(dbGroup) || uiGroup === dbGroup) return getGroupLabel(uiGroup as MuscleGroup);
       }
       return dbGroup;
     };
@@ -617,48 +568,33 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           <Button variant="ghost" size="icon" onClick={() => { setActiveGroup(null); setSearchQuery(""); }}><ArrowLeft className="h-5 w-5" /></Button>
           <h2 className="text-xl font-display font-bold">{t.workouts.customExercises}</h2>
         </div>
-
-        {/* Search bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={lang === "uk" ? "Пошук вправ..." : "Search exercises..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+          <Input placeholder={lang === "uk" ? "Пошук вправ..." : "Search exercises..."} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
         </div>
-
-        {/* Add button at top */}
-        {showAddForm ? (
-          renderAddForm()
-        ) : (
+        {showAddForm ? renderAddForm() : (
           <Button variant="outline" className="w-full" onClick={() => {
-            if (!isPremium) {
-              toast({ title: lang === "uk" ? "Доступно лише для Pro" : "Pro feature only", description: lang === "uk" ? "Оновіть до Pro, щоб створювати власні вправи" : "Upgrade to Pro to create custom exercises" });
-              return;
-            }
+            if (!isPremium) { toast({ title: lang === "uk" ? "Доступно лише для Pro" : "Pro feature only" }); return; }
             setShowAddForm(true);
           }}>
             <Plus className="h-4 w-4 mr-2" /> {t.workouts.addCustomExercise}
           </Button>
         )}
-
-        {filteredCustom.length === 0 && !showAddForm && (
-          <p className="py-8 text-center text-muted-foreground">{t.workouts.noExercises}</p>
-        )}
-
-        {/* Grouped by muscle group */}
+        {filteredCustom.length === 0 && !showAddForm && <p className="py-8 text-center text-muted-foreground">{t.workouts.noExercises}</p>}
         {Object.entries(groupedCustom).map(([group, exercises]) => (
           <div key={group} className="space-y-2">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">
-              {getCustomGroupLabel(group)}
-            </h4>
-            <div className="grid gap-2">
-              {exercises.map(ex => renderCustomExerciseCard(ex, false))}
-            </div>
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">{getCustomGroupLabel(group)}</h4>
+            <div className="grid gap-2">{exercises.map(ex => renderCustomExerciseCard(ex, false))}</div>
           </div>
         ))}
+
+        {/* Fullscreen lightbox */}
+        <Dialog open={!!lightboxUrl} onOpenChange={() => setLightboxUrl(null)}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 bg-black/95 border-none">
+            <DialogHeader className="sr-only"><DialogTitle>Photo</DialogTitle><DialogDescription>Full screen view</DialogDescription></DialogHeader>
+            {lightboxUrl && <img src={lightboxUrl} alt="" className="max-w-full max-h-[85vh] object-contain rounded-lg mx-auto" />}
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -681,21 +617,15 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             const bStarts = bName.startsWith(q) || b.name.toLowerCase().startsWith(q);
             if (aStarts && !bStarts) return -1;
             if (!aStarts && bStarts) return 1;
-            const aIdx = Math.min(aName.indexOf(q), a.name.toLowerCase().indexOf(q) >= 0 ? a.name.toLowerCase().indexOf(q) : 999);
-            const bIdx = Math.min(bName.indexOf(q), b.name.toLowerCase().indexOf(q) >= 0 ? b.name.toLowerCase().indexOf(q) : 999);
-            return aIdx - bIdx;
+            return Math.min(aName.indexOf(q), a.name.toLowerCase().indexOf(q) >= 0 ? a.name.toLowerCase().indexOf(q) : 999) -
+                   Math.min(bName.indexOf(q), b.name.toLowerCase().indexOf(q) >= 0 ? b.name.toLowerCase().indexOf(q) : 999);
           })
       : groupExercises;
-    const filteredExercises = activeSubGroup
-      ? searchFiltered.filter(e => e.subGroup === activeSubGroup)
-      : searchFiltered;
+    const filteredExercises = activeSubGroup ? searchFiltered.filter(e => e.subGroup === activeSubGroup) : searchFiltered;
 
-    // Custom exercises for this group
     const dbGroups = DB_GROUP_MAP[activeGroup];
     const groupCustomExercises = customExercises.filter(ce => dbGroups.includes(ce.muscle_group) || ce.muscle_group === activeGroup);
-    const filteredCustom = q
-      ? groupCustomExercises.filter(ce => ce.exercise_name.toLowerCase().includes(q))
-      : groupCustomExercises;
+    const filteredCustom = q ? groupCustomExercises.filter(ce => ce.exercise_name.toLowerCase().includes(q)) : groupCustomExercises;
 
     return (
       <div className="space-y-4 animate-fade-in">
@@ -703,37 +633,17 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           <Button variant="ghost" size="icon" onClick={() => { setActiveGroup(null); setActiveSubGroup(null); setSearchQuery(""); }}><ArrowLeft className="h-5 w-5" /></Button>
           <h2 className="text-xl font-display font-bold flex-1">{getGroupLabel(activeGroup)}</h2>
         </div>
-
-        {/* Search bar inside group */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={lang === "uk" ? "Пошук вправ..." : "Search exercises..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+          <Input placeholder={lang === "uk" ? "Пошук вправ..." : "Search exercises..."} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
         </div>
-
-        {/* Sub-group filter tabs */}
         {subGroups.length > 0 && !q && (
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-            <Button
-              variant={activeSubGroup === null ? "default" : "outline"}
-              size="sm"
-              className="shrink-0 h-8 text-xs"
-              onClick={() => setActiveSubGroup(null)}
-            >
+            <Button variant={activeSubGroup === null ? "default" : "outline"} size="sm" className="shrink-0 h-8 text-xs" onClick={() => setActiveSubGroup(null)}>
               {lang === "uk" ? "Всі" : "All"}
             </Button>
             {subGroups.map(sub => (
-              <Button
-                key={sub}
-                variant={activeSubGroup === sub ? "default" : "outline"}
-                size="sm"
-                className="shrink-0 h-8 text-xs"
-                onClick={() => setActiveSubGroup(sub)}
-              >
+              <Button key={sub} variant={activeSubGroup === sub ? "default" : "outline"} size="sm" className="shrink-0 h-8 text-xs" onClick={() => setActiveSubGroup(sub)}>
                 {sub}
               </Button>
             ))}
@@ -744,33 +654,25 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           {filteredExercises.map((ex) => {
             const override = overrideImages[ex.name];
             const img = ex.animationUrl || override || EXERCISE_IMAGES[ex.name];
-            
             return (
               <div key={ex.name} className="space-y-1">
                 <Card className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform overflow-hidden`}>
                   <CardContent className="flex items-center gap-3 p-3">
                     <div
                       className="relative shrink-0 cursor-pointer"
-                      onClick={(e) => { e.stopPropagation(); builtInImageRef.current?.setAttribute("data-exercise", ex.name); builtInImageRef.current?.click(); }}
+                      onClick={(e) => handleImageTap(e, ex.name, img)}
                     >
                       {img ? (
-                        <img
-                          src={img}
-                          alt={t.exerciseNames[ex.name] || ex.name}
-                          className="h-14 w-14 rounded-lg object-contain bg-muted hover:opacity-80 transition-opacity"
-                          loading="lazy"
-                        />
+                        <img src={img} alt={t.exerciseNames[ex.name] || ex.name} className="h-14 w-14 rounded-lg object-contain bg-muted hover:opacity-80 transition-opacity" loading="lazy" />
                       ) : (
                         <div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center hover:bg-muted/70 transition-colors">
-                          <Camera className="h-5 w-5 text-muted-foreground" />
+                          {isAdmin ? <Camera className="h-5 w-5 text-muted-foreground" /> : <div className="h-5 w-5" />}
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0" onClick={() => selectable && onSelect?.(ex.name, ex.muscleGroup)}>
                       <span className="font-medium">{t.exerciseNames[ex.name] || ex.name}</span>
-                      {ex.subGroup && (
-                        <p className="text-xs text-muted-foreground">{ex.subGroup}</p>
-                      )}
+                      {ex.subGroup && <p className="text-xs text-muted-foreground">{ex.subGroup}</p>}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       {isAdmin && ex.dbId && (
@@ -778,7 +680,7 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                           <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                         </Button>
                       )}
-                      {override && (
+                      {isAdmin && override && (
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); deleteOverrideImage(ex.name); }}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
@@ -791,7 +693,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             );
           })}
 
-          {/* Custom exercises at the bottom of this group */}
           {filteredCustom.length > 0 && (
             <>
               <div className="pt-2 pb-1">
@@ -803,16 +704,10 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             </>
           )}
 
-          {/* Add custom exercise button at the bottom of each group */}
           <div className="pt-2">
-            {showAddForm ? (
-              renderAddForm(activeGroup)
-            ) : (
+            {showAddForm ? renderAddForm(activeGroup) : (
               <Button variant="outline" className="w-full touch-manipulation" onClick={() => {
-                if (!isPremium) {
-                  toast({ title: lang === "uk" ? "Доступно лише для Pro" : "Pro feature only", description: lang === "uk" ? "Оновіть до Pro, щоб створювати власні вправи" : "Upgrade to Pro to create custom exercises" });
-                  return;
-                }
+                if (!isPremium) { toast({ title: lang === "uk" ? "Доступно лише для Pro" : "Pro feature only" }); return; }
                 setNewGroup(activeGroup);
                 setShowAddForm(true);
               }}>
@@ -822,11 +717,9 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           </div>
         </div>
 
-        {filteredExercises.length === 0 && filteredCustom.length === 0 && (
-          <p className="py-8 text-center text-muted-foreground">{t.workouts.noExercises}</p>
-        )}
+        {filteredExercises.length === 0 && filteredCustom.length === 0 && <p className="py-8 text-center text-muted-foreground">{t.workouts.noExercises}</p>}
 
-        {/* Hidden file input for built-in exercise photo override */}
+        {/* Hidden file input for admin built-in exercise photo override */}
         <input
           ref={builtInImageRef}
           type="file"
@@ -839,36 +732,36 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             if (e.target) e.target.value = "";
           }}
         />
+
+        {/* Fullscreen lightbox */}
+        <Dialog open={!!lightboxUrl} onOpenChange={() => setLightboxUrl(null)}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 bg-black/95 border-none">
+            <DialogHeader className="sr-only"><DialogTitle>Photo</DialogTitle><DialogDescription>Full screen view</DialogDescription></DialogHeader>
+            {lightboxUrl && <img src={lightboxUrl} alt="" className="max-w-full max-h-[85vh] object-contain rounded-lg mx-auto" />}
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
 
-  // Helper: get custom exercises matching a muscle group
+  // Helper
   const getCustomExercisesForGroup = (group: MuscleGroup): CustomExercise[] => {
     const dbGroups = DB_GROUP_MAP[group];
     return customExercises.filter(ce => dbGroups.includes(ce.muscle_group) || ce.muscle_group === group);
   };
 
-  // Muscle group list with separate sections
+  // Muscle group list
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft className="h-5 w-5" /></Button>
         <h2 className="text-xl font-display font-bold">{t.exerciseLib.title}</h2>
       </div>
-
-      {/* Search bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder={lang === "uk" ? "Пошук вправ..." : "Search exercises..."}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-        />
+        <Input placeholder={lang === "uk" ? "Пошук вправ..." : "Search exercises..."} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
       </div>
 
-      {/* If searching — show flat results */}
       {searchQuery.trim() ? (
         <div className="space-y-2">
           <div className="grid gap-2">
@@ -878,12 +771,9 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               MUSCLE_GROUPS.forEach(group => {
                 getGroupExercises(group).forEach(ex => {
                   const translated = t.exerciseNames[ex.name] || ex.name;
-                  if (ex.name.toLowerCase().includes(q) || translated.toLowerCase().includes(q)) {
-                    results.push(ex);
-                  }
+                  if (ex.name.toLowerCase().includes(q) || translated.toLowerCase().includes(q)) results.push(ex);
                 });
               });
-              // Sort by word position priority
               results.sort((a, b) => {
                 const aName = (t.exerciseNames[a.name] || a.name).toLowerCase();
                 const bName = (t.exerciseNames[b.name] || b.name).toLowerCase();
@@ -891,27 +781,13 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                 const bStarts = bName.startsWith(q) || b.name.toLowerCase().startsWith(q);
                 if (aStarts && !bStarts) return -1;
                 if (!aStarts && bStarts) return 1;
-                const aIdx = Math.min(
-                  aName.indexOf(q) >= 0 ? aName.indexOf(q) : 999,
-                  a.name.toLowerCase().indexOf(q) >= 0 ? a.name.toLowerCase().indexOf(q) : 999
-                );
-                const bIdx = Math.min(
-                  bName.indexOf(q) >= 0 ? bName.indexOf(q) : 999,
-                  b.name.toLowerCase().indexOf(q) >= 0 ? b.name.toLowerCase().indexOf(q) : 999
-                );
-                return aIdx - bIdx;
+                return Math.min(aName.indexOf(q) >= 0 ? aName.indexOf(q) : 999, a.name.toLowerCase().indexOf(q) >= 0 ? a.name.toLowerCase().indexOf(q) : 999) -
+                       Math.min(bName.indexOf(q) >= 0 ? bName.indexOf(q) : 999, b.name.toLowerCase().indexOf(q) >= 0 ? b.name.toLowerCase().indexOf(q) : 999);
               });
-              // Sort custom exercises by priority too
               const customResults = customExercises
                 .filter(ce => ce.exercise_name.toLowerCase().includes(q))
-                .sort((a, b) => {
-                  const aIdx = a.exercise_name.toLowerCase().indexOf(q);
-                  const bIdx = b.exercise_name.toLowerCase().indexOf(q);
-                  return aIdx - bIdx;
-                });
-              if (results.length === 0 && customResults.length === 0) {
-                return <p className="py-8 text-center text-muted-foreground">{t.workouts.noExercises}</p>;
-              }
+                .sort((a, b) => a.exercise_name.toLowerCase().indexOf(q) - b.exercise_name.toLowerCase().indexOf(q));
+              if (results.length === 0 && customResults.length === 0) return <p className="py-8 text-center text-muted-foreground">{t.workouts.noExercises}</p>;
               return (
                 <>
                   {customResults.map(ex => renderCustomExerciseCard(ex, true))}
@@ -922,7 +798,13 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                       <Card key={ex.name} className={`${selectable ? "cursor-pointer active:scale-[0.98]" : ""} transition-transform`}>
                         <CardContent className="flex items-center gap-3 p-3">
                           {img ? (
-                            <img src={img} alt={t.exerciseNames[ex.name] || ex.name} className="h-12 w-12 rounded-lg object-contain bg-muted" loading="lazy" />
+                            <img
+                              src={img}
+                              alt={t.exerciseNames[ex.name] || ex.name}
+                              className="h-12 w-12 rounded-lg object-contain bg-muted cursor-pointer"
+                              loading="lazy"
+                              onClick={(e) => { e.stopPropagation(); if (!isAdmin && img) setLightboxUrl(img); }}
+                            />
                           ) : (
                             <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center"><Camera className="h-4 w-4 text-muted-foreground" /></div>
                           )}
@@ -949,7 +831,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
         </div>
       ) : (
         <>
-          {/* Section 1: Exercise Library */}
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
               {lang === "uk" ? "Бібліотека вправ" : "Exercise Library"}
@@ -975,8 +856,6 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               })}
             </div>
           </div>
-
-          {/* Section 2: My Exercises */}
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
               {lang === "uk" ? "Мої вправи" : "My Exercises"}
@@ -1005,22 +884,10 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
               <DialogTitle>{lang === "uk" ? "Редагувати вправу" : "Edit Exercise"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <Input
-                value={adminEditName}
-                onChange={(e) => setAdminEditName(e.target.value)}
-                placeholder={lang === "uk" ? "Назва вправи" : "Exercise name"}
-              />
+              <Input value={adminEditName} onChange={(e) => setAdminEditName(e.target.value)} placeholder={lang === "uk" ? "Назва вправи" : "Exercise name"} />
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => adminImageRef.current?.click()}
-                  className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-accent/50 overflow-hidden"
-                >
-                  {adminEditImagePreview ? (
-                    <img src={adminEditImagePreview} alt="" className="h-full w-full object-contain" />
-                  ) : (
-                    <Camera className="h-5 w-5 text-muted-foreground" />
-                  )}
+                <button type="button" onClick={() => adminImageRef.current?.click()} className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-accent/50 overflow-hidden">
+                  {adminEditImagePreview ? <img src={adminEditImagePreview} alt="" className="h-full w-full object-contain" /> : <Camera className="h-5 w-5 text-muted-foreground" />}
                 </button>
                 <div className="flex-1 space-y-1">
                   <p className="text-xs text-muted-foreground">{lang === "uk" ? "Натисніть щоб замінити фото" : "Click to replace photo"}</p>
@@ -1031,31 +898,12 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                   )}
                 </div>
               </div>
-              <input
-                ref={adminImageRef}
-                type="file"
-                accept="image/gif,video/mp4,video/webm,image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setAdminEditImageFile(file);
-                    const reader = new FileReader();
-                    reader.onload = () => setAdminEditImagePreview(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                  if (e.target) e.target.value = "";
-                }}
-              />
+              <input ref={adminImageRef} type="file" accept="image/gif,video/mp4,video/webm,image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) { setAdminEditImageFile(file); const reader = new FileReader(); reader.onload = () => setAdminEditImagePreview(reader.result as string); reader.readAsDataURL(file); } if (e.target) e.target.value = ""; }} />
             </div>
             <DialogFooter className="flex-col gap-2 sm:flex-col">
               <div className="flex gap-2 w-full">
-                <Button variant="outline" className="flex-1" onClick={() => setAdminEditDialog(null)}>
-                  {lang === "uk" ? "Скасувати" : "Cancel"}
-                </Button>
-                <Button className="flex-1" onClick={saveAdminEdit} disabled={adminSaving || !adminEditName.trim()}>
-                  <Check className="h-4 w-4 mr-1" /> {lang === "uk" ? "Зберегти" : "Save"}
-                </Button>
+                <Button variant="outline" className="flex-1" onClick={() => setAdminEditDialog(null)}>{lang === "uk" ? "Скасувати" : "Cancel"}</Button>
+                <Button className="flex-1" onClick={saveAdminEdit} disabled={adminSaving || !adminEditName.trim()}><Check className="h-4 w-4 mr-1" /> {lang === "uk" ? "Зберегти" : "Save"}</Button>
               </div>
               <Button variant="destructive" className="w-full" onClick={adminDeleteExercise} disabled={adminSaving}>
                 <Trash2 className="h-4 w-4 mr-1" /> {lang === "uk" ? "Видалити вправу" : "Delete Exercise"}
@@ -1064,6 +912,14 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Fullscreen lightbox */}
+      <Dialog open={!!lightboxUrl} onOpenChange={() => setLightboxUrl(null)}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 bg-black/95 border-none">
+          <DialogHeader className="sr-only"><DialogTitle>Photo</DialogTitle><DialogDescription>Full screen view</DialogDescription></DialogHeader>
+          {lightboxUrl && <img src={lightboxUrl} alt="" className="max-w-full max-h-[85vh] object-contain rounded-lg mx-auto" />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

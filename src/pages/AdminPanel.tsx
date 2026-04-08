@@ -256,7 +256,10 @@ const AdminPanel = () => {
             <Users className="h-3.5 w-3.5" /> Користувачі
           </TabsTrigger>
           <TabsTrigger value="exercises" className="flex-1 gap-1">
-            <Film className="h-3.5 w-3.5" /> Медіа вправ
+            <Film className="h-3.5 w-3.5" /> Медіа
+          </TabsTrigger>
+          <TabsTrigger value="reviews" className="flex-1 gap-1">
+            ⭐ Відгуки
           </TabsTrigger>
         </TabsList>
 
@@ -581,6 +584,10 @@ const AdminPanel = () => {
 
         <TabsContent value="exercises" className="mt-4">
           <ExerciseMediaManager />
+        </TabsContent>
+
+        <TabsContent value="reviews" className="mt-4">
+          <AdminReviewsTab />
         </TabsContent>
       </Tabs>
 

@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy, Camera, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy, Camera, X, Star } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import PreviousWorkoutInfo from "./PreviousWorkoutInfo";
 import RestTimer from "./RestTimer";
@@ -50,32 +51,25 @@ async function resolveExerciseIds(
 ): Promise<Map<string, string>> {
   const uniqueKeys = [...new Map(exercises.map(e => [`${e.name}::${e.muscleGroup}`, e])).values()];
   const names = uniqueKeys.map(e => e.name);
-
   const { data: existing } = await (supabase as any)
     .from("exercises")
     .select("id, name, muscle_group")
     .in("name", names);
-
   const map = new Map<string, string>();
   (existing || []).forEach((e: any) => map.set(`${e.name}::${e.muscle_group}`, e.id));
-
   for (const ex of uniqueKeys) {
     const key = `${ex.name}::${ex.muscleGroup}`;
     if (!map.has(key)) {
-      const { data } = await supabase.rpc("resolve_exercise_id", {
-        _name: ex.name,
-        _muscle_group: ex.muscleGroup,
-      });
+      const { data } = await supabase.rpc("resolve_exercise_id", { _name: ex.name, _muscle_group: ex.muscleGroup });
       if (data) map.set(key, data as string);
     }
   }
-
   return map;
 }
 
 function getRestMultiplier(restSeconds: number | null): number {
   if (restSeconds === null) return 1.0;
-  if (restSeconds > 480) return 1.0; // > 8 min = likely recorded late
+  if (restSeconds > 480) return 1.0;
   if (restSeconds < 90) return 1.2;
   if (restSeconds <= 150) return 1.0;
   if (restSeconds <= 240) return 0.9;
@@ -92,6 +86,12 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
   const { sendNotification } = useNotifications();
   const { trigger: haptic } = useHaptics();
+
+  // Rating dialog state
+  const [showRating, setShowRating] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
 
   const [workoutName, setWorkoutName] = useState<string>(() => {
     if (editData) return editData.name || "";
@@ -132,16 +132,17 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   const [saved, setSaved] = useState(false);
   const [finalDuration, setFinalDuration] = useState<number>(0);
   const [showRestTooltip, setShowRestTooltip] = useState(false);
-  const prMapRef = useRef<Map<string, number>>(new Map());
+  const prMapRef = useRef<Map<string, { weight: number; reps: number }>>(new Map());
   const prCountRef = useRef(0);
   const exerciseImageRef = useRef<HTMLInputElement>(null);
   const [exerciseImageIdx, setExerciseImageIdx] = useState<number | null>(null);
+  // Store saved workout id for rating
+  const savedWorkoutIdRef = useRef<string | null>(null);
 
   const getOverrideImages = (): Record<string, string> => {
     try { return JSON.parse(localStorage.getItem("exercise-photo-overrides") || "{}"); } catch { return {}; }
   };
 
-  // Cache DB exercise GIF/animation URLs
   const [dbAnimationMap, setDbAnimationMap] = useState<Record<string, string>>({});
   useEffect(() => {
     const loadAnimations = async () => {
@@ -201,26 +202,56 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     } catch { /* silent */ }
   };
 
-  // Load existing PRs for confetti detection
+  // Load existing PRs for confetti detection (both weight AND reps)
   useEffect(() => {
     if (!user) return;
     const loadPRs = async () => {
       const { data: userWorkouts } = await supabase.from("workouts").select("id").eq("user_id", user.id);
       if (!userWorkouts?.length) return;
       const wIds = userWorkouts.map(w => w.id);
-      const { data: sets } = await supabase.from("workout_sets").select("exercise_id, weight").in("workout_id", wIds);
+      const { data: sets } = await supabase.from("workout_sets").select("exercise_id, weight, reps").in("workout_id", wIds);
       if (!sets) return;
-      const map = new Map<string, number>();
+      const map = new Map<string, { weight: number; reps: number }>();
       for (const s of sets) {
-        const current = map.get(s.exercise_id) || 0;
-        if (s.weight > current) map.set(s.exercise_id, s.weight);
+        const current = map.get(s.exercise_id) || { weight: 0, reps: 0 };
+        if (s.weight > current.weight) current.weight = s.weight;
+        if (s.reps > current.reps) current.reps = s.reps;
+        map.set(s.exercise_id, current);
       }
       prMapRef.current = map;
     };
     loadPRs();
   }, [user]);
 
-  // Track time of last set completion for auto rest tracking
+  // Load previous notes for exercises
+  const [prevNotesMap, setPrevNotesMap] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (!user) return;
+    const loadNotes = async () => {
+      const { data: userWorkouts } = await supabase.from("workouts").select("id").eq("user_id", user.id).order("started_at", { ascending: false }).limit(50);
+      if (!userWorkouts?.length) return;
+      const wIds = userWorkouts.map(w => w.id);
+      const { data: sets } = await supabase.from("workout_sets").select("exercise_id, notes, workout_id").in("workout_id", wIds).not("notes", "is", null);
+      if (!sets?.length) return;
+      // Get exercise names
+      const exIds = [...new Set(sets.map(s => s.exercise_id))];
+      const { data: exData } = await (supabase as any).from("exercises").select("id, name").in("id", exIds);
+      if (!exData) return;
+      const idToName: Record<string, string> = {};
+      (exData as any[]).forEach((e: any) => { idToName[e.id] = e.name; });
+      const notesMap: Record<string, string> = {};
+      // Only take the most recent note per exercise
+      for (const s of sets) {
+        const name = idToName[s.exercise_id];
+        if (name && s.notes && !notesMap[name]) {
+          notesMap[name] = s.notes;
+        }
+      }
+      setPrevNotesMap(notesMap);
+    };
+    loadNotes();
+  }, [user]);
+
   const lastSetTimeRef = useRef<number | null>(null);
   const [autoRestSeconds, setAutoRestSeconds] = useState<number | null>(null);
   const autoRestIntervalRef = useRef<ReturnType<typeof setInterval>>();
@@ -253,7 +284,6 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     return () => clearInterval(interval);
   }, [startTime, saved]);
 
-  // Auto rest timer - counts up after each set is recorded
   useEffect(() => {
     if (lastSetTimeRef.current === null) return;
     clearInterval(autoRestIntervalRef.current);
@@ -272,7 +302,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
     return `${m}:${String(s).padStart(2, "0")}`;
   };
-  // Listen for FAB events
+
   useEffect(() => {
     const handleAddExercise = () => setShowLibrary(true);
     const handleFinish = () => { if (exercises.length > 0 && !saving) saveWorkout(); };
@@ -303,7 +333,6 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     autoSaveIdRef.current = null;
   }, []);
 
-  // Keep refs in sync for auto-save on app exit
   const exercisesRef = useRef(exercises);
   exercisesRef.current = exercises;
   const savedRef = useRef(saved);
@@ -313,128 +342,70 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   const startTimeRef = useRef(startTime);
   startTimeRef.current = startTime;
 
-  // Track auto-saved workout ID to avoid duplicates
-  const autoSaveIdRef = useRef<string | null>(
-    sessionStorage.getItem("workout-autosave-id")
-  );
+  const autoSaveIdRef = useRef<string | null>(sessionStorage.getItem("workout-autosave-id"));
 
-  // Auto-save workout when user leaves the app (tab hidden / close)
   useEffect(() => {
     const autoSave = async () => {
       const currentExercises = exercisesRef.current;
       if (savedRef.current || savingRef.current || !user || currentExercises.length === 0) return;
-
-      // Check if there are any filled sets
       const hasSets = currentExercises.some(ex => ex.sets.some(s => s.weight !== "" || s.reps !== ""));
       if (!hasSets) return;
-
       try {
-        const exerciseIdMap = await resolveExerciseIds(
-          currentExercises.map(ex => ({ name: ex.name, muscleGroup: ex.muscleGroup }))
-        );
-
+        const exerciseIdMap = await resolveExerciseIds(currentExercises.map(ex => ({ name: ex.name, muscleGroup: ex.muscleGroup })));
         if (isEditing && editData) {
-          // Edit mode: update existing workout in-place
           await (supabase as any).from("workout_sets").delete().eq("workout_id", editData.id);
-
           const setsRows: any[] = [];
           currentExercises.forEach((ex, exIdx) => {
             const exerciseId = exerciseIdMap.get(`${ex.name}::${ex.muscleGroup}`);
             if (!exerciseId) return;
-            ex.sets
-              .filter((s) => s.weight !== "" || s.reps !== "")
-              .forEach((s, setIdx) => {
-                setsRows.push({
-                  workout_id: editData.id,
-                  exercise_id: exerciseId,
-                  set_number: setIdx + 1,
-                  weight: Number(s.weight) || 0,
-                  reps: Number(s.reps) || 0,
-                  sort_order: exIdx,
-                  notes: setIdx === 0 ? (ex.notes || null) : null,
-                  rest_time: s.rest_time,
-                });
-              });
+            ex.sets.filter((s) => s.weight !== "" || s.reps !== "").forEach((s, setIdx) => {
+              setsRows.push({ workout_id: editData.id, exercise_id: exerciseId, set_number: setIdx + 1, weight: Number(s.weight) || 0, reps: Number(s.reps) || 0, sort_order: exIdx, notes: setIdx === 0 ? (ex.notes || null) : null, rest_time: s.rest_time });
+            });
           });
-
-          if (setsRows.length > 0) {
-            await (supabase as any).from("workout_sets").insert(setsRows);
-          }
+          if (setsRows.length > 0) await (supabase as any).from("workout_sets").insert(setsRows);
         } else {
-          // New workout mode
           const startedAt = new Date(startTimeRef.current || Date.now()).toISOString();
-          const elapsedNow = startTimeRef.current ? Math.floor((Date.now() - startTimeRef.current) / 1000) : 0;
-
           let workoutId = autoSaveIdRef.current;
-
           if (workoutId) {
             await (supabase as any).from("workout_sets").delete().eq("workout_id", workoutId);
           } else {
-            const { data: workout, error: wErr } = await supabase.from("workouts")
-              .insert({ user_id: user.id, started_at: startedAt, name: workoutName || null } as any)
-              .select("id").single();
+            const { data: workout, error: wErr } = await supabase.from("workouts").insert({ user_id: user.id, started_at: startedAt, name: workoutName || null } as any).select("id").single();
             if (wErr || !workout) return;
             workoutId = workout.id;
             autoSaveIdRef.current = workoutId;
             sessionStorage.setItem("workout-autosave-id", workoutId);
           }
-
           const setsRows: any[] = [];
           currentExercises.forEach((ex, exIdx) => {
             const exerciseId = exerciseIdMap.get(`${ex.name}::${ex.muscleGroup}`);
             if (!exerciseId) return;
-            ex.sets
-              .filter((s) => s.weight !== "" || s.reps !== "")
-              .forEach((s, setIdx) => {
-                setsRows.push({
-                  workout_id: workoutId,
-                  exercise_id: exerciseId,
-                  set_number: setIdx + 1,
-                  weight: Number(s.weight) || 0,
-                  reps: Number(s.reps) || 0,
-                  sort_order: exIdx,
-                  notes: setIdx === 0 ? (ex.notes || null) : null,
-                  rest_time: s.rest_time,
-                });
-              });
+            ex.sets.filter((s) => s.weight !== "" || s.reps !== "").forEach((s, setIdx) => {
+              setsRows.push({ workout_id: workoutId, exercise_id: exerciseId, set_number: setIdx + 1, weight: Number(s.weight) || 0, reps: Number(s.reps) || 0, sort_order: exIdx, notes: setIdx === 0 ? (ex.notes || null) : null, rest_time: s.rest_time });
+            });
           });
-
-          if (setsRows.length > 0) {
-            await (supabase as any).from("workout_sets").insert(setsRows);
-          }
-
-          await supabase.from("workouts").update({
-            finished_at: new Date().toISOString(),
-            duration_seconds: elapsedNow,
-          } as any).eq("id", workoutId);
+          if (setsRows.length > 0) await (supabase as any).from("workout_sets").insert(setsRows);
+          await supabase.from("workouts").update({ finished_at: new Date().toISOString(), duration_seconds: startTimeRef.current ? Math.floor((Date.now() - startTimeRef.current) / 1000) : 0 } as any).eq("id", workoutId);
         }
-      } catch {
-        // Silent fail – data is still in sessionStorage for recovery
-      }
+      } catch { /* silent */ }
     };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        autoSave();
-      }
-    };
-
+    const handleVisibilityChange = () => { if (document.visibilityState === "hidden") autoSave(); };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [user, isEditing, editData]);
 
   const addExercise = (name: string, group: string) => {
-    setExercises((prev) => [{ name, muscleGroup: group, sets: [{ weight: "", reps: "", rest_time: null }], notes: "" }, ...prev]);
+    // Clear timer from previous exercise
+    setTimerExIdx(null);
+    // Load previous notes for this exercise
+    const prevNotes = prevNotesMap[name] || "";
+    setExercises((prev) => [{ name, muscleGroup: group, sets: [{ weight: "", reps: "", rest_time: null }], notes: prevNotes }, ...prev]);
     setShowLibrary(false);
     haptic("light");
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   };
 
   const addSet = (idx: number) => {
-    const restTime = lastSetTimeRef.current
-      ? Math.floor((Date.now() - lastSetTimeRef.current) / 1000)
-      : null;
-    
+    const restTime = lastSetTimeRef.current ? Math.floor((Date.now() - lastSetTimeRef.current) / 1000) : null;
     setExercises((prev) => {
       const c = [...prev];
       c[idx] = { ...c[idx], sets: [...c[idx].sets, { weight: "", reps: "", rest_time: restTime }] };
@@ -447,9 +418,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
 
   const copySet = (idx: number) => {
     const lastSet = exercises[idx].sets[exercises[idx].sets.length - 1];
-    const restTime = lastSetTimeRef.current
-      ? Math.floor((Date.now() - lastSetTimeRef.current) / 1000)
-      : null;
+    const restTime = lastSetTimeRef.current ? Math.floor((Date.now() - lastSetTimeRef.current) / 1000) : null;
     setExercises((prev) => {
       const c = [...prev];
       c[idx] = { ...c[idx], sets: [...c[idx].sets, { weight: lastSet.weight, reps: lastSet.reps, rest_time: restTime }] };
@@ -459,7 +428,12 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     setAutoRestSeconds(0);
   };
 
-  const removeExercise = (idx: number) => setExercises((prev) => prev.filter((_, i) => i !== idx));
+  const removeExercise = (idx: number) => {
+    // Clear timer if it was on this exercise
+    if (timerExIdx === idx) setTimerExIdx(null);
+    else if (timerExIdx !== null && timerExIdx > idx) setTimerExIdx(timerExIdx - 1);
+    setExercises((prev) => prev.filter((_, i) => i !== idx));
+  };
 
   const updateSet = (exIdx: number, setIdx: number, field: "weight" | "reps", val: string) => {
     setExercises((prev) => {
@@ -470,34 +444,43 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
       return c;
     });
 
-    // Check for new PR on weight entry
-    if (field === "weight" && val !== "") {
-      const weight = Number(val);
+    // Check for new PR on weight OR reps entry
+    if (val !== "") {
+      const numVal = Number(val);
       const exName = exercises[exIdx]?.name;
       const exGroup = exercises[exIdx]?.muscleGroup;
-      if (weight > 0 && exName) {
-        // We need exercise_id - resolve async
+      if (numVal > 0 && exName) {
         resolveExerciseIds([{ name: exName, muscleGroup: exGroup }]).then((idMap) => {
           const exId = idMap.get(`${exName}::${exGroup}`);
           if (exId) {
-            const currentPR = prMapRef.current.get(exId) || 0;
-            if (weight > currentPR && currentPR > 0) {
-              prMapRef.current.set(exId, weight);
+            const currentPR = prMapRef.current.get(exId) || { weight: 0, reps: 0 };
+            let isNewPR = false;
+            if (field === "weight" && numVal > currentPR.weight && currentPR.weight > 0) {
+              currentPR.weight = numVal;
+              isNewPR = true;
+            }
+            if (field === "reps" && numVal > currentPR.reps && currentPR.reps > 0) {
+              currentPR.reps = numVal;
+              isNewPR = true;
+            }
+            if (isNewPR) {
+              prMapRef.current.set(exId, currentPR);
               prCountRef.current += 1;
               confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
               haptic("prCelebration");
-              toast({ title: t.pr.newRecord, description: `${t.exerciseNames[exName] || exName}: ${weight} ${t.common.kg}` });
+              const desc = field === "weight"
+                ? `${t.exerciseNames[exName] || exName}: ${numVal} ${t.common.kg}`
+                : `${t.exerciseNames[exName] || exName}: ${numVal} ${lang === "uk" ? "повт." : "reps"}`;
+              toast({ title: t.pr.newRecord, description: desc });
             }
           }
         });
       }
     }
 
-    // Mark time when a set value is entered (for auto rest tracking)
     if (field === "reps" && val !== "") {
       lastSetTimeRef.current = Date.now();
       setAutoRestSeconds(0);
-      // Show tooltip on first set
       if (!showRestTooltip) setShowRestTooltip(true);
     }
   };
@@ -522,154 +505,99 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     });
   };
 
+  const submitRating = async () => {
+    if (!user || rating === 0) return;
+    try {
+      await supabase.from("app_reviews" as any).insert({
+        user_id: user.id,
+        rating,
+        feedback: feedback.trim() || null,
+        workout_id: savedWorkoutIdRef.current,
+      } as any);
+      setRatingSubmitted(true);
+      toast({ title: lang === "uk" ? "Дякуємо за відгук! ❤️" : "Thanks for your feedback! ❤️" });
+    } catch { /* silent */ }
+  };
+
   const saveWorkout = async () => {
     if (!user || exercises.length === 0) return;
     setSaving(true);
     try {
-      const exerciseIdMap = await resolveExerciseIds(
-        exercises.map(ex => ({ name: ex.name, muscleGroup: ex.muscleGroup }))
-      );
+      const exerciseIdMap = await resolveExerciseIds(exercises.map(ex => ({ name: ex.name, muscleGroup: ex.muscleGroup })));
 
       if (isEditing && editData) {
         await (supabase as any).from("workout_sets").delete().eq("workout_id", editData.id);
-
         const setsRows: any[] = [];
         exercises.forEach((ex, exIdx) => {
           const exerciseId = exerciseIdMap.get(`${ex.name}::${ex.muscleGroup}`);
           if (!exerciseId) return;
-          ex.sets
-            .filter((s) => s.weight !== "" || s.reps !== "")
-            .forEach((s, setIdx) => {
-              setsRows.push({
-                workout_id: editData.id,
-                exercise_id: exerciseId,
-                set_number: setIdx + 1,
-                weight: Number(s.weight) || 0,
-                reps: Number(s.reps) || 0,
-                sort_order: exIdx,
-                notes: setIdx === 0 ? (ex.notes || null) : null,
-                rest_time: s.rest_time,
-              });
-            });
+          ex.sets.filter((s) => s.weight !== "" || s.reps !== "").forEach((s, setIdx) => {
+            setsRows.push({ workout_id: editData.id, exercise_id: exerciseId, set_number: setIdx + 1, weight: Number(s.weight) || 0, reps: Number(s.reps) || 0, sort_order: exIdx, notes: setIdx === 0 ? (ex.notes || null) : null, rest_time: s.rest_time });
+          });
         });
-
         if (setsRows.length > 0) {
           const { error: sErr } = await (supabase as any).from("workout_sets").insert(setsRows);
           if (sErr) throw sErr;
         }
-
-        const { error: wErr } = await supabase.from("workouts").update({
-          notes: null,
-          name: workoutName || null,
-          finished_at: editData.finished_at || new Date().toISOString(),
-        } as any).eq("id", editData.id);
+        const { error: wErr } = await supabase.from("workouts").update({ notes: null, name: workoutName || null, finished_at: editData.finished_at || new Date().toISOString() } as any).eq("id", editData.id);
         if (wErr) throw wErr;
-
         clearPersistedData();
-        // Show original workout duration, not editing session time
-        const originalDuration = editData.finished_at && editData.started_at
-          ? Math.floor((new Date(editData.finished_at).getTime() - new Date(editData.started_at).getTime()) / 1000)
-          : 0;
+        const originalDuration = editData.finished_at && editData.started_at ? Math.floor((new Date(editData.finished_at).getTime() - new Date(editData.started_at).getTime()) / 1000) : 0;
         setFinalDuration(originalDuration);
         setSaved(true);
         toast({ title: t.workouts.workoutUpdated, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       } else {
         const startedAt = new Date(startTime || Date.now()).toISOString();
         let workoutId = autoSaveIdRef.current;
-
         if (workoutId) {
-          // Reuse existing autosaved workout – delete old sets
           await (supabase as any).from("workout_sets").delete().eq("workout_id", workoutId);
           await supabase.from("workouts").update({ started_at: startedAt } as any).eq("id", workoutId);
         } else {
-          const { data: workout, error: wErr } = await supabase.from("workouts")
-            .insert({ user_id: user.id, started_at: startedAt })
-            .select("id").single();
+          const { data: workout, error: wErr } = await supabase.from("workouts").insert({ user_id: user.id, started_at: startedAt }).select("id").single();
           if (wErr || !workout) throw wErr;
           workoutId = workout.id;
         }
-
+        savedWorkoutIdRef.current = workoutId;
         const setsRows: any[] = [];
         exercises.forEach((ex, exIdx) => {
           const exerciseId = exerciseIdMap.get(`${ex.name}::${ex.muscleGroup}`);
           if (!exerciseId) return;
-          ex.sets
-            .filter((s) => s.weight !== "" || s.reps !== "")
-            .forEach((s, setIdx) => {
-              setsRows.push({
-                workout_id: workoutId,
-                exercise_id: exerciseId,
-                set_number: setIdx + 1,
-                weight: Number(s.weight) || 0,
-                reps: Number(s.reps) || 0,
-                sort_order: exIdx,
-                notes: setIdx === 0 ? (ex.notes || null) : null,
-                rest_time: s.rest_time,
-              });
-            });
+          ex.sets.filter((s) => s.weight !== "" || s.reps !== "").forEach((s, setIdx) => {
+            setsRows.push({ workout_id: workoutId, exercise_id: exerciseId, set_number: setIdx + 1, weight: Number(s.weight) || 0, reps: Number(s.reps) || 0, sort_order: exIdx, notes: setIdx === 0 ? (ex.notes || null) : null, rest_time: s.rest_time });
+          });
         });
-
         if (setsRows.length > 0) {
           const { error: sErr } = await (supabase as any).from("workout_sets").insert(setsRows);
           if (sErr) throw sErr;
         }
-
-        const { error: uErr } = await supabase.from("workouts").update({
-          finished_at: new Date().toISOString(),
-          duration_seconds: elapsed,
-          name: workoutName || null,
-        } as any).eq("id", workoutId);
+        const { error: uErr } = await supabase.from("workouts").update({ finished_at: new Date().toISOString(), duration_seconds: elapsed, name: workoutName || null } as any).eq("id", workoutId);
         if (uErr) throw uErr;
-
         clearPersistedData();
         setFinalDuration(elapsed);
         localStorage.setItem("workoutCompleted", "true");
-        
-        // Award XP for workout completion
-        let earnedXP = 10; // base workout XP
-        
-        // Award PR XP
+        let earnedXP = 10;
         const sessionPRs = prCountRef.current;
         if (sessionPRs > 0) {
           const prXP = getPRXP(profile?.experience_level || null);
           earnedXP += sessionPRs * prXP;
-          console.log(`[XP] PRs detected: ${sessionPRs} × ${prXP} = +${sessionPRs * prXP} XP`);
         }
-        
-        // Check frequency bonus
         const freqXP = await checkAndAwardFrequencyXP();
         if (freqXP > 0) earnedXP += freqXP;
-        
-        console.log(`[XP] Workout complete: base=10, PR=${sessionPRs > 0 ? sessionPRs * getPRXP(profile?.experience_level || null) : 0}, freq=${freqXP}, total=${earnedXP}`);
-        
         const xpResult = await addXP(earnedXP, 'workout_complete');
         setXpGained(earnedXP);
         await updateLastWorkout();
-        
-        // Check for level up
         if (xpResult?.leveledUp && xpResult.newLevel) {
           setLevelUpLevel(xpResult.newLevel);
-          sendNotification(
-            lang === "uk" ? "Новий рівень! 🎉" : "Level Up! 🎉",
-            `${lang === "uk" ? "Ви досягли рівня" : "You reached level"} ${xpResult.newLevel}`
-          );
+          sendNotification(lang === "uk" ? "Новий рівень! 🎉" : "Level Up! 🎉", `${lang === "uk" ? "Ви досягли рівня" : "You reached level"} ${xpResult.newLevel}`);
         }
-
-        // Notify about PR
         if (sessionPRs > 0) {
-          sendNotification(
-            lang === "uk" ? "Новий рекорд! 🏆" : "New Record! 🏆",
-            `+${sessionPRs * getPRXP(profile?.experience_level || null)} XP ${lang === "uk" ? "зараховано" : "earned"}`
-          );
+          sendNotification(lang === "uk" ? "Новий рекорд! 🏆" : "New Record! 🏆", `+${sessionPRs * getPRXP(profile?.experience_level || null)} XP ${lang === "uk" ? "зараховано" : "earned"}`);
         }
-        
-        // Haptic + Confetti for workout complete
         haptic("workoutComplete");
-        if (earnedXP > 0) {
-          confetti({ particleCount: 100 + earnedXP * 3, spread: 80, origin: { y: 0.5 } });
-        }
-        
+        if (earnedXP > 0) confetti({ particleCount: 100 + earnedXP * 3, spread: 80, origin: { y: 0.5 } });
         setSaved(true);
+        // Show rating dialog after a short delay
+        setTimeout(() => setShowRating(true), 1500);
         toast({ title: t.workouts.workoutSaved, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       }
     } catch (e: any) {
@@ -697,9 +625,52 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           <p className="text-muted-foreground text-center">{t.workouts.greatSession}</p>
           <Button onClick={onBack} className="mt-4">{t.workouts.backToWorkouts}</Button>
         </div>
-        {levelUpLevel && (
-          <LevelUpDialog open={!!levelUpLevel} onClose={() => setLevelUpLevel(null)} newLevel={levelUpLevel} />
-        )}
+        {levelUpLevel && <LevelUpDialog open={!!levelUpLevel} onClose={() => setLevelUpLevel(null)} newLevel={levelUpLevel} />}
+
+        {/* Rating Dialog */}
+        <Dialog open={showRating && !ratingSubmitted} onOpenChange={(open) => !open && setShowRating(false)}>
+          <DialogContent className="rounded-2xl max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="font-display text-center">
+                {lang === "uk" ? "Оцініть додаток" : "Rate the App"}
+              </DialogTitle>
+              <DialogDescription className="text-center">
+                {lang === "uk" ? "Ваша думка допоможе нам стати краще" : "Your feedback helps us improve"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {/* Stars */}
+              <div className="flex justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className="p-1 transition-transform active:scale-90"
+                  >
+                    <Star
+                      className={`h-10 w-10 transition-colors ${star <= rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                    />
+                  </button>
+                ))}
+              </div>
+              {/* Feedback text */}
+              <Textarea
+                placeholder={lang === "uk" ? "Поділіться вашими думками (необов'язково)..." : "Share your thoughts (optional)..."}
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
+            <DialogFooter className="flex-col gap-2 sm:flex-col">
+              <Button className="w-full" onClick={submitRating} disabled={rating === 0}>
+                {lang === "uk" ? "Надіслати" : "Submit"}
+              </Button>
+              <Button variant="ghost" className="w-full" onClick={() => setShowRating(false)}>
+                {lang === "uk" ? "Пропустити" : "Skip"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </>
     );
   }
@@ -725,15 +696,8 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           </div>
         </div>
 
-        {/* Workout name input */}
-        <Input
-          placeholder={t.workouts.workoutNamePlaceholder}
-          value={workoutName}
-          onChange={(e) => setWorkoutName(e.target.value)}
-          className="h-11"
-        />
+        <Input placeholder={t.workouts.workoutNamePlaceholder} value={workoutName} onChange={(e) => setWorkoutName(e.target.value)} className="h-11" />
 
-        {/* Add exercise button at top */}
         <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}>
           <Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}
         </Button>
@@ -746,7 +710,6 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {/* Exercise photo */}
                   <div className="relative shrink-0">
                     {getExerciseImage(ex) ? (
                       <img src={getExerciseImage(ex)!} alt={ex.name} className="h-10 w-10 rounded-lg object-cover bg-muted" />
@@ -755,13 +718,6 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                         <Camera className="h-4 w-4 text-muted-foreground" />
                       </div>
                     )}
-                    <button
-                      type="button"
-                      className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm"
-                      onClick={() => { setExerciseImageIdx(exIdx); exerciseImageRef.current?.click(); }}
-                    >
-                      <Camera className="h-2.5 w-2.5" />
-                    </button>
                   </div>
                   <div>
                     <p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p>
@@ -769,11 +725,6 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  {ex.image && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setExercises(prev => { const c = [...prev]; c[exIdx] = { ...c[exIdx], image: undefined }; return c; })}>
-                      <X className="h-3.5 w-3.5 text-destructive" />
-                    </Button>
-                  )}
                   <PreviousWorkoutInfo exerciseName={ex.name} muscleGroup={ex.muscleGroup} />
                   <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
@@ -812,46 +763,31 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                 )}
               </div>
               <Textarea placeholder={t.workouts.notesTip} value={ex.notes} onChange={(e) => updateNotes(exIdx, e.target.value)} className="min-h-[60px] text-sm" />
-
-              {/* Rest timer button per exercise */}
               <Button variant="outline" size="sm" className="w-full" onClick={() => setTimerExIdx(timerExIdx === exIdx ? null : exIdx)}>
                 <Timer className="h-3.5 w-3.5 mr-1.5" /> {t.workouts.restTimer}
               </Button>
-
-              {/* Auto rest timer counter */}
               {autoRestSeconds !== null && autoRestSeconds > 0 && (
                 <div className="flex items-center justify-center gap-2 rounded-xl bg-accent/50 border border-border/50 px-3 py-2">
                   <Timer className="h-4 w-4 text-primary animate-pulse" />
-                  <span className="text-sm font-display font-semibold tabular-nums">
-                    {t.workouts.restTimer}: {formatTime(autoRestSeconds)}
-                  </span>
+                  <span className="text-sm font-display font-semibold tabular-nums">{t.workouts.restTimer}: {formatTime(autoRestSeconds)}</span>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[220px]">
-                      <p className="text-xs">{t.recovery.restTooltip}</p>
-                    </TooltipContent>
+                    <TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger>
+                    <TooltipContent className="max-w-[220px]"><p className="text-xs">{t.recovery.restTooltip}</p></TooltipContent>
                   </Tooltip>
                 </div>
               )}
             </CardContent>
           </Card>
-          {/* Inline rest timer under active exercise */}
-          {timerExIdx === exIdx && (
-            <RestTimer inline onClose={() => setTimerExIdx(null)} />
-          )}
+          {timerExIdx === exIdx && <RestTimer inline onClose={() => setTimerExIdx(null)} />}
           </React.Fragment>
         ))}
 
-        {/* Finish button at bottom */}
         {exercises.length > 0 && (
           <Button className="w-full h-12 text-base" onClick={saveWorkout} disabled={saving}>
             <Save className="h-4 w-4 mr-2" />{saving ? t.workouts.updatingDots : isEditing ? t.workouts.updateWorkout : t.workouts.finishSave}
           </Button>
         )}
 
-        {/* Hidden file input for exercise photos */}
         <input
           ref={exerciseImageRef}
           type="file"
