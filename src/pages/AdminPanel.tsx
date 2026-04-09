@@ -25,6 +25,7 @@ import { toCsv, downloadCsv, buildFilename } from "@/lib/csvExport";
 import { exportClientPdf } from "@/lib/pdfExport";
 import { FileText } from "lucide-react";
 import ExerciseMediaManager from "@/components/admin/ExerciseMediaManager";
+import AdminReviewsTab from "@/components/admin/AdminReviewsTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Profile = Tables<"profiles">;
