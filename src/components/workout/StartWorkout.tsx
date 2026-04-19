@@ -398,7 +398,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     setTimerExIdx(null);
     // Load previous notes for this exercise
     const prevNotes = prevNotesMap[name] || "";
-    setExercises((prev) => [{ name, muscleGroup: group, sets: [{ weight: "", reps: "", rest_time: null }], notes: prevNotes }, ...prev]);
+    setExercises((prev) => [{ name, muscleGroup: group, sets: [{ weight: "", reps: 0, rest_time: null }], notes: prevNotes }, ...prev]);
     setShowLibrary(false);
     haptic("light");
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));

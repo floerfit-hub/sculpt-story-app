@@ -482,6 +482,38 @@ export type Database = {
         }
         Relationships: []
       }
+      user_assigned_programs: {
+        Row: {
+          assigned_at: string
+          dismissed: boolean
+          id: string
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          dismissed?: boolean
+          id?: string
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          dismissed?: boolean
+          id?: string
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_assigned_programs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -598,6 +630,7 @@ export type Database = {
       workout_template_exercises: {
         Row: {
           created_at: string
+          day_id: string | null
           default_reps: number
           default_sets: number
           default_weight: number
@@ -609,6 +642,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          day_id?: string | null
           default_reps?: number
           default_sets?: number
           default_weight?: number
@@ -620,6 +654,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          day_id?: string | null
           default_reps?: number
           default_sets?: number
           default_weight?: number
@@ -642,21 +677,30 @@ export type Database = {
       workout_templates: {
         Row: {
           created_at: string
+          created_by: string | null
+          days: Json
           id: string
+          is_global: boolean
           name: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
+          days?: Json
           id?: string
+          is_global?: boolean
           name: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          created_by?: string | null
+          days?: Json
           id?: string
+          is_global?: boolean
           name?: string
           updated_at?: string
           user_id?: string
