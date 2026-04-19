@@ -43,6 +43,21 @@ const Workouts = () => {
     sessionStorage.setItem("workout-view", view);
   }, [view]);
 
+  // Pick up program-start payload from Dashboard's AssignedProgramsCard
+  useEffect(() => {
+    const raw = sessionStorage.getItem("workout-program-start");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed?.exercises && parsed?.name) {
+          setRepeatData({ exercises: parsed.exercises, name: parsed.name });
+          setView("start");
+        }
+      } catch {}
+      sessionStorage.removeItem("workout-program-start");
+    }
+  }, []);
+
   const handleEdit = (data: EditWorkoutData) => {
     setEditData(data);
     setView("edit");
@@ -99,7 +114,7 @@ const Workouts = () => {
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </Button>
         <h1 className="text-2xl font-display font-bold">
-          {lang === "uk" ? "Програми тренувань" : "Training Programs"}
+          {t.templates.workoutPlan}
         </h1>
       </div>
       <WorkoutTemplates onStartFromTemplate={handleStartFromTemplate} />
@@ -108,7 +123,7 @@ const Workouts = () => {
 
   const menuItems = [
     { key: "start" as const, icon: Play, label: t.workouts.startWorkout, desc: t.workouts.beginSession, color: "bg-primary text-primary-foreground" },
-    { key: "programs" as const, icon: FileText, label: lang === "uk" ? "Програми тренувань" : "Training Programs", desc: lang === "uk" ? "Створюйте та використовуйте програми" : "Create and use workout programs", color: "bg-accent text-accent-foreground" },
+    { key: "programs" as const, icon: FileText, label: t.templates.workoutPlan, desc: lang === "uk" ? "Створюйте плани з кількома днями" : "Create multi-day workout plans", color: "bg-accent text-accent-foreground" },
     { key: "library" as const, icon: BookOpen, label: t.workouts.exerciseLibrary, desc: t.workouts.browseExercises, color: "bg-accent text-accent-foreground" },
     { key: "history" as const, icon: History, label: t.workouts.workoutHistory, desc: `${workoutCount} ${t.workouts.workoutsLogged}`, color: "bg-accent text-accent-foreground" },
     { key: "charts" as const, icon: BarChart3, label: t.workouts.progressCharts, desc: t.workouts.trackStrength, color: "bg-accent text-accent-foreground" },
