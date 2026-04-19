@@ -1,35 +1,82 @@
 
 
-## ExerciseDB API Integration for Exercise Animations
+## Що будую
 
-### Current State
-- `exercises` table has `animation_url` and `thumbnail_url` columns (already exist)
-- Storage bucket `exercise-animations` exists and is public
-- No `name_en` column on `exercises` table — all names are in Ukrainian
-- **`EXERCISE_DB_KEY` secret is NOT configured** — needs to be added before proceeding
+Три фічі:
+1. **Багатоденні шаблони** (День спини, День грудей тощо) у програмах тренувань
+2. **Розсилка адміном** шаблонів усім користувачам з відображенням на головній + окрема вкладка «План тренування»
+3. **Дефолти при додаванні вправи**: 1 підхід, 0 повторень
 
-### Blocker: Missing API Key
+## Зміни в БД (міграції)
 
-The `EXERCISE_DB_KEY` secret must be added first. I'll request it from you before writing any code.
+**`workout_templates`** — додати:
+- `days` (jsonb, default `[]`) — масив `[{id, name, sort_order}]`. Якщо порожньо — шаблон одноденний (зворотна сумісність)
+- `is_global` (bool, default false) — позначка розісланого шаблону
+- `created_by` (uuid) — хто створив (для адмін-шаблонів)
 
-### Plan
+**`workout_template_exercises`** — додати:
+- `day_id` (text, nullable) — до якого дня належить вправа
 
-#### 1. DB Migration — Add `name_en` column
-```sql
-ALTER TABLE public.exercises ADD COLUMN name_en text;
+**Нова RLS-політика** для `workout_templates`:
+- `SELECT`: користувач бачить свої АБО `is_global = true`
+- `INSERT/UPDATE/DELETE` глобальних — тільки для `has_role('admin')`
+
+**Нова таблиця `user_assigned_programs`** (щоб юзер міг приховати/відмітити отриману програму):
+- `user_id`, `template_id`, `assigned_at`, `dismissed` (bool)
+- RLS: користувач керує своїми записами
+
+## Зміни в UI
+
+### `WorkoutTemplates.tsx` (редактор)
+- При створенні шаблону — два режими: **Один день** (як зараз) АБО **План на кілька днів**
+- У режимі «План»: список вкладок (Tabs) — кожна = окремий день з власною назвою (наприклад «День спини»). Можна додавати/видаляти/перейменовувати дні. Для кожного дня — свій список вправ через `ExerciseLibrary`
+- При збереженні: записує `days[]` у шаблон і `day_id` для кожної вправи
+- **Кнопка «Розіслати усім» (тільки для адміна)** — ставить `is_global = true`
+
+### Нова вкладка «План тренування» у Workouts hub
+- Окремий пункт меню (іконка `CalendarDays`)
+- Показує всі `is_global` шаблони (отримані від адміна) + власні багатоденні плани
+- Розкривається в список днів → тап на день → запускає тренування з вправами цього дня
+
+### Dashboard — нова картка «Почати тренування за програмою»
+- Якщо у юзера є хоча б один глобальний шаблон, показуємо картку зі списком днів плану
+- Тап на день → одразу `StartWorkout` з вправами цього дня
+
+### Адмін-панель
+- В існуючій вкладці керування шаблонами/вправами додати кнопку «Розіслати клієнтам» біля кожного шаблону адміна
+
+### `StartWorkout.tsx`
+- Один рядок змінити в `addExercise`: дефолт `sets: [{ weight: "", reps: 0, rest_time: null }]` (1 підхід, 0 повторень — вже 1 підхід є; зараз `reps: ""`, треба `reps: 0`)
+
+Уточнення: «0 повторень та 1 підхід» — додаю один порожній підхід зі значенням 0 у полі повторів (як placeholder для редагування).
+
+## Технічні деталі
+
+```ts
+// Структура шаблону з днями
+days: [
+  { id: "d1", name: "День спини", sort_order: 0 },
+  { id: "d2", name: "День грудей", sort_order: 1 }
+]
+// Кожна вправа має day_id, що мапиться на days[].id
 ```
-This column will store the English name used to search ExerciseDB.
 
-#### 2. Edge Function: `sync-exercise-animation`
-Create `supabase/functions/sync-exercise-animation/index.ts` that:
-- Accepts `{ exercise_id, search_name }` via POST
-- Calls ExerciseDB API (`https://exercisedb.p.rapidapi.com/exercises/name/{name}`) using `EXERCISE_DB_KEY` as `X-RapidAPI-Key`
-- Downloads the GIF from the first matching result
-- Uploads it to `exercise-animations` bucket as `{exercise_id}.gif`
-- Updates `exercises.animation_url` with the public URL
-- Returns success/failure
+```ts
+// Запуск окремого дня
+const dayExercises = template.exercises.filter(e => e.day_id === selectedDayId);
+onStartFromTemplate(dayExercises, `${template.name} — ${day.name}`);
+```
 
-#### 3. UI — "Sync Animation" button
-In `ExerciseLibrary.tsx`, when viewing an exercise detail or in admin/edit mode, add a button that:
-- Opens an input to specify the English search name (pre-filled from `name_en` if available)
-- Calls the edge function
+## Файли
+
+**Створити:**
+- Міграція SQL (нові колонки + RLS + нова таблиця)
+- `src/components/dashboard/AssignedProgramsCard.tsx`
+
+**Редагувати:**
+- `src/components/workout/WorkoutTemplates.tsx` (режим багатоденного плану + кнопка «Розіслати»)
+- `src/components/workout/StartWorkout.tsx` (дефолт reps=0)
+- `src/pages/Workouts.tsx` (нова вкладка «План тренування»)
+- `src/pages/Dashboard.tsx` (вставити `AssignedProgramsCard`)
+- `src/i18n/uk.ts`, `src/i18n/en.ts` (нові строки)
+
