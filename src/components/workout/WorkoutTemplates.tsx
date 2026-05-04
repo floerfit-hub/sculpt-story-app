@@ -281,6 +281,13 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
   };
 
   const addExerciseToTemplate = (name: string, group: string) => {
+    if (replaceTarget !== null) {
+      const idx = replaceTarget;
+      setTemplateExercises((prev) => prev.map((ex, i) => (i === idx ? { ...ex, exercise_name: name, muscle_group: group } : ex)));
+      setReplaceTarget(null);
+      setShowLibrary(false);
+      return;
+    }
     setTemplateExercises((prev) => [
       ...prev,
       {
@@ -294,6 +301,41 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
       },
     ]);
     setShowLibrary(false);
+  };
+
+  const assignToUser = async () => {
+    if (!isAdmin || !assignTemplate || !assignNickname.trim()) return;
+    setAssignBusy(true);
+    try {
+      const nick = assignNickname.trim();
+      const { data: matches } = await (supabase as any)
+        .from("profiles")
+        .select("user_id, full_name")
+        .ilike("full_name", nick)
+        .limit(2);
+      if (!matches || matches.length === 0) {
+        toast({ title: lang === "uk" ? "Користувача не знайдено" : "User not found", variant: "destructive" });
+        return;
+      }
+      if (matches.length > 1) {
+        toast({ title: lang === "uk" ? "Знайдено кілька користувачів — уточніть нік" : "Multiple users found — refine nickname", variant: "destructive" });
+        return;
+      }
+      const target = matches[0];
+      const { error } = await (supabase as any)
+        .from("user_assigned_programs")
+        .insert({ user_id: target.user_id, template_id: assignTemplate.id, dismissed: false });
+      if (error) {
+        toast({ title: t.common.error, description: error.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: lang === "uk" ? `Шаблон надіслано користувачу ${target.full_name} 📤` : `Template sent to ${target.full_name} 📤` });
+      setAssignDialogOpen(false);
+      setAssignNickname("");
+      setAssignTemplate(null);
+    } finally {
+      setAssignBusy(false);
+    }
   };
 
   const MUSCLE_GROUP_KEYS: Record<string, string> = {
