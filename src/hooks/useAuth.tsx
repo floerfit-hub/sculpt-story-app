@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { getSignedProgressPhotoUrl } from "@/lib/progressPhotos";
 
 interface ProfileData {
   full_name: string | null;
@@ -66,6 +67,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .select("full_name, weight_unit, onboarding_completed, primary_goal, training_frequency, experience_level, haptic_feedback, timer_vibration, pr_celebration_vibration, notifications_enabled, avatar_url")
               .eq("user_id", session.user.id)
               .single();
+            if (prof?.avatar_url) {
+              const signed = await getSignedProgressPhotoUrl(prof.avatar_url);
+              if (signed) prof.avatar_url = signed;
+            }
             setProfile(prof);
             setLoading(false);
           }, 0);
@@ -104,7 +109,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .select("full_name, weight_unit, onboarding_completed, primary_goal, training_frequency, experience_level, haptic_feedback, timer_vibration, pr_celebration_vibration, notifications_enabled, avatar_url")
       .eq("user_id", user.id)
       .single();
-    if (prof) setProfile(prof);
+    if (prof) {
+      if (prof.avatar_url) {
+        const signed = await getSignedProgressPhotoUrl(prof.avatar_url);
+        if (signed) prof.avatar_url = signed;
+      }
+      setProfile(prof);
+    }
   };
 
   const signOut = async () => {
