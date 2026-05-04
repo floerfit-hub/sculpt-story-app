@@ -444,8 +444,17 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
                     <span className="text-xs text-muted-foreground">{t.workouts.set}:</span>
                     <Input
                       type="number"
-                      value={ex.default_sets}
-                      onChange={(e) => updateExerciseAt(originalIdx, { default_sets: parseInt(e.target.value) || 1 })}
+                      inputMode="numeric"
+                      value={ex.default_sets === 0 ? "" : ex.default_sets}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        updateExerciseAt(originalIdx, { default_sets: v === "" ? 0 : parseInt(v) || 0 });
+                      }}
+                      onBlur={(e) => {
+                        if (e.target.value === "" || parseInt(e.target.value) < 1) {
+                          updateExerciseAt(originalIdx, { default_sets: 1 });
+                        }
+                      }}
                       className="h-7 w-14 text-xs text-center"
                     />
                   </div>
@@ -453,8 +462,12 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
                     <span className="text-xs text-muted-foreground">{t.workouts.reps}:</span>
                     <Input
                       type="number"
-                      value={ex.default_reps}
-                      onChange={(e) => updateExerciseAt(originalIdx, { default_reps: parseInt(e.target.value) || 0 })}
+                      inputMode="numeric"
+                      value={ex.default_reps === 0 ? "" : ex.default_reps}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        updateExerciseAt(originalIdx, { default_reps: v === "" ? 0 : parseInt(v) || 0 });
+                      }}
                       className="h-7 w-14 text-xs text-center"
                     />
                   </div>
@@ -462,16 +475,30 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
                     <span className="text-xs text-muted-foreground">{t.common.kg}:</span>
                     <Input
                       type="number"
+                      inputMode="decimal"
                       value={ex.default_weight || ""}
-                      onChange={(e) => updateExerciseAt(originalIdx, { default_weight: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        updateExerciseAt(originalIdx, { default_weight: v === "" ? 0 : parseFloat(v) || 0 });
+                      }}
                       className="h-7 w-14 text-xs text-center"
                     />
                   </div>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => removeExerciseAt(originalIdx)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title={lang === "uk" ? "Замінити вправу" : "Replace exercise"}
+                  onClick={() => { setReplaceTarget(originalIdx); setShowLibrary(true); }}
+                >
+                  <RefreshCw className="h-4 w-4 text-primary" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => removeExerciseAt(originalIdx)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
