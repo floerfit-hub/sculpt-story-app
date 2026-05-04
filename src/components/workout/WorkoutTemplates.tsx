@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Plus, Trash2, Pencil, Play, Copy, FileText, Send, CalendarDays, Globe } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Pencil, Play, Copy, FileText, Send, CalendarDays, Globe, RefreshCw, UserPlus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import ExerciseLibrary from "./ExerciseLibrary";
 import { useToast } from "@/hooks/use-toast";
 
@@ -57,6 +58,11 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
   const [activeDayId, setActiveDayId] = useState<string | null>(null);
   const [showLibrary, setShowLibrary] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [replaceTarget, setReplaceTarget] = useState<number | null>(null);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [assignTemplate, setAssignTemplate] = useState<Template | null>(null);
+  const [assignNickname, setAssignNickname] = useState("");
+  const [assignBusy, setAssignBusy] = useState(false);
 
   useEffect(() => {
     if (!user) return;
