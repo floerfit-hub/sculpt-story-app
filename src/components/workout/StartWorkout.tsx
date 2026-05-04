@@ -688,7 +688,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     );
   }
 
-  if (showLibrary) return <ExerciseLibrary onBack={() => setShowLibrary(false)} onSelect={addExercise} selectable />;
+  if (showLibrary) return <ExerciseLibrary onBack={() => { setShowLibrary(false); setReplaceExIdx(null); }} onSelect={addExercise} selectable />;
 
   return (
     <TooltipProvider>
@@ -739,6 +739,14 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                 </div>
                 <div className="flex items-center gap-1">
                   <PreviousWorkoutInfo exerciseName={ex.name} muscleGroup={ex.muscleGroup} />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title={lang === "uk" ? "Замінити вправу" : "Replace exercise"}
+                    onClick={() => { setReplaceExIdx(exIdx); setShowLibrary(true); }}
+                  >
+                    <RefreshCw className="h-4 w-4 text-primary" />
+                  </Button>
                   <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
               </div>
