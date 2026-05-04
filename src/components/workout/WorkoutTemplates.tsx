@@ -650,6 +650,36 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
           </Card>
         );
       })}
+
+      {/* Assign template to specific user dialog */}
+      <Dialog open={assignDialogOpen} onOpenChange={(o) => { setAssignDialogOpen(o); if (!o) { setAssignNickname(""); setAssignTemplate(null); } }}>
+        <DialogContent className="rounded-2xl max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              {lang === "uk" ? "Надіслати шаблон користувачу" : "Send template to user"}
+            </DialogTitle>
+            <DialogDescription>
+              {lang === "uk"
+                ? `Введіть нік (повне ім'я) користувача. Шаблон «${assignTemplate?.name ?? ""}» з'явиться у нього на головній.`
+                : `Enter the user's nickname (full name). The template "${assignTemplate?.name ?? ""}" will appear on their dashboard.`}
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            autoFocus={false}
+            placeholder={lang === "uk" ? "Нік користувача" : "User nickname"}
+            value={assignNickname}
+            onChange={(e) => setAssignNickname(e.target.value)}
+          />
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button className="w-full" onClick={assignToUser} disabled={!assignNickname.trim() || assignBusy}>
+              <Send className="h-4 w-4 mr-2" /> {lang === "uk" ? "Надіслати" : "Send"}
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={() => setAssignDialogOpen(false)}>
+              {lang === "uk" ? "Скасувати" : "Cancel"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
