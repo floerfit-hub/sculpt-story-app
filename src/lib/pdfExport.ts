@@ -265,7 +265,9 @@ export async function exportClientPdf(client: ClientPdfData): Promise<void> {
       if (col === 0 && y + cellHeight > 280) { doc.addPage(); y = 20; }
 
       const imgX = margin + col * (imgSize + gap);
-      const base64 = await loadImageAsSquareBase64(allPhotos[i].url);
+      const { getSignedProgressPhotoUrl } = await import("@/lib/progressPhotos");
+      const signed = await getSignedProgressPhotoUrl(allPhotos[i].url);
+      const base64 = signed ? await loadImageAsSquareBase64(signed) : null;
       if (base64) {
         try {
           doc.addImage(base64, "JPEG", imgX, y, imgSize, imgSize);
