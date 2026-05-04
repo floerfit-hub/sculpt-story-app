@@ -102,8 +102,8 @@ const AddEntry = () => {
       const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error } = await supabase.storage.from("progress-photos").upload(path, photo);
       if (!error) {
-        const { data: urlData } = supabase.storage.from("progress-photos").getPublicUrl(path);
-        photoUrls.push(urlData.publicUrl);
+        // Store the storage path; we resolve to signed URLs at display time.
+        photoUrls.push(path);
       }
     }
 

@@ -5,6 +5,7 @@ import { useTranslation } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
+import { getSignedProgressPhotoUrls } from "@/lib/progressPhotos";
 
 type ProgressEntry = Tables<"progress_entries">;
 
@@ -12,6 +13,7 @@ const Photos = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
+  const [signedMap, setSignedMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [compareA, setCompareA] = useState<string | null>(null);
   const [compareB, setCompareB] = useState<string | null>(null);
@@ -24,12 +26,20 @@ const Photos = () => {
         .not("photo_urls", "is", null)
         .order("entry_date", { ascending: false });
       setEntries(data ?? []);
+      const all = (data ?? []).flatMap((e) => e.photo_urls || []);
+      const signed = await getSignedProgressPhotoUrls(all);
+      const map: Record<string, string> = {};
+      all.forEach((raw, i) => { if (signed[i]) map[raw] = signed[i] as string; });
+      setSignedMap(map);
       setLoading(false);
     };
     fetch();
   }, [user]);
 
-  const allPhotos = entries.flatMap((e) => (e.photo_urls || []).map((url) => ({ url, date: e.entry_date })));
+  const resolveUrl = (raw: string) => signedMap[raw] || raw;
+  const allPhotos = entries.flatMap((e) =>
+    (e.photo_urls || []).map((raw) => ({ url: resolveUrl(raw), date: e.entry_date }))
+  );
 
   const handleSelect = (url: string) => {
     if (!compareA) { setCompareA(url); }

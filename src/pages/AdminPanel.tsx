@@ -27,6 +27,7 @@ import { FileText } from "lucide-react";
 import ExerciseMediaManager from "@/components/admin/ExerciseMediaManager";
 import AdminReviewsTab from "@/components/admin/AdminReviewsTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SignedProgressImg from "@/components/SignedProgressImg";
 
 type Profile = Tables<"profiles">;
 type ProgressEntry = Tables<"progress_entries">;
@@ -513,9 +514,9 @@ const AdminPanel = () => {
                             <p className="text-xs font-medium mb-2">{format(new Date(entry.entry_date), "dd.MM.yyyy")}</p>
                             <div className="grid grid-cols-3 gap-2">
                               {entry.photo_urls!.map((url, i) => (
-                                <img
+                                <SignedProgressImg
                                   key={i}
-                                  src={url}
+                                  pathOrUrl={url}
                                   alt={`Progress photo ${i + 1}`}
                                   className="rounded-lg aspect-square object-cover w-full cursor-pointer hover:opacity-80 transition-opacity"
                                   loading="lazy"
@@ -676,8 +677,8 @@ const AdminPanel = () => {
           </DialogHeader>
           {lightbox && (
             <div className="relative flex items-center justify-center min-h-[60vh]">
-              <img
-                src={lightbox.urls[lightbox.index]}
+              <SignedProgressImg
+                pathOrUrl={lightbox.urls[lightbox.index]}
                 alt="Full size"
                 className="max-w-full max-h-[85vh] object-contain rounded-lg"
               />

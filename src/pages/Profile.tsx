@@ -18,6 +18,7 @@ import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Switch } from "@/components/ui/switch";
+import { getSignedProgressPhotoUrl } from "@/lib/progressPhotos";
 const LANGUAGES: { code: Language; label: string }[] = [
   { code: "en", label: "English" },
   { code: "uk", label: "Українська" },
@@ -190,13 +191,11 @@ const Profile = () => {
       
       if (uploadError) throw uploadError;
       
-      const { data: urlData } = supabase.storage
-        .from("progress-photos")
-        .getPublicUrl(filePath);
-      
-      const publicUrl = urlData.publicUrl + "?t=" + Date.now();
-      await supabase.from("profiles").update({ avatar_url: publicUrl } as any).eq("user_id", user.id);
-      setAvatarUrl(publicUrl);
+      // Store the storage path; bucket is private and we serve signed URLs.
+      await supabase.from("profiles").update({ avatar_url: filePath } as any).eq("user_id", user.id);
+      const signed = await getSignedProgressPhotoUrl(filePath);
+      setAvatarUrl(signed ? signed + "#t=" + Date.now() : "");
+      await refreshProfile();
       toast({ title: lang === "uk" ? "Фото оновлено" : "Photo updated" });
     } catch (err: any) {
       toast({ title: t.common.error, description: err.message, variant: "destructive" });

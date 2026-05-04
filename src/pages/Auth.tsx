@@ -11,24 +11,29 @@ import { Dumbbell } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 
-const SAVED_CREDS_KEY = "fittrack-saved-creds";
+const SAVED_EMAIL_KEY = "fittrack-saved-email";
+const LEGACY_CREDS_KEY = "fittrack-saved-creds";
 
-const getSavedCreds = (): { email: string; password: string } | null => {
+const getSavedEmail = (): string | null => {
+  // Migrate away from any legacy plaintext-password store
   try {
-    const raw = localStorage.getItem(SAVED_CREDS_KEY);
-    if (!raw) return null;
-    return JSON.parse(atob(raw));
+    if (localStorage.getItem(LEGACY_CREDS_KEY)) {
+      localStorage.removeItem(LEGACY_CREDS_KEY);
+    }
+  } catch { /* ignore */ }
+  try {
+    return localStorage.getItem(SAVED_EMAIL_KEY);
   } catch { return null; }
 };
 
 const Auth = () => {
-  const saved = getSavedCreds();
+  const savedEmail = getSavedEmail();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState(saved?.email || "");
-  const [password, setPassword] = useState(saved?.password || "");
+  const [email, setEmail] = useState(savedEmail || "");
+  const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(!!saved);
+  const [rememberMe, setRememberMe] = useState(!!savedEmail);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -62,11 +67,11 @@ const Auth = () => {
       if (error) {
         toast({ title: t.common.error, description: error.message, variant: "destructive" });
       } else {
-        // Save or clear credentials based on "remember me"
+        // Persist only the email (Supabase handles the session token securely).
         if (rememberMe) {
-          localStorage.setItem(SAVED_CREDS_KEY, btoa(JSON.stringify({ email, password })));
+          localStorage.setItem(SAVED_EMAIL_KEY, email);
         } else {
-          localStorage.removeItem(SAVED_CREDS_KEY);
+          localStorage.removeItem(SAVED_EMAIL_KEY);
           sessionStorage.setItem("forget-on-close", "true");
         }
         navigate("/");
