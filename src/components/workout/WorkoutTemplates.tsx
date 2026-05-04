@@ -344,7 +344,7 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
   };
 
   if (showLibrary) {
-    return <ExerciseLibrary onBack={() => setShowLibrary(false)} onSelect={addExerciseToTemplate} selectable />;
+    return <ExerciseLibrary onBack={() => { setShowLibrary(false); setReplaceTarget(null); }} onSelect={addExerciseToTemplate} selectable />;
   }
 
   if (view === "create" || view === "edit") {
@@ -591,6 +591,17 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
                   {isAdmin && isOwner && !tmpl.is_global && (
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => sendExistingToAll(tmpl)} title={t.templates.sendToAll}>
                       <Send className="h-3.5 w-3.5 text-primary" />
+                    </Button>
+                  )}
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => { setAssignTemplate(tmpl); setAssignDialogOpen(true); }}
+                      title={lang === "uk" ? "Надіслати конкретному користувачу" : "Send to specific user"}
+                    >
+                      <UserPlus className="h-3.5 w-3.5 text-primary" />
                     </Button>
                   )}
                   {canDelete && (
