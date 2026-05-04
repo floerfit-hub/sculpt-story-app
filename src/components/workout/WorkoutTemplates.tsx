@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Plus, Trash2, Pencil, Play, Copy, FileText, Send, CalendarDays, Globe } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Pencil, Play, Copy, FileText, Send, CalendarDays, Globe, RefreshCw, UserPlus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import ExerciseLibrary from "./ExerciseLibrary";
 import { useToast } from "@/hooks/use-toast";
 
@@ -57,6 +58,11 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
   const [activeDayId, setActiveDayId] = useState<string | null>(null);
   const [showLibrary, setShowLibrary] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [replaceTarget, setReplaceTarget] = useState<number | null>(null);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [assignTemplate, setAssignTemplate] = useState<Template | null>(null);
+  const [assignNickname, setAssignNickname] = useState("");
+  const [assignBusy, setAssignBusy] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -275,6 +281,13 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
   };
 
   const addExerciseToTemplate = (name: string, group: string) => {
+    if (replaceTarget !== null) {
+      const idx = replaceTarget;
+      setTemplateExercises((prev) => prev.map((ex, i) => (i === idx ? { ...ex, exercise_name: name, muscle_group: group } : ex)));
+      setReplaceTarget(null);
+      setShowLibrary(false);
+      return;
+    }
     setTemplateExercises((prev) => [
       ...prev,
       {
@@ -290,13 +303,48 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
     setShowLibrary(false);
   };
 
+  const assignToUser = async () => {
+    if (!isAdmin || !assignTemplate || !assignNickname.trim()) return;
+    setAssignBusy(true);
+    try {
+      const nick = assignNickname.trim();
+      const { data: matches } = await (supabase as any)
+        .from("profiles")
+        .select("user_id, full_name")
+        .ilike("full_name", nick)
+        .limit(2);
+      if (!matches || matches.length === 0) {
+        toast({ title: lang === "uk" ? "Користувача не знайдено" : "User not found", variant: "destructive" });
+        return;
+      }
+      if (matches.length > 1) {
+        toast({ title: lang === "uk" ? "Знайдено кілька користувачів — уточніть нік" : "Multiple users found — refine nickname", variant: "destructive" });
+        return;
+      }
+      const target = matches[0];
+      const { error } = await (supabase as any)
+        .from("user_assigned_programs")
+        .insert({ user_id: target.user_id, template_id: assignTemplate.id, dismissed: false });
+      if (error) {
+        toast({ title: t.common.error, description: error.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: lang === "uk" ? `Шаблон надіслано користувачу ${target.full_name} 📤` : `Template sent to ${target.full_name} 📤` });
+      setAssignDialogOpen(false);
+      setAssignNickname("");
+      setAssignTemplate(null);
+    } finally {
+      setAssignBusy(false);
+    }
+  };
+
   const MUSCLE_GROUP_KEYS: Record<string, string> = {
     "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest",
     "Shoulders": "shoulders", "Arms": "arms", "Core": "core",
   };
 
   if (showLibrary) {
-    return <ExerciseLibrary onBack={() => setShowLibrary(false)} onSelect={addExerciseToTemplate} selectable />;
+    return <ExerciseLibrary onBack={() => { setShowLibrary(false); setReplaceTarget(null); }} onSelect={addExerciseToTemplate} selectable />;
   }
 
   if (view === "create" || view === "edit") {
@@ -396,8 +444,17 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
                     <span className="text-xs text-muted-foreground">{t.workouts.set}:</span>
                     <Input
                       type="number"
-                      value={ex.default_sets}
-                      onChange={(e) => updateExerciseAt(originalIdx, { default_sets: parseInt(e.target.value) || 1 })}
+                      inputMode="numeric"
+                      value={ex.default_sets === 0 ? "" : ex.default_sets}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        updateExerciseAt(originalIdx, { default_sets: v === "" ? 0 : parseInt(v) || 0 });
+                      }}
+                      onBlur={(e) => {
+                        if (e.target.value === "" || parseInt(e.target.value) < 1) {
+                          updateExerciseAt(originalIdx, { default_sets: 1 });
+                        }
+                      }}
                       className="h-7 w-14 text-xs text-center"
                     />
                   </div>
@@ -405,8 +462,12 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
                     <span className="text-xs text-muted-foreground">{t.workouts.reps}:</span>
                     <Input
                       type="number"
-                      value={ex.default_reps}
-                      onChange={(e) => updateExerciseAt(originalIdx, { default_reps: parseInt(e.target.value) || 0 })}
+                      inputMode="numeric"
+                      value={ex.default_reps === 0 ? "" : ex.default_reps}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        updateExerciseAt(originalIdx, { default_reps: v === "" ? 0 : parseInt(v) || 0 });
+                      }}
                       className="h-7 w-14 text-xs text-center"
                     />
                   </div>
@@ -414,16 +475,30 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
                     <span className="text-xs text-muted-foreground">{t.common.kg}:</span>
                     <Input
                       type="number"
+                      inputMode="decimal"
                       value={ex.default_weight || ""}
-                      onChange={(e) => updateExerciseAt(originalIdx, { default_weight: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        updateExerciseAt(originalIdx, { default_weight: v === "" ? 0 : parseFloat(v) || 0 });
+                      }}
                       className="h-7 w-14 text-xs text-center"
                     />
                   </div>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => removeExerciseAt(originalIdx)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title={lang === "uk" ? "Замінити вправу" : "Replace exercise"}
+                  onClick={() => { setReplaceTarget(originalIdx); setShowLibrary(true); }}
+                >
+                  <RefreshCw className="h-4 w-4 text-primary" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => removeExerciseAt(originalIdx)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -518,6 +593,17 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
                       <Send className="h-3.5 w-3.5 text-primary" />
                     </Button>
                   )}
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => { setAssignTemplate(tmpl); setAssignDialogOpen(true); }}
+                      title={lang === "uk" ? "Надіслати конкретному користувачу" : "Send to specific user"}
+                    >
+                      <UserPlus className="h-3.5 w-3.5 text-primary" />
+                    </Button>
+                  )}
                   {canDelete && (
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteTemplate(tmpl.id)}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -564,6 +650,36 @@ const WorkoutTemplates = ({ onStartFromTemplate }: Props) => {
           </Card>
         );
       })}
+
+      {/* Assign template to specific user dialog */}
+      <Dialog open={assignDialogOpen} onOpenChange={(o) => { setAssignDialogOpen(o); if (!o) { setAssignNickname(""); setAssignTemplate(null); } }}>
+        <DialogContent className="rounded-2xl max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              {lang === "uk" ? "Надіслати шаблон користувачу" : "Send template to user"}
+            </DialogTitle>
+            <DialogDescription>
+              {lang === "uk"
+                ? `Введіть нік (повне ім'я) користувача. Шаблон «${assignTemplate?.name ?? ""}» з'явиться у нього на головній.`
+                : `Enter the user's nickname (full name). The template "${assignTemplate?.name ?? ""}" will appear on their dashboard.`}
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            autoFocus={false}
+            placeholder={lang === "uk" ? "Нік користувача" : "User nickname"}
+            value={assignNickname}
+            onChange={(e) => setAssignNickname(e.target.value)}
+          />
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button className="w-full" onClick={assignToUser} disabled={!assignNickname.trim() || assignBusy}>
+              <Send className="h-4 w-4 mr-2" /> {lang === "uk" ? "Надіслати" : "Send"}
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={() => setAssignDialogOpen(false)}>
+              {lang === "uk" ? "Скасувати" : "Cancel"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

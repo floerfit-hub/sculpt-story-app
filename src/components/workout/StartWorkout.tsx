@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy, Camera, X, Star } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy, Camera, X, Star, RefreshCw } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import PreviousWorkoutInfo from "./PreviousWorkoutInfo";
 import RestTimer from "./RestTimer";
@@ -126,6 +126,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     return [];
   });
   const [showLibrary, setShowLibrary] = useState(false);
+  const [replaceExIdx, setReplaceExIdx] = useState<number | null>(null);
 
   const [timerExIdx, setTimerExIdx] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -394,6 +395,18 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   }, [user, isEditing, editData]);
 
   const addExercise = (name: string, group: string) => {
+    // Replace mode: swap the targeted exercise instead of appending
+    if (replaceExIdx !== null) {
+      const idx = replaceExIdx;
+      const prevNotes = prevNotesMap[name] || "";
+      setExercises((prev) => prev.map((ex, i) => (i === idx ? { ...ex, name, muscleGroup: group, notes: prevNotes, image: undefined } : ex)));
+      setReplaceExIdx(null);
+      setShowLibrary(false);
+      // Clear the rest timer if it was attached to the replaced exercise
+      if (timerExIdx === idx) setTimerExIdx(null);
+      haptic("light");
+      return;
+    }
     // Clear timer from previous exercise
     setTimerExIdx(null);
     // Load previous notes for this exercise
@@ -675,7 +688,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     );
   }
 
-  if (showLibrary) return <ExerciseLibrary onBack={() => setShowLibrary(false)} onSelect={addExercise} selectable />;
+  if (showLibrary) return <ExerciseLibrary onBack={() => { setShowLibrary(false); setReplaceExIdx(null); }} onSelect={addExercise} selectable />;
 
   return (
     <TooltipProvider>
@@ -726,6 +739,14 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                 </div>
                 <div className="flex items-center gap-1">
                   <PreviousWorkoutInfo exerciseName={ex.name} muscleGroup={ex.muscleGroup} />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title={lang === "uk" ? "Замінити вправу" : "Replace exercise"}
+                    onClick={() => { setReplaceExIdx(exIdx); setShowLibrary(true); }}
+                  >
+                    <RefreshCw className="h-4 w-4 text-primary" />
+                  </Button>
                   <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
               </div>
