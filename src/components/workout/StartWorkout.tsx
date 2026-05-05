@@ -773,8 +773,8 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                 <div key={setIdx}>
                   <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center">
                     <span className="text-sm font-medium text-muted-foreground">{setIdx + 1}</span>
-                    <Input type="number" placeholder="0" value={set.weight} onChange={(e) => updateSet(exIdx, setIdx, "weight", e.target.value)} className="h-10" />
-                    <Input type="number" placeholder="0" value={set.reps} onChange={(e) => updateSet(exIdx, setIdx, "reps", e.target.value)} className="h-10" />
+                    <Input type="number" placeholder="0" value={set.weight} onChange={(e) => updateSet(exIdx, setIdx, "weight", e.target.value)} onBlur={() => checkPR(exIdx, setIdx, "weight")} className="h-10" />
+                    <Input type="number" placeholder="0" value={set.reps} onChange={(e) => updateSet(exIdx, setIdx, "reps", e.target.value)} onBlur={() => checkPR(exIdx, setIdx, "reps")} className="h-10" />
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeSet(exIdx, setIdx)}><Trash2 className="h-3 w-3" /></Button>
                   </div>
                   <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center mt-1">
