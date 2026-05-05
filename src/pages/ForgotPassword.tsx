@@ -20,8 +20,9 @@ const ForgotPassword = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const baseUrl = window.location.href.split("#")[0];
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}#/reset-password`,
+      redirectTo: `${baseUrl}#/reset-password`,
     });
     setLoading(false);
     if (error) {
