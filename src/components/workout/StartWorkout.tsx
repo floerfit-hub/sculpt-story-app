@@ -92,6 +92,20 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
+
+  // Check if user has already submitted any review — if so, never show the dialog again
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("app_reviews")
+        .select("id")
+        .eq("user_id", user.id)
+        .limit(1);
+      if (data && data.length > 0) setHasReviewed(true);
+    })();
+  }, [user]);
 
   const [workoutName, setWorkoutName] = useState<string>(() => {
     if (editData) return editData.name || "";
@@ -448,6 +462,42 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     setExercises((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  const checkPR = (exIdx: number, setIdx: number, field: "weight" | "reps") => {
+    const set = exercisesRef.current[exIdx]?.sets[setIdx];
+    if (!set) return;
+    const raw = set[field];
+    if (raw === "" || raw === null || raw === undefined) return;
+    const numVal = Number(raw);
+    if (!(numVal > 0)) return;
+    const exName = exercisesRef.current[exIdx]?.name;
+    const exGroup = exercisesRef.current[exIdx]?.muscleGroup;
+    if (!exName) return;
+    resolveExerciseIds([{ name: exName, muscleGroup: exGroup }]).then((idMap) => {
+      const exId = idMap.get(`${exName}::${exGroup}`);
+      if (!exId) return;
+      const currentPR = prMapRef.current.get(exId) || { weight: 0, reps: 0 };
+      let isNewPR = false;
+      if (field === "weight" && numVal > currentPR.weight && currentPR.weight > 0) {
+        currentPR.weight = numVal;
+        isNewPR = true;
+      }
+      if (field === "reps" && numVal > currentPR.reps && currentPR.reps > 0) {
+        currentPR.reps = numVal;
+        isNewPR = true;
+      }
+      if (isNewPR) {
+        prMapRef.current.set(exId, currentPR);
+        prCountRef.current += 1;
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        haptic("prCelebration");
+        const desc = field === "weight"
+          ? `${t.exerciseNames[exName] || exName}: ${numVal} ${t.common.kg}`
+          : `${t.exerciseNames[exName] || exName}: ${numVal} ${lang === "uk" ? "повт." : "reps"}`;
+        toast({ title: t.pr.newRecord, description: desc });
+      }
+    });
+  };
+
   const updateSet = (exIdx: number, setIdx: number, field: "weight" | "reps", val: string) => {
     setExercises((prev) => {
       const c = [...prev];
@@ -456,40 +506,6 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
       c[exIdx] = { ...c[exIdx], sets };
       return c;
     });
-
-    // Check for new PR on weight OR reps entry
-    if (val !== "") {
-      const numVal = Number(val);
-      const exName = exercises[exIdx]?.name;
-      const exGroup = exercises[exIdx]?.muscleGroup;
-      if (numVal > 0 && exName) {
-        resolveExerciseIds([{ name: exName, muscleGroup: exGroup }]).then((idMap) => {
-          const exId = idMap.get(`${exName}::${exGroup}`);
-          if (exId) {
-            const currentPR = prMapRef.current.get(exId) || { weight: 0, reps: 0 };
-            let isNewPR = false;
-            if (field === "weight" && numVal > currentPR.weight && currentPR.weight > 0) {
-              currentPR.weight = numVal;
-              isNewPR = true;
-            }
-            if (field === "reps" && numVal > currentPR.reps && currentPR.reps > 0) {
-              currentPR.reps = numVal;
-              isNewPR = true;
-            }
-            if (isNewPR) {
-              prMapRef.current.set(exId, currentPR);
-              prCountRef.current += 1;
-              confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-              haptic("prCelebration");
-              const desc = field === "weight"
-                ? `${t.exerciseNames[exName] || exName}: ${numVal} ${t.common.kg}`
-                : `${t.exerciseNames[exName] || exName}: ${numVal} ${lang === "uk" ? "повт." : "reps"}`;
-              toast({ title: t.pr.newRecord, description: desc });
-            }
-          }
-        });
-      }
-    }
 
     if (field === "reps" && val !== "") {
       lastSetTimeRef.current = Date.now();
@@ -609,8 +625,8 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
         haptic("workoutComplete");
         if (earnedXP > 0) confetti({ particleCount: 100 + earnedXP * 3, spread: 80, origin: { y: 0.5 } });
         setSaved(true);
-        // Show rating dialog after a short delay
-        setTimeout(() => setShowRating(true), 1500);
+        // Show rating dialog after a short delay (only if user hasn't reviewed yet)
+        if (!hasReviewed) setTimeout(() => setShowRating(true), 1500);
         toast({ title: t.workouts.workoutSaved, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       }
     } catch (e: any) {
@@ -757,8 +773,8 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                 <div key={setIdx}>
                   <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center">
                     <span className="text-sm font-medium text-muted-foreground">{setIdx + 1}</span>
-                    <Input type="number" placeholder="0" value={set.weight} onChange={(e) => updateSet(exIdx, setIdx, "weight", e.target.value)} className="h-10" />
-                    <Input type="number" placeholder="0" value={set.reps} onChange={(e) => updateSet(exIdx, setIdx, "reps", e.target.value)} className="h-10" />
+                    <Input type="number" placeholder="0" value={set.weight} onChange={(e) => updateSet(exIdx, setIdx, "weight", e.target.value)} onBlur={() => checkPR(exIdx, setIdx, "weight")} className="h-10" />
+                    <Input type="number" placeholder="0" value={set.reps} onChange={(e) => updateSet(exIdx, setIdx, "reps", e.target.value)} onBlur={() => checkPR(exIdx, setIdx, "reps")} className="h-10" />
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeSet(exIdx, setIdx)}><Trash2 className="h-3 w-3" /></Button>
                   </div>
                   <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center mt-1">
