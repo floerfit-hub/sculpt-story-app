@@ -462,6 +462,42 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     setExercises((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  const checkPR = (exIdx: number, setIdx: number, field: "weight" | "reps") => {
+    const set = exercisesRef.current[exIdx]?.sets[setIdx];
+    if (!set) return;
+    const raw = set[field];
+    if (raw === "" || raw === null || raw === undefined) return;
+    const numVal = Number(raw);
+    if (!(numVal > 0)) return;
+    const exName = exercisesRef.current[exIdx]?.name;
+    const exGroup = exercisesRef.current[exIdx]?.muscleGroup;
+    if (!exName) return;
+    resolveExerciseIds([{ name: exName, muscleGroup: exGroup }]).then((idMap) => {
+      const exId = idMap.get(`${exName}::${exGroup}`);
+      if (!exId) return;
+      const currentPR = prMapRef.current.get(exId) || { weight: 0, reps: 0 };
+      let isNewPR = false;
+      if (field === "weight" && numVal > currentPR.weight && currentPR.weight > 0) {
+        currentPR.weight = numVal;
+        isNewPR = true;
+      }
+      if (field === "reps" && numVal > currentPR.reps && currentPR.reps > 0) {
+        currentPR.reps = numVal;
+        isNewPR = true;
+      }
+      if (isNewPR) {
+        prMapRef.current.set(exId, currentPR);
+        prCountRef.current += 1;
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        haptic("prCelebration");
+        const desc = field === "weight"
+          ? `${t.exerciseNames[exName] || exName}: ${numVal} ${t.common.kg}`
+          : `${t.exerciseNames[exName] || exName}: ${numVal} ${lang === "uk" ? "повт." : "reps"}`;
+        toast({ title: t.pr.newRecord, description: desc });
+      }
+    });
+  };
+
   const updateSet = (exIdx: number, setIdx: number, field: "weight" | "reps", val: string) => {
     setExercises((prev) => {
       const c = [...prev];
@@ -470,40 +506,6 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
       c[exIdx] = { ...c[exIdx], sets };
       return c;
     });
-
-    // Check for new PR on weight OR reps entry
-    if (val !== "") {
-      const numVal = Number(val);
-      const exName = exercises[exIdx]?.name;
-      const exGroup = exercises[exIdx]?.muscleGroup;
-      if (numVal > 0 && exName) {
-        resolveExerciseIds([{ name: exName, muscleGroup: exGroup }]).then((idMap) => {
-          const exId = idMap.get(`${exName}::${exGroup}`);
-          if (exId) {
-            const currentPR = prMapRef.current.get(exId) || { weight: 0, reps: 0 };
-            let isNewPR = false;
-            if (field === "weight" && numVal > currentPR.weight && currentPR.weight > 0) {
-              currentPR.weight = numVal;
-              isNewPR = true;
-            }
-            if (field === "reps" && numVal > currentPR.reps && currentPR.reps > 0) {
-              currentPR.reps = numVal;
-              isNewPR = true;
-            }
-            if (isNewPR) {
-              prMapRef.current.set(exId, currentPR);
-              prCountRef.current += 1;
-              confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-              haptic("prCelebration");
-              const desc = field === "weight"
-                ? `${t.exerciseNames[exName] || exName}: ${numVal} ${t.common.kg}`
-                : `${t.exerciseNames[exName] || exName}: ${numVal} ${lang === "uk" ? "повт." : "reps"}`;
-              toast({ title: t.pr.newRecord, description: desc });
-            }
-          }
-        });
-      }
-    }
 
     if (field === "reps" && val !== "") {
       lastSetTimeRef.current = Date.now();
