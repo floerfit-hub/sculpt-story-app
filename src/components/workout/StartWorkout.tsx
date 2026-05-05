@@ -92,6 +92,20 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
+
+  // Check if user has already submitted any review — if so, never show the dialog again
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("app_reviews")
+        .select("id")
+        .eq("user_id", user.id)
+        .limit(1);
+      if (data && data.length > 0) setHasReviewed(true);
+    })();
+  }, [user]);
 
   const [workoutName, setWorkoutName] = useState<string>(() => {
     if (editData) return editData.name || "";
@@ -609,8 +623,8 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
         haptic("workoutComplete");
         if (earnedXP > 0) confetti({ particleCount: 100 + earnedXP * 3, spread: 80, origin: { y: 0.5 } });
         setSaved(true);
-        // Show rating dialog after a short delay
-        setTimeout(() => setShowRating(true), 1500);
+        // Show rating dialog after a short delay (only if user hasn't reviewed yet)
+        if (!hasReviewed) setTimeout(() => setShowRating(true), 1500);
         toast({ title: t.workouts.workoutSaved, description: `${exercises.length} ${t.workouts.exercisesLogged}` });
       }
     } catch (e: any) {
