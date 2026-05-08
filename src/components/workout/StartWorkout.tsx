@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy, Camera, X, Star, RefreshCw } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy, Camera, X, Star, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import PreviousWorkoutInfo from "./PreviousWorkoutInfo";
 import RestTimer from "./RestTimer";
@@ -425,7 +425,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     setTimerExIdx(null);
     // Load previous notes for this exercise
     const prevNotes = prevNotesMap[name] || "";
-    setExercises((prev) => [{ name, muscleGroup: group, sets: [{ weight: "", reps: 0, rest_time: null }], notes: prevNotes }, ...prev]);
+    setExercises((prev) => [{ name, muscleGroup: group, sets: [{ weight: "", reps: "", rest_time: null }], notes: prevNotes }, ...prev]);
     setShowLibrary(false);
     haptic("light");
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
@@ -460,6 +460,19 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     if (timerExIdx === idx) setTimerExIdx(null);
     else if (timerExIdx !== null && timerExIdx > idx) setTimerExIdx(timerExIdx - 1);
     setExercises((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const moveExercise = (idx: number, dir: -1 | 1) => {
+    setExercises((prev) => {
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= prev.length) return prev;
+      const c = [...prev];
+      [c[idx], c[newIdx]] = [c[newIdx], c[idx]];
+      return c;
+    });
+    if (timerExIdx === idx) setTimerExIdx(idx + dir);
+    else if (timerExIdx === idx + dir) setTimerExIdx(idx);
+    haptic("light");
   };
 
   const checkPR = (exIdx: number, setIdx: number, field: "weight" | "reps") => {
