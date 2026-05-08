@@ -771,6 +771,26 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="h-8 w-8"
+                    disabled={exIdx === 0}
+                    title={lang === "uk" ? "Перемістити вгору" : "Move up"}
+                    onClick={() => moveExercise(exIdx, -1)}
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={exIdx === exercises.length - 1}
+                    title={lang === "uk" ? "Перемістити вниз" : "Move down"}
+                    onClick={() => moveExercise(exIdx, 1)}
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     title={lang === "uk" ? "Замінити вправу" : "Replace exercise"}
                     onClick={() => { setReplaceExIdx(exIdx); setShowLibrary(true); }}
                   >
