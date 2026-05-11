@@ -767,7 +767,6 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                   </div>
                 </div>
                 <div className="flex items-center justify-end gap-1 flex-wrap">
-                  <PreviousWorkoutInfo exerciseName={ex.name} muscleGroup={ex.muscleGroup} />
                   <Button
                     variant="ghost"
                     size="icon"
@@ -796,6 +795,7 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                   >
                     <RefreshCw className="h-4 w-4 text-primary" />
                   </Button>
+                  <PreviousWorkoutInfo exerciseName={ex.name} muscleGroup={ex.muscleGroup} />
                   <Button variant="ghost" size="icon" onClick={() => removeExercise(exIdx)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
               </div>
