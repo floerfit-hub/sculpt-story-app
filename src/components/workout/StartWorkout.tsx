@@ -750,8 +750,8 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           <React.Fragment key={exIdx}>
           <Card>
             <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 w-full">
                   <div className="relative shrink-0">
                     {getExerciseImage(ex) ? (
                       <img src={getExerciseImage(ex)!} alt={ex.name} className="h-10 w-10 rounded-lg object-cover bg-muted" />
@@ -761,12 +761,12 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
                       </div>
                     )}
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold">{t.exerciseNames[ex.name] || ex.name}</p>
                     <p className="text-xs text-muted-foreground">{(() => { const keyMap: Record<string, string> = { "Legs & Glutes": "legsGlutes", "Back": "back", "Chest": "chest", "Shoulders": "shoulders", "Arms": "arms", "Core": "core" }; const k = keyMap[ex.muscleGroup] as keyof typeof t.muscleGroups; return k ? t.muscleGroups[k] : ex.muscleGroup; })()}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center justify-end gap-1 flex-wrap">
                   <PreviousWorkoutInfo exerciseName={ex.name} muscleGroup={ex.muscleGroup} />
                   <Button
                     variant="ghost"
