@@ -24,6 +24,7 @@ import WorkoutActivity from "@/components/dashboard/WorkoutActivity";
 import NutritionTracker from "@/components/dashboard/NutritionTracker";
 import LastWorkoutPanel from "@/components/dashboard/LastWorkoutPanel";
 import AssignedProgramsCard from "@/components/dashboard/AssignedProgramsCard";
+import NextWorkoutCard from "@/components/dashboard/NextWorkoutCard";
 
 import PremiumGate from "@/components/subscription/PremiumGate";
 import { useFitnessStats, calculateFitScore, detectPRsLast30Days, getWeights } from "@/hooks/useFitnessStats";
@@ -570,6 +571,7 @@ const Dashboard = () => {
       )}
 
       <AssignedProgramsCard />
+      <NextWorkoutCard />
       <LastWorkoutPanel />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
