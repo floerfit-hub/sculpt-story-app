@@ -561,18 +561,9 @@ const Dashboard = () => {
         </div>
       ) : (
         <>
-          {orderedPanels.map(id => {
-            if (panelConfig.hidden.includes(id)) return null;
-            const component = panelComponents[id];
-            if (!component) return null;
-            return <div key={id}>{component}</div>;
-          })}
+          {panelComponents.checkin}
         </>
       )}
-
-      <AssignedProgramsCard />
-      <NextWorkoutCard />
-      <LastWorkoutPanel />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent className="glass-strong rounded-2xl">
