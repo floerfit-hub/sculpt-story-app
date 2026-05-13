@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { PlusCircle, Clock, Pencil, Trash2, Crown, ChevronUp, ChevronDown, Eye, EyeOff, Check, Flame, Footprints, UserCircle } from "lucide-react";
+import { PlusCircle, Clock, Pencil, Trash2, Crown, ChevronUp, ChevronDown, Eye, EyeOff, Check, Flame, Footprints, UserCircle, History as HistoryIcon, ChevronRight } from "lucide-react";
 import { format, differenceInDays, addDays, startOfMonth, subDays } from "date-fns";
 import { uk as ukLocale } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -562,6 +562,34 @@ const Dashboard = () => {
       ) : (
         <>
           {panelComponents.checkin}
+          <LastWorkoutPanel />
+          <Card className="cursor-pointer active:scale-[0.99] transition-transform" onClick={() => { sessionStorage.setItem("workout-view", "history"); navigate("/workouts"); }}>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <HistoryIcon className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-semibold text-sm">{t.workouts.workoutHistory}</p>
+                <p className="text-xs text-muted-foreground">{workouts.length} {t.workouts.workoutsLogged}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+          <AssignedProgramsCard />
+          <Card className="cursor-pointer active:scale-[0.99] transition-transform" onClick={() => { sessionStorage.setItem("workout-view", "programs"); navigate("/workouts"); }}>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <PlusCircle className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-semibold text-sm">{t.templates.workoutPlan}</p>
+                <p className="text-xs text-muted-foreground">{lang === "uk" ? "Створюйте та керуйте шаблонами" : "Create and manage templates"}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+          {panelComponents.measurements}
+          {panelComponents.weightChart}
         </>
       )}
 
