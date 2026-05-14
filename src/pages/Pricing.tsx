@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { useTranslation } from "@/i18n";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,34 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Pricing — FitTrack Pro</title>
+        <meta name="description" content="FitTrack Pro pricing: free plan forever, or go Pro for $1/month or $10/year with a 7-day free trial. Cancel anytime." />
+        <link rel="canonical" href="/pricing" />
+        <meta property="og:title" content="Pricing — FitTrack Pro" />
+        <meta property="og:description" content="Free plan forever, or go Pro for $1/month or $10/year with a 7-day free trial." />
+        <meta property="og:url" content="https://floer-fittrack-pro.lovable.app/#/pricing" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            { "@type": "Question", name: "Чи можу я скасувати в будь-який момент?", acceptedAnswer: { "@type": "Answer", text: "Так. Скасуйте з вашого профілю в будь-який час. Доступ зберігається до кінця оплаченого періоду." } },
+            { "@type": "Question", name: "Чи є безкоштовний тріал?", acceptedAnswer: { "@type": "Answer", text: "Так! Кожна Pro-підписка починається з 7 днів безкоштовного тріалу." } },
+            { "@type": "Question", name: "Які способи оплати приймаються?", acceptedAnswer: { "@type": "Answer", text: "Ми приймаємо кредитні/дебетові картки, PayPal та інші методи через Paddle." } },
+            { "@type": "Question", name: "Чи можу я отримати повернення коштів?", acceptedAnswer: { "@type": "Answer", text: "Повне повернення доступне протягом 7 днів після першого платежу (14 днів для річних планів)." } },
+          ],
+        })}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "FitTrack Pro",
+          description: "Pro subscription with AI insights, muscle heatmap, advanced strength charts, and unlimited workout history.",
+          offers: [
+            { "@type": "Offer", price: "1.00", priceCurrency: "USD", name: "Monthly" },
+            { "@type": "Offer", price: "10.00", priceCurrency: "USD", name: "Yearly" },
+          ],
+        })}</script>
+      </Helmet>
       <div className="max-w-3xl mx-auto px-5 py-8 space-y-10">
         {/* Header */}
         <div className="flex items-center gap-3">
