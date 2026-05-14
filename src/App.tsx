@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { PremiumProvider } from "@/hooks/usePremium";
 import { I18nProvider } from "@/i18n";
@@ -73,6 +74,7 @@ const LandingRoute = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <HelmetProvider>
     <ThemeProvider>
       <TooltipProvider>
         <Toaster />
@@ -113,6 +115,7 @@ const App = () => (
         </HashRouter>
       </TooltipProvider>
     </ThemeProvider>
+    </HelmetProvider>
   </QueryClientProvider>
 );
 

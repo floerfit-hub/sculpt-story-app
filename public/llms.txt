@@ -1,0 +1,16 @@
+# FitTrack Pro
+
+> Workout and body-tracking PWA: log exercises, track measurements, calculate calories, and visualize progress with AI insights.
+
+## Pages
+
+- [Home / Landing](/#/landing): Product overview, features, and how it works.
+- [Pricing](/#/pricing): Free plan and Pro subscription ($1/month or $10/year) with 7-day free trial.
+- [Sign in / Sign up](/#/auth): Authentication for accessing the tracker.
+- [Contact](/#/contact): Support email and response times.
+
+## Optional
+
+- [Terms of Service](/#/terms)
+- [Privacy Policy](/#/privacy)
+- [Refund Policy](/#/refund)

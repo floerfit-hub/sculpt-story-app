@@ -1,8 +1,17 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ArrowLeft } from "lucide-react";
 
 const Privacy = () => (
   <div className="min-h-screen bg-background px-5 py-8 max-w-2xl mx-auto">
+    <Helmet>
+      <title>Privacy Policy — FitTrack Pro</title>
+      <meta name="description" content="How FitTrack Pro collects, uses, stores, and protects your personal and fitness data." />
+      <link rel="canonical" href="/privacy" />
+      <meta property="og:title" content="Privacy Policy — FitTrack Pro" />
+      <meta property="og:description" content="How FitTrack Pro collects, uses, stores, and protects your personal and fitness data." />
+      <meta property="og:url" content="https://floer-fittrack-pro.lovable.app/#/privacy" />
+    </Helmet>
     <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
       <ArrowLeft className="h-4 w-4" /> Back
     </Link>

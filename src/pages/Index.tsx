@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Dumbbell, BarChart3, Target, Sparkles, Shield, Zap, ArrowRight, Check, Mail, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +26,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>FitTrack Pro — Track Workouts, Body & Calories</title>
+        <meta name="description" content="All-in-one fitness tracker: log workouts, monitor body measurements, calculate calories and macros, and unlock AI insights with Pro." />
+        <link rel="canonical" href="/" />
+        <meta property="og:title" content="FitTrack Pro — Track Workouts, Body & Calories" />
+        <meta property="og:description" content="All-in-one fitness tracker: log workouts, monitor body measurements, calculate calories and macros, and unlock AI insights." />
+        <meta property="og:url" content="https://floer-fittrack-pro.lovable.app/" />
+      </Helmet>
       {/* Header */}
       <header className="sticky top-0 z-50 glass-strong" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div className="max-w-5xl mx-auto flex h-14 items-center justify-between px-5">
