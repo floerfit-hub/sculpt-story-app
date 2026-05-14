@@ -1,8 +1,17 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ArrowLeft } from "lucide-react";
 
 const Terms = () => (
   <div className="min-h-screen bg-background px-5 py-8 max-w-2xl mx-auto">
+    <Helmet>
+      <title>Terms of Service — FitTrack Pro</title>
+      <meta name="description" content="Terms governing access to and use of FitTrack Pro, including subscriptions, billing, and acceptable use." />
+      <link rel="canonical" href="/terms" />
+      <meta property="og:title" content="Terms of Service — FitTrack Pro" />
+      <meta property="og:description" content="Terms governing access to and use of FitTrack Pro, including subscriptions and billing." />
+      <meta property="og:url" content="https://floer-fittrack-pro.lovable.app/#/terms" />
+    </Helmet>
     <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
       <ArrowLeft className="h-4 w-4" /> Back
     </Link>
