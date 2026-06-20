@@ -159,6 +159,8 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   };
 
   const [dbAnimationMap, setDbAnimationMap] = useState<Record<string, string>>({});
+  const [allLibraryExercises, setAllLibraryExercises] = useState<{ name: string; muscle_group: string; image?: string | null }[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   useEffect(() => {
     const loadAnimations = async () => {
       const { data } = await supabase
@@ -179,6 +181,60 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     };
     loadAnimations();
   }, []);
+
+  useEffect(() => {
+    const loadLibrary = async () => {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const { data } = await supabase
+        .from("exercises")
+        .select("name, muscle_group, gif_url, animation_url, is_deprecated" as any);
+      const fromDb = ((data as any[]) || [])
+        .filter((e) => !e.is_deprecated)
+        .map((e) => ({
+          name: e.name,
+          muscle_group: e.muscle_group,
+          image: e.gif_url
+            ? `${supabaseUrl}/storage/v1/object/public/exercise-gifs/${e.gif_url}`
+            : e.animation_url,
+        }));
+      let custom: { name: string; muscle_group: string; image?: string | null }[] = [];
+      if (user) {
+        const { data: c } = await (supabase as any)
+          .from("custom_exercises")
+          .select("exercise_name, muscle_group, image_url")
+          .eq("user_id", user.id);
+        custom = ((c as any[]) || []).map((e) => ({
+          name: e.exercise_name,
+          muscle_group: e.muscle_group,
+          image: e.image_url,
+        }));
+      }
+      setAllLibraryExercises([...fromDb, ...custom]);
+    };
+    loadLibrary();
+  }, [user]);
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    const seen = new Set<string>();
+    const out: { name: string; muscle_group: string; image?: string | null }[] = [];
+    for (const e of allLibraryExercises) {
+      const localized = ((t.exerciseNames as any) || {})[e.name] || e.name;
+      if (
+        e.name.toLowerCase().includes(q) ||
+        String(localized).toLowerCase().includes(q)
+      ) {
+        const key = `${e.name}::${e.muscle_group}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          out.push(e);
+        }
+      }
+      if (out.length >= 12) break;
+    }
+    return out;
+  }, [searchQuery, allLibraryExercises, t]);
 
   const getExerciseImage = (ex: WorkoutExercise): string | undefined => {
     if (ex.image) return ex.image;
