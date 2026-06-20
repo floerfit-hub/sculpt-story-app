@@ -794,7 +794,49 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           </div>
         </div>
 
-        <Input placeholder={t.workouts.workoutNamePlaceholder} value={workoutName} onChange={(e) => setWorkoutName(e.target.value)} className="h-11" />
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={lang === "uk" ? "Пошук вправ у бібліотеці..." : "Search exercises in library..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-11 pl-9"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground"
+              aria-label="Clear"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+          {searchResults.length > 0 && (
+            <Card className="absolute z-20 w-full mt-1 max-h-80 overflow-y-auto shadow-lg">
+              <CardContent className="p-1">
+                {searchResults.map((r, i) => (
+                  <button
+                    key={`${r.name}-${i}`}
+                    type="button"
+                    onClick={() => { addExercise(r.name, r.muscle_group); setSearchQuery(""); }}
+                    className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-accent active:bg-accent text-left"
+                  >
+                    {r.image ? (
+                      <img src={r.image} alt="" className="h-9 w-9 rounded-md object-cover bg-muted shrink-0" />
+                    ) : (
+                      <div className="h-9 w-9 rounded-md bg-muted shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{((t.exerciseNames as any) || {})[r.name] || r.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{r.muscle_group}</p>
+                    </div>
+                  </button>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}>
           <Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}
