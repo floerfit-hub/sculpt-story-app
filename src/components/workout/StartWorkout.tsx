@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy, Camera, X, Star, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Timer, Save, CheckCircle, Clock, Info, Copy, Camera, X, Star, RefreshCw, ChevronUp, ChevronDown, Search } from "lucide-react";
 import ExerciseLibrary from "./ExerciseLibrary";
 import PreviousWorkoutInfo from "./PreviousWorkoutInfo";
 import RestTimer from "./RestTimer";
@@ -159,6 +159,8 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
   };
 
   const [dbAnimationMap, setDbAnimationMap] = useState<Record<string, string>>({});
+  const [allLibraryExercises, setAllLibraryExercises] = useState<{ name: string; muscle_group: string; image?: string | null }[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   useEffect(() => {
     const loadAnimations = async () => {
       const { data } = await supabase
@@ -179,6 +181,60 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
     };
     loadAnimations();
   }, []);
+
+  useEffect(() => {
+    const loadLibrary = async () => {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const { data } = await supabase
+        .from("exercises")
+        .select("name, muscle_group, gif_url, animation_url, is_deprecated" as any);
+      const fromDb = ((data as any[]) || [])
+        .filter((e) => !e.is_deprecated)
+        .map((e) => ({
+          name: e.name,
+          muscle_group: e.muscle_group,
+          image: e.gif_url
+            ? `${supabaseUrl}/storage/v1/object/public/exercise-gifs/${e.gif_url}`
+            : e.animation_url,
+        }));
+      let custom: { name: string; muscle_group: string; image?: string | null }[] = [];
+      if (user) {
+        const { data: c } = await (supabase as any)
+          .from("custom_exercises")
+          .select("exercise_name, muscle_group, image_url")
+          .eq("user_id", user.id);
+        custom = ((c as any[]) || []).map((e) => ({
+          name: e.exercise_name,
+          muscle_group: e.muscle_group,
+          image: e.image_url,
+        }));
+      }
+      setAllLibraryExercises([...fromDb, ...custom]);
+    };
+    loadLibrary();
+  }, [user]);
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    const seen = new Set<string>();
+    const out: { name: string; muscle_group: string; image?: string | null }[] = [];
+    for (const e of allLibraryExercises) {
+      const localized = ((t.exerciseNames as any) || {})[e.name] || e.name;
+      if (
+        e.name.toLowerCase().includes(q) ||
+        String(localized).toLowerCase().includes(q)
+      ) {
+        const key = `${e.name}::${e.muscle_group}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          out.push(e);
+        }
+      }
+      if (out.length >= 12) break;
+    }
+    return out;
+  }, [searchQuery, allLibraryExercises, t]);
 
   const getExerciseImage = (ex: WorkoutExercise): string | undefined => {
     if (ex.image) return ex.image;
@@ -738,7 +794,49 @@ const StartWorkout = ({ onBack, editData, initialExercises, initialName }: Start
           </div>
         </div>
 
-        <Input placeholder={t.workouts.workoutNamePlaceholder} value={workoutName} onChange={(e) => setWorkoutName(e.target.value)} className="h-11" />
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={lang === "uk" ? "Пошук вправ у бібліотеці..." : "Search exercises in library..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-11 pl-9"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground"
+              aria-label="Clear"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+          {searchResults.length > 0 && (
+            <Card className="absolute z-20 w-full mt-1 max-h-80 overflow-y-auto shadow-lg">
+              <CardContent className="p-1">
+                {searchResults.map((r, i) => (
+                  <button
+                    key={`${r.name}-${i}`}
+                    type="button"
+                    onClick={() => { addExercise(r.name, r.muscle_group); setSearchQuery(""); }}
+                    className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-accent active:bg-accent text-left"
+                  >
+                    {r.image ? (
+                      <img src={r.image} alt="" className="h-9 w-9 rounded-md object-cover bg-muted shrink-0" />
+                    ) : (
+                      <div className="h-9 w-9 rounded-md bg-muted shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{((t.exerciseNames as any) || {})[r.name] || r.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{r.muscle_group}</p>
+                    </div>
+                  </button>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         <Button variant="outline" className="w-full h-12" onClick={() => setShowLibrary(true)}>
           <Plus className="h-4 w-4 mr-2" /> {t.workouts.addExercise}

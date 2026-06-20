@@ -524,9 +524,11 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEdit(ex)}>
               <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteCustomExercise(ex.id)}>
-              <Trash2 className="h-4 w-4 text-destructive" />
-            </Button>
+            {isAdmin && (
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteCustomExercise(ex.id)}>
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            )}
             {selectable && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
           </div>
         </CardContent>
