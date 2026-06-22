@@ -245,15 +245,19 @@ const AddEntry = () => {
     );
   }
 
+  const prevPlaceholder = (key: keyof ProgressEntry, fallback: string) => {
+    const v = previousEntry?.[key] as number | null | undefined;
+    return v != null ? String(v) : fallback;
+  };
+
   const fields = [
-    { key: "weight", label: t.addEntry.weightKg, placeholder: "75" },
-    { key: "waist", label: t.addEntry.waistCm, placeholder: "80" },
-    { key: "chest", label: t.addEntry.chestCm, placeholder: "95" },
-    
-    { key: "arm_circumference", label: t.addEntry.armCm, placeholder: "35" },
-    { key: "glute_circumference", label: t.addEntry.gluteCm, placeholder: "100" },
-    { key: "thigh_circumference", label: t.addEntry.thighCm, placeholder: "55" },
-    { key: "body_fat", label: t.addEntry.bodyFatOptional, placeholder: "15" },
+    { key: "weight", label: t.addEntry.weightKg, placeholder: prevPlaceholder("weight" as any, "75") },
+    { key: "waist", label: t.addEntry.waistCm, placeholder: prevPlaceholder("waist" as any, "80") },
+    { key: "chest", label: t.addEntry.chestCm, placeholder: prevPlaceholder("chest" as any, "95") },
+    { key: "arm_circumference", label: t.addEntry.armCm, placeholder: prevPlaceholder("arm_circumference" as any, "35") },
+    { key: "glute_circumference", label: t.addEntry.gluteCm, placeholder: prevPlaceholder("glute_circumference" as any, "100") },
+    { key: "thigh_circumference", label: t.addEntry.thighCm, placeholder: prevPlaceholder("thigh_circumference" as any, "55") },
+    { key: "body_fat", label: t.addEntry.bodyFatOptional, placeholder: prevPlaceholder("body_fat" as any, "15") },
   ] as const;
 
 
