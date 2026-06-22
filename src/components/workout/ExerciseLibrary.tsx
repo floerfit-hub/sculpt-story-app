@@ -879,9 +879,10 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
       )}
 
       {/* Admin Edit Dialog */}
-      {adminEditDialog && (
-        <Dialog open={!!adminEditDialog} onOpenChange={(open) => !open && setAdminEditDialog(null)}>
-          <DialogContent>
+      <Dialog open={!!adminEditDialog} onOpenChange={(open) => !open && setAdminEditDialog(null)}>
+        <DialogContent>
+          {adminEditDialog && (
+            <>
             <DialogHeader>
               <DialogTitle>{lang === "uk" ? "Редагувати вправу" : "Edit Exercise"}</DialogTitle>
             </DialogHeader>
@@ -911,9 +912,10 @@ const ExerciseLibrary = ({ onBack, onSelect, selectable }: Props) => {
                 <Trash2 className="h-4 w-4 mr-1" /> {lang === "uk" ? "Видалити вправу" : "Delete Exercise"}
               </Button>
             </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Fullscreen lightbox */}
       <Dialog open={!!lightboxUrl} onOpenChange={() => setLightboxUrl(null)}>
