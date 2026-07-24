@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://iuvwjsiwbpxbwenamzrj.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "floer-fittrack-mcp",
+      "version": "0.1.0",
+      "title": "Floer FitTrack"
+    },
+    "tools": [
+      {
+        "name": "list_recent_workouts",
+        "title": "List recent workouts",
+        "description": "Returns the signed-in user's most recent workouts (id, name, started_at, finished_at, total sets).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "Max workouts to return (default 10).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_workout",
+        "title": "Get workout details",
+        "description": "Returns a single workout of the signed-in user, including all sets (exercise, weight, reps, rest_time).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "workout_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Workout UUID."
+            }
+          },
+          "required": [
+            "workout_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_exercises",
+        "title": "Search exercise library",
+        "description": "Search the global exercise library by name substring, optionally filtered by muscle group.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Substring to match against exercise name."
+            },
+            "muscle_group": {
+              "description": "Optional muscle group filter (e.g. Chest, Legs).",
+              "type": "string"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_body_weight",
+        "title": "Log body weight",
+        "description": "Record a new body-weight measurement for the signed-in user.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "weight_kg": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Body weight in kilograms."
+            },
+            "note": {
+              "description": "Optional note.",
+              "type": "string"
+            },
+            "date": {
+              "description": "Optional ISO date (YYYY-MM-DD). Defaults to today.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "weight_kg"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_measurements",
+        "title": "List body measurements",
+        "description": "Returns the signed-in user's recent progress entries (body weight and body measurements).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_fitness_stats",
+        "title": "Get fitness stats",
+        "description": "Returns the signed-in user's current Fit Score, XP, level, and streaks.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_today_nutrition",
+        "title": "List today's food log",
+        "description": "Returns the signed-in user's food-log entries for a given day (defaults to today) and their macro totals.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "date": {
+              "description": "ISO date (YYYY-MM-DD). Defaults to today (UTC).",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

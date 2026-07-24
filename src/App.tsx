@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { PremiumProvider } from "@/hooks/usePremium";
@@ -60,8 +60,16 @@ const OnboardingRoute = () => {
 
 const AuthRoute = () => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   if (loading) return null;
-  if (user) return <Navigate to="/" replace />;
+  if (user) {
+    const next = new URLSearchParams(location.search).get("next");
+    if (next && next.startsWith("/")) {
+      window.location.replace(next);
+      return null;
+    }
+    return <Navigate to="/" replace />;
+  }
   return <Auth />;
 };
 
