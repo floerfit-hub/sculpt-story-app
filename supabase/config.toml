@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.sync-exercise-animation]
 verify_jwt = false
+
+[functions.mcp]
+verify_jwt = false
