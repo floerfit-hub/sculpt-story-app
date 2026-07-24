@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 
 export default defineConfig(({ mode }) => ({
   base: "/sculpt-story-app/",
@@ -16,6 +17,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    mcpPlugin(),
     VitePWA({
       registerType: "prompt",
       includeAssets: ["favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
