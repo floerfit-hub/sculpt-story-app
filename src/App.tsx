@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { PremiumProvider } from "@/hooks/usePremium";
@@ -80,7 +81,45 @@ const LandingRoute = () => {
   return <Index />;
 };
 
-const App = () => (
+const App = () => {
+  useEffect(() => {
+    const webApp = window.Telegram?.WebApp;
+    if (!webApp) return;
+
+    const root = document.documentElement;
+
+    const syncTelegramEnvironment = () => {
+      const viewportHeight = webApp.viewportStableHeight || webApp.viewportHeight;
+      if (viewportHeight > 0) {
+        root.style.setProperty("--tg-viewport-height", `${viewportHeight}px`);
+      }
+
+      const safeArea = webApp.safeAreaInset;
+      const contentSafeArea = webApp.contentSafeAreaInset;
+      root.style.setProperty("--tg-safe-area-inset-top", `${safeArea?.top ?? 0}px`);
+      root.style.setProperty("--tg-safe-area-inset-bottom", `${safeArea?.bottom ?? 0}px`);
+      root.style.setProperty("--tg-content-safe-area-inset-top", `${contentSafeArea?.top ?? 0}px`);
+      root.style.setProperty("--tg-content-safe-area-inset-bottom", `${contentSafeArea?.bottom ?? 0}px`);
+      root.dataset.telegram = "true";
+    };
+
+    webApp.ready();
+    webApp.expand();
+    webApp.setHeaderColor?.("bg_color");
+    webApp.setBackgroundColor?.("bg_color");
+    syncTelegramEnvironment();
+
+    webApp.onEvent("viewportChanged", syncTelegramEnvironment);
+    webApp.onEvent("themeChanged", syncTelegramEnvironment);
+
+    return () => {
+      webApp.offEvent("viewportChanged", syncTelegramEnvironment);
+      webApp.offEvent("themeChanged", syncTelegramEnvironment);
+      delete root.dataset.telegram;
+    };
+  }, []);
+
+  return (
   <QueryClientProvider client={queryClient}>
     <HelmetProvider>
     <ThemeProvider>
@@ -125,6 +164,7 @@ const App = () => (
     </ThemeProvider>
     </HelmetProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
