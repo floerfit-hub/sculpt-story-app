@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 /* Instant tap response for all interactive elements */
 button, a, [role="button"], .cursor-pointer {
   touch-action: manipulation;
@@ -12,6 +10,11 @@ button, a, [role="button"], .cursor-pointer {
 
 @layer base {
   :root {
+    --tg-viewport-height: 100dvh;
+    --tg-safe-area-inset-top: 0px;
+    --tg-safe-area-inset-bottom: 0px;
+    --tg-content-safe-area-inset-top: 0px;
+    --tg-content-safe-area-inset-bottom: 0px;
     --background: 0 0% 100%;
     --foreground: 215 28% 17%;
 
@@ -139,7 +142,11 @@ button, a, [role="button"], .cursor-pointer {
 
   body {
     @apply bg-background text-foreground;
+    background-color: var(--tg-theme-bg-color, hsl(var(--background)));
+    color: var(--tg-theme-text-color, hsl(var(--foreground)));
     font-family: var(--font-body);
+    min-height: var(--tg-viewport-height, 100dvh);
+    overscroll-behavior-y: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -202,6 +209,41 @@ button, a, [role="button"], .cursor-pointer {
 html {
   -webkit-tap-highlight-color: transparent;
   scroll-behavior: smooth;
+  background-color: var(--tg-theme-bg-color, hsl(var(--background)));
+}
+
+#root,
+.app-viewport {
+  min-height: var(--tg-viewport-height, 100dvh);
+}
+
+html[data-telegram="true"] .app-viewport {
+  background-color: var(--tg-theme-bg-color, hsl(var(--background)));
+  color: var(--tg-theme-text-color, hsl(var(--foreground)));
+}
+
+html[data-telegram="true"] .safe-top {
+  padding-top: max(
+    env(safe-area-inset-top),
+    var(--tg-safe-area-inset-top),
+    var(--tg-content-safe-area-inset-top)
+  );
+}
+
+.app-bottom-nav {
+  padding-bottom: max(
+    env(safe-area-inset-bottom),
+    var(--tg-safe-area-inset-bottom),
+    var(--tg-content-safe-area-inset-bottom)
+  );
+}
+
+@media (max-width: 480px) {
+  html[data-telegram="true"] main {
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 
 /* Eliminate 300ms tap delay on all interactive elements */
